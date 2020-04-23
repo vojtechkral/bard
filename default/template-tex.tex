@@ -1,0 +1,212 @@
+{% raw %}
+% Using Tera with Tex has a few gotchas.
+% Tera is sensitive to the {{ , {% , and {# sequence;
+% because of that, these need to be escaped:
+%  - \command{{{ tera_var }}} can be escaped as \command{\I {{ tera_var }}
+%    where \I is an alias for \ignorespaces when whitespace IS NOT significant
+%  - \command{{{ tera_var }}} can be escaped as \command{\V{}{{ tera_var }}
+%    where \V is an alias for \vphantom when whitespace IS significant
+%  - {% at the end of a line can be escaped as { % or {\I %
+%  - Where \I or \V doesn't work, one needs to use Tera raw blocks
+%
+% The content of all variables is by default escaped with a TeX
+% escaping function similar to how special characters are escaped in HTML.
+% The escaping function doesn't escape spaces.
+% To preserve spaces, use {{ variable | pre | safe }}, which replaces spaces
+% with the non-breaking space TeX entity '~'.
+{% endraw %}
+
+\documentclass[{{ output.fontsize | default(value="12") }}pt,a5paper,openany]{memoir}
+{% raw %}
+\setheadfoot{0pt}{0pt}
+\setlrmarginsandblock{1cm}{1cm}{*}
+\setulmarginsandblock{.75cm}{1cm}{*}
+\checkandfixthelayout
+\raggedbottom
+
+\usepackage{fontspec}
+\usepackage{titlesec}
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage[defaultlines=5,all]{nowidow}
+\usepackage[pdfusetitle,hidelinks]{hyperref}
+
+%% Aliases for \easier escaping
+\newcommand\I[0]{%
+  \ignorespaces
+}
+\newcommand\V[0]{%
+  \vphantom
+}
+
+%% Page style
+\makepagestyle{songs}
+\makeoddfoot{songs}{}{}{\thepage}
+\makeevenfoot{songs}{\thepage}{}{}
+% Patch cleardoublepage to not get blank pages after title & contents pages:
+\renewcommand\cleardoublepage{\clearpage}
+% Suppress page numbers in the toc/frontmatter:
+\aliaspagestyle{chapter}{empty}
+
+%% Fonts
+\setmainfont[Ligatures=TeX]{{% endraw -%}
+  {{ output.font | default(value="DejaVu Sans") }}
+{%- raw %}}
+
+%% Spacings
+\setlength{\parindent}{0pt}
+\setlength{\tabcolsep}{0pt}
+\setlength{\parskip}{0pt}
+
+%% ToC style
+% Hide the title of the ToC:
+\renewcommand\tocheadstart{}
+\renewcommand\printtoctitle[1]{}
+\renewcommand\aftertoctitle{}
+% Hide section numbers in the ToC:
+\renewcommand\numberline[1]{}
+\renewcommand\cftdotsep{1}
+
+%% Hyperlinks setup
+\hypersetup{
+  bookmarks=true,
+  pdfcreator={{% endraw %}{{ program.name }} v. {{ program.version }} - {{ program.homepage }}{% raw %}},
+}
+
+%% Song title and subtitle formats
+\titleformat{\section}
+  {\centering\large\bfseries}{}{0pt}{\underline}
+\titlespacing*{\section}
+  {0pt}{0pt}{.25ex}
+\newcommand\songtitle[1]{%
+  % This is a trick to only layout a song on the current page
+  % if it fits, otherwise a pagebreak is inserted
+  \FloatBlock
+  \vfil
+  \pagebreak[2]
+  \vfilneg
+  \section{#1}
+}
+\newcommand\subtitle[1]{%
+  \emph{#1}
+}
+
+%% Chord layout command
+\makeatletter
+\newcommand{\chord}{\@ifstar{\@chordalt}{\@chord}}
+\newcommand{\@chord}[2]{%
+  \begin{tabular}[b]{l}%
+    \textbf{\textcolor{red}{#1}}\\%  % The chord
+    #2\mbox{}\end{tabular}%          % The lyrics
+}
+\newcommand{\@chordalt}[3]{%
+  \begin{tabular}[b]{l}%
+    \textbf{\textcolor{red}{#1}}\\%  % The chord
+    \textbf{\textcolor{blue}{#2}}\\% % The alt chord
+    #3\mbox{}\end{tabular}%          % The lyrics
+}
+\makeatother
+
+%% Time layout command
+\newcommand\timesign[2]{%
+  \begin{large}\( {#1} / {#2} \)\end{large}
+}
+{% endraw %}
+
+% Metadata
+\title{\I {{book.title}}}
+
+% Document
+\begin{document}
+
+%% Title page
+\frontmatter
+\begin{titlingpage}
+  \begin{vplace}[0.5]
+    \begin{center}
+      \Huge{\textbf{\I {{ book.title }}}} \\
+      \vspace{0.5cm}
+      \LARGE{\I {{ book.subtitle | default(value="") }}} \\
+      \vspace{10cm}
+      \small{\I {{ book.title_note | default(value="") }}}
+    \end{center}
+  \end{vplace}
+\end{titlingpage}
+
+%% Contents page
+\tableofcontents*
+
+%% Songs
+\mainmatter
+\pagestyle{songs}
+{% for song in songs -%}
+  \songtitle{\I {{ song.title }}}
+
+  {% if song.subtitles %}
+    \begin{center}
+    {% for subtitle in song.subtitles -%}
+      \subtitle{\I {{ subtitle }}}{% if not loop.last %}\\{% endif %}
+    {% endfor %}
+    \end{center}
+  {% else %}
+    \vphantom{}
+  {% endif %}
+
+  \begin{description}[leftmargin=2em,style=nextline,itemsep=1ex]
+    {% for item in song.content -%}
+
+      {%- if item.type == "verse" %}
+        \item[{% if item.is_chorus %}\emph{\I {{ item.label }}}{% else %}{{ item.label }}{% endif %}]
+        {%- for line in item.lines -%}
+          {%- for span in line.spans -%}
+            {%- if line.chord_rows == 1 -%}
+              \chord{\V{}{{ span.chord | pre | safe }}}{\V{}{{ span.lyrics | pre | safe }}}
+            {%- elif line.chord_rows == 2 -%}
+              \chord*{\V{}{{ span.chord | pre | safe }}}{\V{}{{ span.chord_alt | pre | safe }}}{#
+                #}{\V{}{{ span.lyrics | pre | safe }}}
+            {%- else -%}
+              {{ span.lyrics | pre | safe }}
+            {%- endif -%}
+          {% endfor -%}
+          {% if not loop.last %}\\{% endif %}
+        {% endfor %}
+
+      {%- elif item.type == "list" %}
+        \item[] \begin{itemize}[noitemsep]
+          {% for item in item.items -%}
+            \item {{ item }}
+          {% endfor -%}
+        \end{itemize}
+
+      {%- elif item.type == "time" %}
+        \item[] \timesign{\I {{ item.time[0] }}}{\I {{ item.time[1] }}}
+
+      {%- elif item.type == "rule" %}
+        \item[] \vphantom{}\hrule
+
+      {%- elif item.type == "pre" %}
+        \item[] \begin{verbatim}{{ item.text | safe }}\end{verbatim}
+
+      {%- endif -%}
+    {% endfor %}
+  \end{description}
+{% endfor %}
+
+\backmatter
+\pagestyle{empty}
+
+{% if book.backmatter %}
+\pagebreak
+\begin{center}
+  {{ book.backmatter }}
+\end{center}
+{% endif %}
+
+{% if "debug" in __tera_context -%}
+\pagebreak
+\begin{scriptsize}
+  \begin{verbatim}{{ __tera_context }}\end{verbatim}
+\end{scriptsize}
+{% endif %}
+
+\end{document}

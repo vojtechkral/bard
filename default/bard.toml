@@ -1,0 +1,20 @@
+input = "songs/*.md"
+
+notation = "english"
+chorus_label = "Ch."
+
+[[output]]
+file = "songbook.tex"
+template = "template-tex.tex"
+font = "DejaVu Sans"
+process = "xelatex {{file}}"
+
+[[output]]
+file = "songbook.html"
+template = "template-html.html"
+
+[book]
+title = "My Songbook"
+subtitle = "(You can edit that title!)"
+title_note = "(And this note too...)"
+backmatter = ""  # if not empty, creates a backmatter page

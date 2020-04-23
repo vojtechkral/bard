@@ -1,0 +1,35 @@
+[package]
+name = "bard"
+version = "0.1.0"
+authors = ["Vojtech Kral <vojtech@kral.hk>"]
+description = "Creates PDF and HTML songbooks out of easy-to-write Markdown sources."
+repository = "https://github.com/vojtechkral/bard"
+homepage = "https://github.com/vojtechkral/bard"
+license = "Apache-2.0"
+keywords = ["music"]
+edition = "2018"
+
+[lib]
+name = "bard"
+path = "src/lib.rs"
+
+[[bin]]
+name = "bard"
+path = "src/main.rs"
+
+[dependencies]
+clap = "2.32"
+colored = "1.9.3"
+glob = "0.2"
+pulldown-cmark = { version = "0.7", default-features = false }
+tera = "1.1"
+serde = "1.0"
+serde_derive = "1.0"
+serde_json = "1.0.39"
+toml = "0.5"
+notify = "4.0.13"
+ctrlc = "3.1.3"
+base64 = "0.12.0"
+unicode-width = "0.1.7"
+anyhow = "1.0.26"
+thiserror = "1.0.14"

@@ -1,0 +1,25 @@
+input = "songs/*.md"
+
+notation = "english"
+chorus_label = "Ch."
+
+[[output]]
+file = "songbook.tex"
+template = "template-tex.tex"
+font = "DejaVu Sans"
+process = "tectonic {{file}}"
+
+[[output]]
+file = "songbook.html"
+template = "template-html.html"
+
+[[output]]
+file = "songbook.txt"
+
+[[output]]
+file = "songbook.json"
+
+[book]
+title = "Bard Songbook"
+subtitle = "Example project"
+title_note = "A few non-copyrighted folk songs."

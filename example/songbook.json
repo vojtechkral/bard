@@ -1,0 +1,1262 @@
+{
+  "book": {
+    "title": "Bard Songbook",
+    "title_note": "A few non-copyrighted folk songs.",
+    "subtitle": "Example project"
+  },
+  "songs": [
+    {
+      "title": "Wild Mountain Thyme",
+      "subtitles": [
+        "Irish & Scottish traditional"
+      ],
+      "content": [
+        {
+          "type": "verse",
+          "label": "1.",
+          "is_chorus": false,
+          "lines": [
+            {
+              "spans": [
+                {
+                  "chord": "",
+                  "lyrics": "O' the "
+                },
+                {
+                  "chord": "G",
+                  "lyrics": "summer "
+                },
+                {
+                  "chord": "C",
+                  "lyrics": "time "
+                },
+                {
+                  "chord": "G",
+                  "lyrics": "has come"
+                }
+              ],
+              "chord_rows": 1
+            },
+            {
+              "spans": [
+                {
+                  "chord": "",
+                  "lyrics": "And the "
+                },
+                {
+                  "chord": "C",
+                  "lyrics": "trees are sweetly "
+                },
+                {
+                  "chord": "G",
+                  "lyrics": "bloomin'"
+                }
+              ],
+              "chord_rows": 1
+            },
+            {
+              "spans": [
+                {
+                  "chord": "",
+                  "lyrics": "And the "
+                },
+                {
+                  "chord": "C",
+                  "lyrics": "wild "
+                },
+                {
+                  "chord": "G",
+                  "lyrics": "mountain "
+                },
+                {
+                  "chord": "Em",
+                  "lyrics": "thyme"
+                }
+              ],
+              "chord_rows": 1
+            },
+            {
+              "spans": [
+                {
+                  "chord": "",
+                  "lyrics": "Grows "
+                },
+                {
+                  "chord": "C",
+                  "lyrics": "around the "
+                },
+                {
+                  "chord": "Am",
+                  "lyrics": "bloomin' "
+                },
+                {
+                  "chord": "C",
+                  "lyrics": "heather"
+                }
+              ],
+              "chord_rows": 1
+            },
+            {
+              "spans": [
+                {
+                  "chord": "",
+                  "lyrics": "Will ye "
+                },
+                {
+                  "chord": "G",
+                  "lyrics": "go "
+                },
+                {
+                  "chord": "C",
+                  "lyrics": "lassie "
+                },
+                {
+                  "chord": "G",
+                  "lyrics": "go?"
+                }
+              ],
+              "chord_rows": 1
+            }
+          ]
+        },
+        {
+          "type": "verse",
+          "label": "Ch.",
+          "is_chorus": true,
+          "lines": [
+            {
+              "spans": [
+                {
+                  "chord": "",
+                  "lyrics": "And we'll "
+                },
+                {
+                  "chord": "C",
+                  "lyrics": "all go "
+                },
+                {
+                  "chord": "G",
+                  "lyrics": "together to pull "
+                },
+                {
+                  "chord": "C",
+                  "lyrics": "wild "
+                },
+                {
+                  "chord": "G",
+                  "lyrics": "mountain "
+                },
+                {
+                  "chord": "Em",
+                  "lyrics": "thyme"
+                }
+              ],
+              "chord_rows": 1
+            },
+            {
+              "spans": [
+                {
+                  "chord": "",
+                  "lyrics": "All "
+                },
+                {
+                  "chord": "C",
+                  "lyrics": "around the "
+                },
+                {
+                  "chord": "Am",
+                  "lyrics": "bloomin' "
+                },
+                {
+                  "chord": "C",
+                  "lyrics": "heather, will ye "
+                },
+                {
+                  "chord": "G",
+                  "lyrics": "go "
+                },
+                {
+                  "chord": "C",
+                  "lyrics": "lassie "
+                },
+                {
+                  "chord": "G",
+                  "lyrics": "go?"
+                }
+              ],
+              "chord_rows": 1
+            }
+          ]
+        },
+        {
+          "type": "verse",
+          "label": "2.",
+          "is_chorus": false,
+          "lines": [
+            {
+              "spans": [
+                {
+                  "lyrics": "I will build my love a bower"
+                }
+              ],
+              "chord_rows": 0
+            },
+            {
+              "spans": [
+                {
+                  "lyrics": "By yon cool crystal fountain"
+                }
+              ],
+              "chord_rows": 0
+            },
+            {
+              "spans": [
+                {
+                  "lyrics": "And round it I will pile"
+                }
+              ],
+              "chord_rows": 0
+            },
+            {
+              "spans": [
+                {
+                  "lyrics": "All the wild flowers o' the mountain."
+                }
+              ],
+              "chord_rows": 0
+            },
+            {
+              "spans": [
+                {
+                  "lyrics": "Will ye go lassie go? (...)"
+                }
+              ],
+              "chord_rows": 0
+            }
+          ]
+        },
+        {
+          "type": "verse",
+          "label": "3.",
+          "is_chorus": false,
+          "lines": [
+            {
+              "spans": [
+                {
+                  "lyrics": "I will range through the wilds"
+                }
+              ],
+              "chord_rows": 0
+            },
+            {
+              "spans": [
+                {
+                  "lyrics": "And the deep glen sae dreamy"
+                }
+              ],
+              "chord_rows": 0
+            },
+            {
+              "spans": [
+                {
+                  "lyrics": "And return wi' their spoils"
+                }
+              ],
+              "chord_rows": 0
+            },
+            {
+              "spans": [
+                {
+                  "lyrics": "Tae the bower o' my dearie."
+                }
+              ],
+              "chord_rows": 0
+            },
+            {
+              "spans": [
+                {
+                  "lyrics": "Will ye go lassie go? (...)"
+                }
+              ],
+              "chord_rows": 0
+            }
+          ]
+        },
+        {
+          "type": "verse",
+          "label": "4.",
+          "is_chorus": false,
+          "lines": [
+            {
+              "spans": [
+                {
+                  "lyrics": "If my true love she'll not come"
+                }
+              ],
+              "chord_rows": 0
+            },
+            {
+              "spans": [
+                {
+                  "lyrics": "Then I'll surely find another"
+                }
+              ],
+              "chord_rows": 0
+            },
+            {
+              "spans": [
+                {
+                  "lyrics": "To pull wild mountain thyme"
+                }
+              ],
+              "chord_rows": 0
+            },
+            {
+              "spans": [
+                {
+                  "lyrics": "All around the bloomin' heather."
+                }
+              ],
+              "chord_rows": 0
+            },
+            {
+              "spans": [
+                {
+                  "lyrics": "Will ye go lassie go? (...)"
+                }
+              ],
+              "chord_rows": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Whiskey in the Jar",
+      "subtitles": [
+        "Irish traditional"
+      ],
+      "content": [
+        {
+          "type": "verse",
+          "label": "1.",
+          "is_chorus": false,
+          "lines": [
+            {
+              "spans": [
+                {
+                  "chord": "",
+                  "lyrics": "As "
+                },
+                {
+                  "chord": "C",
+                  "lyrics": " I was a goin' over the "
+                },
+                {
+                  "chord": "Am",
+                  "lyrics": " far famed Kerry mountains"
+                }
+              ],
+              "chord_rows": 1
+            },
+            {
+              "spans": [
+                {
+                  "chord": "",
+                  "lyrics": "I "
+                },
+                {
+                  "chord": "F",
+                  "lyrics": " met with Captain Farrell and his "
+                },
+                {
+                  "chord": "C",
+                  "lyrics": " money he was counting"
+                }
+              ],
+              "chord_rows": 1
+            },
+            {
+              "spans": [
+                {
+                  "chord": "",
+                  "lyrics": "I first produced my pistol and I "
+                },
+                {
+                  "chord": "Am",
+                  "lyrics": " then produced my rapier"
+                }
+              ],
+              "chord_rows": 1
+            },
+            {
+              "spans": [
+                {
+                  "chord": "",
+                  "lyrics": "Saying "
+                },
+                {
+                  "chord": "F",
+                  "lyrics": " \"Stand and deliver, for you are a bold deceiver!\""
+                }
+              ],
+              "chord_rows": 1
+            }
+          ]
+        },
+        {
+          "type": "verse",
+          "label": "Ch.",
+          "is_chorus": true,
+          "lines": [
+            {
+              "spans": [
+                {
+                  "chord": "",
+                  "lyrics": "Mush-a "
+                },
+                {
+                  "chord": "G",
+                  "lyrics": " ring dum-a do dum-a da"
+                }
+              ],
+              "chord_rows": 1
+            },
+            {
+              "spans": [
+                {
+                  "chord": "C",
+                  "lyrics": " Whack for me daddy-o"
+                }
+              ],
+              "chord_rows": 1
+            },
+            {
+              "spans": [
+                {
+                  "chord": "F",
+                  "lyrics": " Whack for me daddy-o"
+                }
+              ],
+              "chord_rows": 1
+            },
+            {
+              "spans": [
+                {
+                  "chord": "",
+                  "lyrics": "There's "
+                },
+                {
+                  "chord": "C",
+                  "lyrics": " whiskey "
+                },
+                {
+                  "chord": "G",
+                  "lyrics": " in the "
+                },
+                {
+                  "chord": "C",
+                  "lyrics": " jar"
+                }
+              ],
+              "chord_rows": 1
+            }
+          ]
+        },
+        {
+          "type": "verse",
+          "label": "2.",
+          "is_chorus": false,
+          "lines": [
+            {
+              "spans": [
+                {
+                  "lyrics": "I counted out his money and it made a pretty penny"
+                }
+              ],
+              "chord_rows": 0
+            },
+            {
+              "spans": [
+                {
+                  "lyrics": "I put it in me pocket and I took it home to Jenny"
+                }
+              ],
+              "chord_rows": 0
+            },
+            {
+              "spans": [
+                {
+                  "lyrics": "She sighed and she swore that she never would deceive me"
+                }
+              ],
+              "chord_rows": 0
+            },
+            {
+              "spans": [
+                {
+                  "lyrics": "But the devil take the women for they never can be easy"
+                }
+              ],
+              "chord_rows": 0
+            },
+            {
+              "spans": [
+                {
+                  "lyrics": "Mush-a ring dum-a do dum-a da (...)"
+                }
+              ],
+              "chord_rows": 0
+            }
+          ]
+        },
+        {
+          "type": "verse",
+          "label": "3.",
+          "is_chorus": false,
+          "lines": [
+            {
+              "spans": [
+                {
+                  "lyrics": "I went up to my chamber, all for to take a slumber"
+                }
+              ],
+              "chord_rows": 0
+            },
+            {
+              "spans": [
+                {
+                  "lyrics": "I dreamt of gold and jewels and for sure 't was no wonder"
+                }
+              ],
+              "chord_rows": 0
+            },
+            {
+              "spans": [
+                {
+                  "lyrics": "But Jenny drew me charges and she filled them up with water"
+                }
+              ],
+              "chord_rows": 0
+            },
+            {
+              "spans": [
+                {
+                  "lyrics": "Then sent for captain Farrell to be ready for the slaughter"
+                }
+              ],
+              "chord_rows": 0
+            },
+            {
+              "spans": [
+                {
+                  "lyrics": "Mush-a ring dum-a do dum-a da (...)"
+                }
+              ],
+              "chord_rows": 0
+            }
+          ]
+        },
+        {
+          "type": "verse",
+          "label": "4.",
+          "is_chorus": false,
+          "lines": [
+            {
+              "spans": [
+                {
+                  "lyrics": "'Twas was early in the morning, just before I rose to travel"
+                }
+              ],
+              "chord_rows": 0
+            },
+            {
+              "spans": [
+                {
+                  "lyrics": "Up comes a band of footmen and likewise captain Farrell"
+                }
+              ],
+              "chord_rows": 0
+            },
+            {
+              "spans": [
+                {
+                  "lyrics": "I first produced me pistol for she stole away me rapier"
+                }
+              ],
+              "chord_rows": 0
+            },
+            {
+              "spans": [
+                {
+                  "lyrics": "I couldn't shoot the water, so a prisoner I was taken"
+                }
+              ],
+              "chord_rows": 0
+            },
+            {
+              "spans": [
+                {
+                  "lyrics": "Mush-a ring dum-a do dum-a da (...)"
+                }
+              ],
+              "chord_rows": 0
+            }
+          ]
+        },
+        {
+          "type": "verse",
+          "label": "5.",
+          "is_chorus": false,
+          "lines": [
+            {
+              "spans": [
+                {
+                  "lyrics": "Now there's some take delight in the carriages a-rollin'"
+                }
+              ],
+              "chord_rows": 0
+            },
+            {
+              "spans": [
+                {
+                  "lyrics": "And others take delight in the hurling and the bowling"
+                }
+              ],
+              "chord_rows": 0
+            },
+            {
+              "spans": [
+                {
+                  "lyrics": "But I take delight in the juice of the barley"
+                }
+              ],
+              "chord_rows": 0
+            },
+            {
+              "spans": [
+                {
+                  "lyrics": "And courting pretty fair maids in the morning bright and early"
+                }
+              ],
+              "chord_rows": 0
+            },
+            {
+              "spans": [
+                {
+                  "lyrics": "Mush-a ring dum-a do dum-a da (...)"
+                }
+              ],
+              "chord_rows": 0
+            }
+          ]
+        },
+        {
+          "type": "verse",
+          "label": "6.",
+          "is_chorus": false,
+          "lines": [
+            {
+              "spans": [
+                {
+                  "lyrics": "If anyone can aid me 't is my brother in the army"
+                }
+              ],
+              "chord_rows": 0
+            },
+            {
+              "spans": [
+                {
+                  "lyrics": "If I can find his station in Cork or in Killarney"
+                }
+              ],
+              "chord_rows": 0
+            },
+            {
+              "spans": [
+                {
+                  "lyrics": "If he'll go with me, we'll go rovin' through Killkenny"
+                }
+              ],
+              "chord_rows": 0
+            },
+            {
+              "spans": [
+                {
+                  "lyrics": "I'm sure he'll treat me better than my own a-sporting Jenny"
+                }
+              ],
+              "chord_rows": 0
+            },
+            {
+              "spans": [
+                {
+                  "lyrics": "Mush-a ring dum-a do dum-a da (...)"
+                }
+              ],
+              "chord_rows": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Danny Boy",
+      "subtitles": [
+        "English ballad"
+      ],
+      "content": [
+        {
+          "type": "verse",
+          "label": "1.",
+          "is_chorus": false,
+          "lines": [
+            {
+              "spans": [
+                {
+                  "chord": "G7",
+                  "lyrics": "Oh Danny "
+                },
+                {
+                  "chord": "C",
+                  "lyrics": "Boy, the pipes, the "
+                },
+                {
+                  "chord": "C7",
+                  "lyrics": "pipes are "
+                },
+                {
+                  "chord": "F",
+                  "lyrics": "calling"
+                }
+              ],
+              "chord_rows": 1
+            },
+            {
+              "spans": [
+                {
+                  "chord": "",
+                  "lyrics": "From glen to "
+                },
+                {
+                  "chord": "C",
+                  "lyrics": "glen, and "
+                },
+                {
+                  "chord": "Em",
+                  "lyrics": "down the "
+                },
+                {
+                  "chord": "F",
+                  "lyrics": "mountain "
+                },
+                {
+                  "chord": "G7",
+                  "lyrics": "side"
+                }
+              ],
+              "chord_rows": 1
+            },
+            {
+              "spans": [
+                {
+                  "chord": "",
+                  "lyrics": "The summer’s "
+                },
+                {
+                  "chord": "C",
+                  "lyrics": "gone, and all the "
+                },
+                {
+                  "chord": "C7",
+                  "lyrics": " flowers are "
+                },
+                {
+                  "chord": "F",
+                  "lyrics": "dying"
+                }
+              ],
+              "chord_rows": 1
+            },
+            {
+              "spans": [
+                {
+                  "chord": "",
+                  "lyrics": "‘Tis you, ’tis "
+                },
+                {
+                  "chord": "C",
+                  "lyrics": "you must "
+                },
+                {
+                  "chord": "Dm",
+                  "lyrics": "go and "
+                },
+                {
+                  "chord": "G7",
+                  "lyrics": "I must "
+                },
+                {
+                  "chord": "C",
+                  "lyrics": "bide."
+                }
+              ],
+              "chord_rows": 1
+            }
+          ]
+        },
+        {
+          "type": "verse",
+          "label": "Ch. 1.",
+          "is_chorus": true,
+          "lines": [
+            {
+              "spans": [
+                {
+                  "chord": "G7",
+                  "lyrics": "But come ye "
+                },
+                {
+                  "chord": "Am",
+                  "lyrics": "back when "
+                },
+                {
+                  "chord": "F",
+                  "lyrics": "summer’s "
+                },
+                {
+                  "chord": "G7",
+                  "lyrics": "in the "
+                },
+                {
+                  "chord": "C",
+                  "lyrics": "meadow"
+                }
+              ],
+              "chord_rows": 1
+            },
+            {
+              "spans": [
+                {
+                  "chord": "",
+                  "lyrics": "Or when the "
+                },
+                {
+                  "chord": "Am",
+                  "lyrics": "valley’s "
+                },
+                {
+                  "chord": "F",
+                  "lyrics": "hushed and "
+                },
+                {
+                  "chord": "Em",
+                  "lyrics": "white with "
+                },
+                {
+                  "chord": "D7",
+                  "lyrics": "snow "
+                },
+                {
+                  "chord": "G7",
+                  "lyrics": ""
+                }
+              ],
+              "chord_rows": 1
+            },
+            {
+              "spans": [
+                {
+                  "chord": "",
+                  "lyrics": "‘Tis I’ll be "
+                },
+                {
+                  "chord": "C",
+                  "lyrics": "here in "
+                },
+                {
+                  "chord": "F",
+                  "lyrics": "sunshine or in "
+                },
+                {
+                  "chord": "C",
+                  "lyrics": "sha"
+                },
+                {
+                  "chord": "Am",
+                  "lyrics": "dow."
+                }
+              ],
+              "chord_rows": 1
+            },
+            {
+              "spans": [
+                {
+                  "chord": "",
+                  "lyrics": "Oh Danny "
+                },
+                {
+                  "chord": "C",
+                  "lyrics": "Boy, oh Danny "
+                },
+                {
+                  "chord": "F",
+                  "lyrics": "Boy, I "
+                },
+                {
+                  "chord": "G7",
+                  "lyrics": "love you "
+                },
+                {
+                  "chord": "C",
+                  "lyrics": "so."
+                }
+              ],
+              "chord_rows": 1
+            }
+          ]
+        },
+        {
+          "type": "verse",
+          "label": "2.",
+          "is_chorus": false,
+          "lines": [
+            {
+              "spans": [
+                {
+                  "lyrics": "And if you come, when all the flowers are dying"
+                }
+              ],
+              "chord_rows": 0
+            },
+            {
+              "spans": [
+                {
+                  "lyrics": "And I am dead, as dead I well may be"
+                }
+              ],
+              "chord_rows": 0
+            },
+            {
+              "spans": [
+                {
+                  "lyrics": "You’ll come and find the place where I am lying"
+                }
+              ],
+              "chord_rows": 0
+            },
+            {
+              "spans": [
+                {
+                  "lyrics": "And kneel and say an ”Ave”  there for me."
+                }
+              ],
+              "chord_rows": 0
+            }
+          ]
+        },
+        {
+          "type": "verse",
+          "label": "Ch. 2.",
+          "is_chorus": true,
+          "lines": [
+            {
+              "spans": [
+                {
+                  "lyrics": "And I shall hear, though soft you tread above me"
+                }
+              ],
+              "chord_rows": 0
+            },
+            {
+              "spans": [
+                {
+                  "lyrics": "And all my dreams will warm and sweeter be "
+                }
+              ],
+              "chord_rows": 0
+            },
+            {
+              "spans": [
+                {
+                  "lyrics": "If you’ll not fail to tell me that you love me"
+                }
+              ],
+              "chord_rows": 0
+            },
+            {
+              "spans": [
+                {
+                  "lyrics": "I’ll sleep in peace until you come to me."
+                }
+              ],
+              "chord_rows": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Handsome Molly",
+      "subtitles": [
+        "U.S. Old-time"
+      ],
+      "content": [
+        {
+          "type": "verse",
+          "label": "1.",
+          "is_chorus": false,
+          "lines": [
+            {
+              "spans": [
+                {
+                  "chord": "G",
+                  "lyrics": "I wish was in London"
+                }
+              ],
+              "chord_rows": 1
+            },
+            {
+              "spans": [
+                {
+                  "chord": "",
+                  "lyrics": "Or some other seaport "
+                },
+                {
+                  "chord": "D",
+                  "lyrics": "town"
+                }
+              ],
+              "chord_rows": 1
+            },
+            {
+              "spans": [
+                {
+                  "chord": "D",
+                  "lyrics": "Step my foot in a steamboat"
+                }
+              ],
+              "chord_rows": 1
+            },
+            {
+              "spans": [
+                {
+                  "chord": "",
+                  "lyrics": "And sail the ocean "
+                },
+                {
+                  "chord": "G",
+                  "lyrics": "round"
+                }
+              ],
+              "chord_rows": 1
+            }
+          ]
+        },
+        {
+          "type": "verse",
+          "label": "2.",
+          "is_chorus": false,
+          "lines": [
+            {
+              "spans": [
+                {
+                  "lyrics": "Sailing round the ocean"
+                }
+              ],
+              "chord_rows": 0
+            },
+            {
+              "spans": [
+                {
+                  "lyrics": "Sailing round the sea"
+                }
+              ],
+              "chord_rows": 0
+            },
+            {
+              "spans": [
+                {
+                  "lyrics": "I’d think of Handsome Molly"
+                }
+              ],
+              "chord_rows": 0
+            },
+            {
+              "spans": [
+                {
+                  "lyrics": "Wherever she may be"
+                }
+              ],
+              "chord_rows": 0
+            }
+          ]
+        },
+        {
+          "type": "verse",
+          "label": "3.",
+          "is_chorus": false,
+          "lines": [
+            {
+              "spans": [
+                {
+                  "lyrics": "I saw her at church last Sunday"
+                }
+              ],
+              "chord_rows": 0
+            },
+            {
+              "spans": [
+                {
+                  "lyrics": "She passed me on by"
+                }
+              ],
+              "chord_rows": 0
+            },
+            {
+              "spans": [
+                {
+                  "lyrics": "I knew her mind was changing"
+                }
+              ],
+              "chord_rows": 0
+            },
+            {
+              "spans": [
+                {
+                  "lyrics": "By the roving of her eye"
+                }
+              ],
+              "chord_rows": 0
+            }
+          ]
+        },
+        {
+          "type": "verse",
+          "label": "4.",
+          "is_chorus": false,
+          "lines": [
+            {
+              "spans": [
+                {
+                  "lyrics": "Her hair as black as a Raven’s"
+                }
+              ],
+              "chord_rows": 0
+            },
+            {
+              "spans": [
+                {
+                  "lyrics": "Her eyes were black as coal"
+                }
+              ],
+              "chord_rows": 0
+            },
+            {
+              "spans": [
+                {
+                  "lyrics": "Her teeth shown like lilies"
+                }
+              ],
+              "chord_rows": 0
+            },
+            {
+              "spans": [
+                {
+                  "lyrics": "Out in the morning cold"
+                }
+              ],
+              "chord_rows": 0
+            }
+          ]
+        },
+        {
+          "type": "verse",
+          "label": "5.",
+          "is_chorus": false,
+          "lines": [
+            {
+              "spans": [
+                {
+                  "lyrics": "Now do you remember Molly"
+                }
+              ],
+              "chord_rows": 0
+            },
+            {
+              "spans": [
+                {
+                  "lyrics": "When you give me your right hand"
+                }
+              ],
+              "chord_rows": 0
+            },
+            {
+              "spans": [
+                {
+                  "lyrics": "Said if you ever married"
+                }
+              ],
+              "chord_rows": 0
+            },
+            {
+              "spans": [
+                {
+                  "lyrics": "I’d be your man"
+                }
+              ],
+              "chord_rows": 0
+            }
+          ]
+        },
+        {
+          "type": "verse",
+          "label": "6.",
+          "is_chorus": false,
+          "lines": [
+            {
+              "spans": [
+                {
+                  "lyrics": "Now you’ve broke your promise"
+                }
+              ],
+              "chord_rows": 0
+            },
+            {
+              "spans": [
+                {
+                  "lyrics": "Go marry whom you please"
+                }
+              ],
+              "chord_rows": 0
+            },
+            {
+              "spans": [
+                {
+                  "lyrics": "My heart is broken"
+                }
+              ],
+              "chord_rows": 0
+            },
+            {
+              "spans": [
+                {
+                  "lyrics": "‘Til I get some ease"
+                }
+              ],
+              "chord_rows": 0
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "output": {},
+  "program": {
+    "name": "bard",
+    "version": "0.1.0",
+    "description": "Creates PDF and HTML songbooks out of easy-to-write Markdown sources.",
+    "homepage": "https://github.com/vojtechkral/bard",
+    "authors": "Vojtech Kral <vojtech@kral.hk>"
+  }
+}

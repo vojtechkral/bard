@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>{{ book.title }}</title>
+    <style type="text/css">
+      body {
+          font-family: sans-serif;
+
+          /* Background pattern from Toptal Subtle Patterns
+           * https://www.toptal.com/designers/subtlepatterns/ecailles/ */
+          background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAUCAYAAADLP76nAAAA0UlEQVR42u2VSQqFMBBE6/5n6LN9ccDZqCjOwk8FPEEWyaIXRUL6daBpisLzPEIty4Ku65DnOdI0lbqupe97GccR53niui5KYuNxHAe2bcMwGJRliaIopG1bWJBv/ER4kmNjbDzsVLYwUJzQFed5FsoY4+rf5FRsPKqqIiT7vn9TcYVuRfZN1nUl6JrtGqPjkWUZp3Xw+76u4b5vNvDOdco0TWiaBr8kiY6Hn5nC855mCs/Dz0zheU8zhec9zRSe1yTWJNYk1iTWJNYk1iQOyf8BD7JVhlKAJvgAAAAASUVORK5CYII=)
+      }
+
+      #content {
+        border: 3px solid #eaeaea;
+        border-bottom: none;
+        width: max-content;
+        margin: 2em auto 0 auto;
+        background-color: white;
+      }
+
+      @media (max-width: 1000px) {
+        body { background: none; }
+        #content { border: none; }
+      }
+
+      h1, h2, h3 { font-variant: small-caps; }
+
+      a, a:link , a:visited , a:hover , a:active {
+        color: blue;
+        text-decoration: none;
+      }
+
+      .pad { padding: 2em; }
+      .ws-pre { white-space: pre; }
+      .faint { color: #999999; }
+      .faint a, .faint a:link, .faint a:visited, .faint a:hover, .faint a:active { color: #999999; }
+
+      header {
+        text-align: center;
+        margin: 7em 0 9em 0;
+      }
+
+      header .note {
+        margin-top: 5em;
+      }
+
+      footer {
+        display: block;
+        width: max-content;
+        margin: 0 auto 8em auto;
+        padding: 0;
+      }
+
+      section.song { margin: 4em 0; }
+      section.song h2 { text-decoration: underline; }
+      section.song h4 { margin: 0; }
+      .song-header {
+        text-align: center;
+        margin: 1em 0;
+      }
+
+      table.nospacing { border-collapse: collapse; }
+      table.nospacing tr, table.nospacing td {
+        margin: 0;
+        padding: 0;
+      }
+
+      tr.verse-spacing { height: .75em; }
+
+      td.verse-label {
+        font-weight: bold;
+        vertical-align: bottom;
+      }
+
+      tr.chord {
+        font-weight: bold;
+        color: red;
+      }
+
+      tr.chord-alt { color: blue; }
+
+      .timesign {
+        margin: .5em 0;
+        font-size: 1.125em;
+        font-family: serif;
+      }
+
+      hr.separator {
+        border: none;
+        border-top: 3px solid #eaeaea;
+      }
+    </style>
+</head>
+<body>
+<div id="content">
+  <header class="pad">
+    <h1>{{ book.title }}</h1>
+    {% if book.subtitle %}
+      <h3>{{ book.subtitle }}</h3>
+    {% endif %}
+    {% if book.title_note %}
+      <p class="note">{{ book.title_note }}</p>
+    {% endif %}
+  </header>
+
+  <hr class="separator">
+
+  <div id="index" class="pad">
+    <h2>Contents</h2>
+    <ol>
+    {% for song in songs -%}
+      <li><a href="#song-{{ loop.index }}">{{ song.title }}</a></li>
+    {% endfor -%}
+    </ol>
+  </div>
+
+  <hr class="separator">
+
+  {% for song in songs -%}
+    <section id="song-{{ loop.index }}" class="song pad">
+      <div class="song-header">
+        <h2>{{ song.title }}</h2>
+        {% for subtitle in song.subtitles %}<h4>{{ subtitle }}</h4>{% endfor -%}
+      </div>
+      <table>
+      {% for item in song.content -%}
+
+        {# Verse #}
+        {%- if item.type == "verse" -%}
+          {% for line in item.lines -%}
+            {% if loop.first %}<tr class="verse-spacing"><td></td><td></td></tr>{% endif %}
+            <tr class="verse">
+              <td class="verse-label">
+                {% if loop.first %}
+                  {% if item.is_chorus %}<em>{{ item.label }}</em>{% else %}{{ item.label }}{% endif %}
+                {% endif %}
+              </td>
+              <td>
+                <table class="nospacing ws-pre">
+                  {% if line.chord_rows > 0 -%}
+                    <tr class="chord">{% for sp in line.spans -%}<td>{{ sp.chord }}</td>{% endfor -%}</tr>
+                  {% endif -%}
+                  {% if line.chord_rows == 2 -%}
+                    <tr class="chord chord-alt ws-pre">{% for sp in line.spans -%}<td>{{ sp.chord_alt }}</td>{% endfor -%}</tr>
+                  {% endif -%}
+                  <tr>{% for sp in line.spans -%}<td>{{ sp.lyrics }}</td>{% endfor -%}</tr>
+                </table>
+              </td>
+            </tr>
+          {% endfor -%}
+
+        {# List #}
+        {%- elif item.type == "list" -%}
+          <tr>
+            <td></td>
+            <td>
+              <ul>
+                {%- for item in item.items %}
+                  <li>{{ item }}</li>
+                {%- endfor -%}
+              </ul>
+            </td>
+          </tr>
+
+        {# Timesign #}
+        {%- elif item.type == "time" -%}
+          <tr>
+            <td></td>
+            <td>
+              <div class="timesign">{{ item.time[0] }} <span>&#8725;</span> {{ item.time[1] }}</div>
+            </td>
+          </tr>
+
+        {# Rule #}
+        {%- elif item.type == "rule" -%}
+          <tr><td colspan="2"><hr /></td></tr>
+
+        {# Pre #}
+        {%- elif item.type == "pre" -%}
+          <tr>
+            <td></td>
+            <td><pre>{{ item.text }}</pre></td>
+          </tr>
+
+        {% endif -%}
+      {% endfor -%}
+      </table>
+    </section>
+    <hr class="separator">
+  {% endfor -%}
+
+  {% if "backmatter" in book -%}
+    <p class="pad">{{ book.backmatter }}</p>
+    <hr class="separator">
+  {% endif %}
+
+  {% if "debug" in __tera_context -%}
+    <h3 class="pad">Debug info</h3>
+    <pre>{{ __tera_context }}</pre>
+    <hr class="separator">
+  {% endif %}
+</div>
+<footer class="faint">
+  Created with <strong><a href="{{ program.homepage }}">{{ program.name }}</a></strong> version {{ program.version }}.
+</footer>
+</body>
+</html>

@@ -1,0 +1,310 @@
+% Using Tera with Tex has a few gotchas.
+% Tera is sensitive to the {{ , {% , and {# sequence;
+% because of that, these need to be escaped:
+%  - \command{{{ tera_var }}} can be escaped as \command{\I {{ tera_var }}
+%    where \I is an alias for \ignorespaces when whitespace IS NOT significant
+%  - \command{{{ tera_var }}} can be escaped as \command{\V{}{{ tera_var }}
+%    where \V is an alias for \vphantom when whitespace IS significant
+%  - {% at the end of a line can be escaped as { % or {\I %
+%  - Where \I or \V doesn't work, one needs to use Tera raw blocks
+%
+% The content of all variables is by default escaped with a TeX
+% escaping function similar to how special characters are escaped in HTML.
+% The escaping function doesn't escape spaces.
+% To preserve spaces, use {{ variable | pre | safe }}, which replaces spaces
+% with the non-breaking space TeX entity '~'.
+
+\documentclass[12pt,a5paper,openany]{memoir}
+\setheadfoot{0pt}{0pt}
+\setlrmarginsandblock{1cm}{1cm}{*}
+\setulmarginsandblock{.75cm}{1cm}{*}
+\checkandfixthelayout
+\raggedbottom
+
+\usepackage{fontspec}
+\usepackage{titlesec}
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage[defaultlines=5,all]{nowidow}
+\usepackage[pdfusetitle,hidelinks]{hyperref}
+
+%% Aliases for \easier escaping
+\newcommand\I[0]{%
+  \ignorespaces
+}
+\newcommand\V[0]{%
+  \vphantom
+}
+
+%% Page style
+\makepagestyle{songs}
+\makeoddfoot{songs}{}{}{\thepage}
+\makeevenfoot{songs}{\thepage}{}{}
+% Patch cleardoublepage to not get blank pages after title & contents pages:
+\renewcommand\cleardoublepage{\clearpage}
+% Suppress page numbers in the toc/frontmatter:
+\aliaspagestyle{chapter}{empty}
+
+%% Fonts
+\setmainfont[Ligatures=TeX]{DejaVu Sans}
+
+%% Spacings
+\setlength{\parindent}{0pt}
+\setlength{\tabcolsep}{0pt}
+\setlength{\parskip}{0pt}
+
+%% ToC style
+% Hide the title of the ToC:
+\renewcommand\tocheadstart{}
+\renewcommand\printtoctitle[1]{}
+\renewcommand\aftertoctitle{}
+% Hide section numbers in the ToC:
+\renewcommand\numberline[1]{}
+\renewcommand\cftdotsep{1}
+
+%% Hyperlinks setup
+\hypersetup{
+  bookmarks=true,
+  pdfcreator={bard v. 0.1.0 - https://github.com/vojtechkral/bard},
+}
+
+%% Song title and subtitle formats
+\titleformat{\section}
+  {\centering\large\bfseries}{}{0pt}{\underline}
+\titlespacing*{\section}
+  {0pt}{0pt}{.25ex}
+\newcommand\songtitle[1]{%
+  % This is a trick to only layout a song on the current page
+  % if it fits, otherwise a pagebreak is inserted
+  \FloatBlock
+  \vfil
+  \pagebreak[2]
+  \vfilneg
+  \section{#1}
+}
+\newcommand\subtitle[1]{%
+  \emph{#1}
+}
+
+%% Chord layout command
+\makeatletter
+\newcommand{\chord}{\@ifstar{\@chordalt}{\@chord}}
+\newcommand{\@chord}[2]{%
+  \begin{tabular}[b]{l}%
+    \textbf{\textcolor{red}{#1}}\\%  % The chord
+    #2\mbox{}\end{tabular}%          % The lyrics
+}
+\newcommand{\@chordalt}[3]{%
+  \begin{tabular}[b]{l}%
+    \textbf{\textcolor{red}{#1}}\\%  % The chord
+    \textbf{\textcolor{blue}{#2}}\\% % The alt chord
+    #3\mbox{}\end{tabular}%          % The lyrics
+}
+\makeatother
+
+%% Time layout command
+\newcommand\timesign[2]{%
+  \begin{large}\( {#1} / {#2} \)\end{large}
+}
+
+% Metadata
+\title{\I Bard Songbook}
+
+% Document
+\begin{document}
+
+%% Title page
+\frontmatter
+\begin{titlingpage}
+  \begin{vplace}[0.5]
+    \begin{center}
+      \Huge{\textbf{\I Bard Songbook}} \\
+      \vspace{0.5cm}
+      \LARGE{\I Example project} \\
+      \vspace{10cm}
+      \small{\I A few non-copyrighted folk songs.}
+    \end{center}
+  \end{vplace}
+\end{titlingpage}
+
+%% Contents page
+\tableofcontents*
+
+%% Songs
+\mainmatter
+\pagestyle{songs}
+\songtitle{\I Wild Mountain Thyme}
+
+  
+    \begin{center}
+    \subtitle{\I Irish \& Scottish traditional}
+    
+    \end{center}
+  
+
+  \begin{description}[leftmargin=2em,style=nextline,itemsep=1ex]
+    
+        \item[1.]\chord{\V{}}{\V{}O'~the~}\chord{\V{}G}{\V{}summer~}\chord{\V{}C}{\V{}time~}\chord{\V{}G}{\V{}has~come}\\
+        \chord{\V{}}{\V{}And~the~}\chord{\V{}C}{\V{}trees~are~sweetly~}\chord{\V{}G}{\V{}bloomin'}\\
+        \chord{\V{}}{\V{}And~the~}\chord{\V{}C}{\V{}wild~}\chord{\V{}G}{\V{}mountain~}\chord{\V{}Em}{\V{}thyme}\\
+        \chord{\V{}}{\V{}Grows~}\chord{\V{}C}{\V{}around~the~}\chord{\V{}Am}{\V{}bloomin'~}\chord{\V{}C}{\V{}heather}\\
+        \chord{\V{}}{\V{}Will~ye~}\chord{\V{}G}{\V{}go~}\chord{\V{}C}{\V{}lassie~}\chord{\V{}G}{\V{}go?}
+        
+        \item[\emph{\I Ch.}]\chord{\V{}}{\V{}And~we'll~}\chord{\V{}C}{\V{}all~go~}\chord{\V{}G}{\V{}together~to~pull~}\chord{\V{}C}{\V{}wild~}\chord{\V{}G}{\V{}mountain~}\chord{\V{}Em}{\V{}thyme}\\
+        \chord{\V{}}{\V{}All~}\chord{\V{}C}{\V{}around~the~}\chord{\V{}Am}{\V{}bloomin'~}\chord{\V{}C}{\V{}heather,~will~ye~}\chord{\V{}G}{\V{}go~}\chord{\V{}C}{\V{}lassie~}\chord{\V{}G}{\V{}go?}
+        
+        \item[2.]I~will~build~my~love~a~bower\\
+        By~yon~cool~crystal~fountain\\
+        And~round~it~I~will~pile\\
+        All~the~wild~flowers~o'~the~mountain.\\
+        Will~ye~go~lassie~go?~(...)
+        
+        \item[3.]I~will~range~through~the~wilds\\
+        And~the~deep~glen~sae~dreamy\\
+        And~return~wi'~their~spoils\\
+        Tae~the~bower~o'~my~dearie.\\
+        Will~ye~go~lassie~go?~(...)
+        
+        \item[4.]If~my~true~love~she'll~not~come\\
+        Then~I'll~surely~find~another\\
+        To~pull~wild~mountain~thyme\\
+        All~around~the~bloomin'~heather.\\
+        Will~ye~go~lassie~go?~(...)
+        
+  \end{description}
+\songtitle{\I Whiskey in the Jar}
+
+  
+    \begin{center}
+    \subtitle{\I Irish traditional}
+    
+    \end{center}
+  
+
+  \begin{description}[leftmargin=2em,style=nextline,itemsep=1ex]
+    
+        \item[1.]\chord{\V{}}{\V{}As~}\chord{\V{}C}{\V{}~I~was~a~goin'~over~the~}\chord{\V{}Am}{\V{}~far~famed~Kerry~mountains}\\
+        \chord{\V{}}{\V{}I~}\chord{\V{}F}{\V{}~met~with~Captain~Farrell~and~his~}\chord{\V{}C}{\V{}~money~he~was~counting}\\
+        \chord{\V{}}{\V{}I~first~produced~my~pistol~and~I~}\chord{\V{}Am}{\V{}~then~produced~my~rapier}\\
+        \chord{\V{}}{\V{}Saying~}\chord{\V{}F}{\V{}~"Stand~and~deliver,~for~you~are~a~bold~deceiver!"}
+        
+        \item[\emph{\I Ch.}]\chord{\V{}}{\V{}Mush-a~}\chord{\V{}G}{\V{}~ring~dum-a~do~dum-a~da}\\
+        \chord{\V{}C}{\V{}~Whack~for~me~daddy-o}\\
+        \chord{\V{}F}{\V{}~Whack~for~me~daddy-o}\\
+        \chord{\V{}}{\V{}There's~}\chord{\V{}C}{\V{}~whiskey~}\chord{\V{}G}{\V{}~in~the~}\chord{\V{}C}{\V{}~jar}
+        
+        \item[2.]I~counted~out~his~money~and~it~made~a~pretty~penny\\
+        I~put~it~in~me~pocket~and~I~took~it~home~to~Jenny\\
+        She~sighed~and~she~swore~that~she~never~would~deceive~me\\
+        But~the~devil~take~the~women~for~they~never~can~be~easy\\
+        Mush-a~ring~dum-a~do~dum-a~da~(...)
+        
+        \item[3.]I~went~up~to~my~chamber,~all~for~to~take~a~slumber\\
+        I~dreamt~of~gold~and~jewels~and~for~sure~'t~was~no~wonder\\
+        But~Jenny~drew~me~charges~and~she~filled~them~up~with~water\\
+        Then~sent~for~captain~Farrell~to~be~ready~for~the~slaughter\\
+        Mush-a~ring~dum-a~do~dum-a~da~(...)
+        
+        \item[4.]'Twas~was~early~in~the~morning,~just~before~I~rose~to~travel\\
+        Up~comes~a~band~of~footmen~and~likewise~captain~Farrell\\
+        I~first~produced~me~pistol~for~she~stole~away~me~rapier\\
+        I~couldn't~shoot~the~water,~so~a~prisoner~I~was~taken\\
+        Mush-a~ring~dum-a~do~dum-a~da~(...)
+        
+        \item[5.]Now~there's~some~take~delight~in~the~carriages~a-rollin'\\
+        And~others~take~delight~in~the~hurling~and~the~bowling\\
+        But~I~take~delight~in~the~juice~of~the~barley\\
+        And~courting~pretty~fair~maids~in~the~morning~bright~and~early\\
+        Mush-a~ring~dum-a~do~dum-a~da~(...)
+        
+        \item[6.]If~anyone~can~aid~me~'t~is~my~brother~in~the~army\\
+        If~I~can~find~his~station~in~Cork~or~in~Killarney\\
+        If~he'll~go~with~me,~we'll~go~rovin'~through~Killkenny\\
+        I'm~sure~he'll~treat~me~better~than~my~own~a-sporting~Jenny\\
+        Mush-a~ring~dum-a~do~dum-a~da~(...)
+        
+  \end{description}
+\songtitle{\I Danny Boy}
+
+  
+    \begin{center}
+    \subtitle{\I English ballad}
+    
+    \end{center}
+  
+
+  \begin{description}[leftmargin=2em,style=nextline,itemsep=1ex]
+    
+        \item[1.]\chord{\V{}G7}{\V{}Oh~Danny~}\chord{\V{}C}{\V{}Boy,~the~pipes,~the~}\chord{\V{}C7}{\V{}pipes~are~}\chord{\V{}F}{\V{}calling}\\
+        \chord{\V{}}{\V{}From~glen~to~}\chord{\V{}C}{\V{}glen,~and~}\chord{\V{}Em}{\V{}down~the~}\chord{\V{}F}{\V{}mountain~}\chord{\V{}G7}{\V{}side}\\
+        \chord{\V{}}{\V{}The~summer’s~}\chord{\V{}C}{\V{}gone,~and~all~the~}\chord{\V{}C7}{\V{}~flowers~are~}\chord{\V{}F}{\V{}dying}\\
+        \chord{\V{}}{\V{}‘Tis~you,~’tis~}\chord{\V{}C}{\V{}you~must~}\chord{\V{}Dm}{\V{}go~and~}\chord{\V{}G7}{\V{}I~must~}\chord{\V{}C}{\V{}bide.}
+        
+        \item[\emph{\I Ch. 1.}]\chord{\V{}G7}{\V{}But~come~ye~}\chord{\V{}Am}{\V{}back~when~}\chord{\V{}F}{\V{}summer’s~}\chord{\V{}G7}{\V{}in~the~}\chord{\V{}C}{\V{}meadow}\\
+        \chord{\V{}}{\V{}Or~when~the~}\chord{\V{}Am}{\V{}valley’s~}\chord{\V{}F}{\V{}hushed~and~}\chord{\V{}Em}{\V{}white~with~}\chord{\V{}D7}{\V{}snow~}\chord{\V{}G7}{\V{}}\\
+        \chord{\V{}}{\V{}‘Tis~I’ll~be~}\chord{\V{}C}{\V{}here~in~}\chord{\V{}F}{\V{}sunshine~or~in~}\chord{\V{}C}{\V{}sha}\chord{\V{}Am}{\V{}dow.}\\
+        \chord{\V{}}{\V{}Oh~Danny~}\chord{\V{}C}{\V{}Boy,~oh~Danny~}\chord{\V{}F}{\V{}Boy,~I~}\chord{\V{}G7}{\V{}love~you~}\chord{\V{}C}{\V{}so.}
+        
+        \item[2.]And~if~you~come,~when~all~the~flowers~are~dying\\
+        And~I~am~dead,~as~dead~I~well~may~be\\
+        You’ll~come~and~find~the~place~where~I~am~lying\\
+        And~kneel~and~say~an~”Ave”~~there~for~me.
+        
+        \item[\emph{\I Ch. 2.}]And~I~shall~hear,~though~soft~you~tread~above~me\\
+        And~all~my~dreams~will~warm~and~sweeter~be~\\
+        If~you’ll~not~fail~to~tell~me~that~you~love~me\\
+        I’ll~sleep~in~peace~until~you~come~to~me.
+        
+  \end{description}
+\songtitle{\I Handsome Molly}
+
+  
+    \begin{center}
+    \subtitle{\I U.S. Old-time}
+    
+    \end{center}
+  
+
+  \begin{description}[leftmargin=2em,style=nextline,itemsep=1ex]
+    
+        \item[1.]\chord{\V{}G}{\V{}I~wish~was~in~London}\\
+        \chord{\V{}}{\V{}Or~some~other~seaport~}\chord{\V{}D}{\V{}town}\\
+        \chord{\V{}D}{\V{}Step~my~foot~in~a~steamboat}\\
+        \chord{\V{}}{\V{}And~sail~the~ocean~}\chord{\V{}G}{\V{}round}
+        
+        \item[2.]Sailing~round~the~ocean\\
+        Sailing~round~the~sea\\
+        I’d~think~of~Handsome~Molly\\
+        Wherever~she~may~be
+        
+        \item[3.]I~saw~her~at~church~last~Sunday\\
+        She~passed~me~on~by\\
+        I~knew~her~mind~was~changing\\
+        By~the~roving~of~her~eye
+        
+        \item[4.]Her~hair~as~black~as~a~Raven’s\\
+        Her~eyes~were~black~as~coal\\
+        Her~teeth~shown~like~lilies\\
+        Out~in~the~morning~cold
+        
+        \item[5.]Now~do~you~remember~Molly\\
+        When~you~give~me~your~right~hand\\
+        Said~if~you~ever~married\\
+        I’d~be~your~man
+        
+        \item[6.]Now~you’ve~broke~your~promise\\
+        Go~marry~whom~you~please\\
+        My~heart~is~broken\\
+        ‘Til~I~get~some~ease
+        
+  \end{description}
+
+
+\backmatter
+\pagestyle{empty}
+
+
+
+
+
+\end{document}
