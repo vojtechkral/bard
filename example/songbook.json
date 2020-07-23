@@ -1,8 +1,8 @@
 {
   "book": {
-    "title": "Bard Songbook",
+    "subtitle": "Example project",
     "title_note": "A few non-copyrighted folk songs.",
-    "subtitle": "Example project"
+    "title": "Bard Songbook"
   },
   "songs": [
     {

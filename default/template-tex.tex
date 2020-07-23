@@ -140,6 +140,7 @@
 \mainmatter
 \pagestyle{songs}
 {% for song in songs -%}
+  %% song {{ loop.index }}
   \songtitle{\I {{ song.title }}}
 
   {% if song.subtitles %}
@@ -152,7 +153,7 @@
     \vphantom{}
   {% endif %}
 
-  \begin{description}[leftmargin=2em,style=nextline,itemsep=1ex]
+  \begin{description}[leftmargin=2.5em,style=nextline,itemsep=1ex]
     {% for item in song.content -%}
 
       {%- if item.type == "verse" %}
@@ -188,6 +189,10 @@
         \item[] \begin{verbatim}{{ item.text | safe }}\end{verbatim}
 
       {%- endif -%}
+    {% else %}
+      {# No song.content, we need to insert and empty item,
+         otherwise LaTeX fails on an empty description env. #}
+      \item
     {% endfor %}
   \end{description}
 {% endfor %}
@@ -204,9 +209,9 @@
 
 {% if "debug" in __tera_context -%}
 \pagebreak
-\begin{scriptsize}
-  \begin{verbatim}{{ __tera_context }}\end{verbatim}
-\end{scriptsize}
+\begin{tiny}
+  \begin{verbatim}{{ __tera_context | base64 }}\end{verbatim}
+\end{tiny}
 {% endif %}
 
 \end{document}
