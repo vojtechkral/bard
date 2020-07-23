@@ -339,6 +339,7 @@ impl Project {
                     glob.with_context(|| format!("Invalid input files pattern: '{}'", glob_src))?;
 
                 let mut matched = false;
+                let orig_idx = paths.len();
                 for globres in glob {
                     matched = true;
 
@@ -353,6 +354,11 @@ impl Project {
                     // Pattern matched no files
                     bail!("No file(s) found for input pattern: '{}'", glob_src);
                 } else {
+                    // Sort the entries collected for this glob.
+                    // This way, paths from one glob pattern are sorted alphabetically,
+                    // but order of globs as given in the input array is preserved.
+                    paths[orig_idx..].sort();
+
                     Ok(paths)
                 }
             })?;
