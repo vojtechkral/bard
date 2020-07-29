@@ -4,11 +4,11 @@ pub mod txt;
 
 use anyhow::Result;
 
-use crate::project::{Project, OutputSpec};
+use crate::project::{Project, Output};
 
 
 pub trait Render {
-    fn render<'a>(project: &'a Project, output: &'a OutputSpec) -> Result<&'a OutputSpec>;
+    fn render<'a>(project: &'a Project, output: &'a Output) -> Result<&'a Output>;
 }
 
 pub use self::template::{DefaultTemaplate, RHtml, RTex};

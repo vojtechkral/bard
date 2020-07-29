@@ -5,7 +5,7 @@ use toml::Value;
 use unicode_width::UnicodeWidthStr;
 
 use crate::book::{Item, Verse, List};
-use crate::project::{Project, OutputSpec};
+use crate::project::{Project, Output};
 use crate::error::*;
 use super::Render;
 
@@ -81,7 +81,7 @@ impl RTxt {
 }
 
 impl Render for RTxt {
-    fn render<'a>(project: &'a Project, output: &'a OutputSpec) -> Result<&'a OutputSpec> {
+    fn render<'a>(project: &'a Project, output: &'a Output) -> Result<&'a Output> {
         let path = &output.file;
         let mut file = File::create(&path).map_err(|err| ErrorWritingFile(path.to_owned(), err))?;
         let f = &mut file;

@@ -9,7 +9,6 @@ use std::process::Command;
 
 use toml;
 use serde::{Deserialize, Deserializer};
-use serde::de::Error as _;
 use tera::{self, Tera, Context};
 
 use crate::default_project::DEFAULT_PROJECT;
@@ -86,10 +85,37 @@ impl CmdSpec {
     }
 }
 
+#[derive(Deserialize, Clone, Copy, Debug)]
+#[serde(rename_all = "lowercase")]
+pub enum Format {
+    #[serde(alias = "xhtml")]
+    #[serde(alias = "xml")]
+    Html,
+    Latex,
+    Txt,
+    Json,
+    Auto,
+}
+
+impl Format {
+    fn no_auto() -> ! {
+        panic!("Output's Format should have been resolved at this point");
+    }
+}
+
+impl Default for Format {
+    fn default() -> Self {
+        Self::Auto
+    }
+}
+
 #[derive(Deserialize, Debug)]
-pub struct OutputSpec {
+pub struct Output {
     pub file: PathBuf,
     pub template: Option<PathBuf>,
+
+    #[serde(default)]
+    pub format: Format,
 
     #[serde(rename = "process")]
     pub post_process: Option<CmdSpec>,
@@ -98,7 +124,7 @@ pub struct OutputSpec {
     pub metadata: Metadata,
 }
 
-impl OutputSpec {
+impl Output {
     fn utf8_check(&self) -> Result<(), path::Display> {
         if let Some(template) = self.template.as_ref() {
             template.utf8_check()?;
@@ -106,11 +132,39 @@ impl OutputSpec {
         self.file.utf8_check()
     }
 
-    fn resolve(&mut self, project_dir: &Path) {
+    fn resolve(&mut self, project_dir: &Path) -> Result<()> {
+        // Check that filenames are valid UTF-8
+        self.utf8_check()
+            .map_err(|p| anyhow!("Filename cannot be decoded to UTF-8: {}", p))?;
+
         if let Some(template) = self.template.as_mut() {
             template.resolve(project_dir);
         }
         self.file.resolve(project_dir);
+
+        if !matches!(self.format, Format::Auto) {
+            return Ok(());
+        }
+
+        let ext = self
+            .file
+            .extension()
+            .and_then(OsStr::to_str)
+            .map(str::to_lowercase);
+
+        self.format = match ext.as_ref().map(String::as_str) {
+            Some("html") | Some("xhtml") | Some("htm") | Some("xml") | Some("xht") => Format::Html,
+            Some("tex") => Format::Latex,
+            Some("txt") => Format::Txt,
+            Some("json") => Format::Json,
+            _ => bail!(
+                "Unknown or unsupported format of output file: {}\nHint: Specify format with  \
+                 'format = ...'",
+                self.file.display()
+            ),
+        };
+
+        Ok(())
     }
 
     fn output_filename(&self) -> &str {
@@ -124,6 +178,14 @@ impl OutputSpec {
             .expect("OutputSpec: Invalid filename")
     }
 
+    fn template_path(&self) -> Option<&Path> {
+        match self.format {
+            Format::Html | Format::Latex => self.template.as_ref().map(PathBuf::as_path),
+            Format::Txt | Format::Json => None,
+            Format::Auto => Format::no_auto(),
+        }
+    }
+
     pub fn template_filename(&self) -> String {
         self.template
             .as_ref()
@@ -133,85 +195,6 @@ impl OutputSpec {
                     .into()
             })
             .unwrap_or(String::from("<builtin>"))
-    }
-}
-
-#[derive(Debug)]
-pub enum Output {
-    Html(OutputSpec),
-    Latex(OutputSpec),
-    Txt(OutputSpec),
-    Json(OutputSpec),
-}
-
-impl Output {
-    fn resolve(&mut self, project_dir: &Path) {
-        use Output::*;
-
-        match self {
-            Html(out_spec) | Latex(out_spec) | Txt(out_spec) | Json(out_spec) => {
-                out_spec.resolve(project_dir)
-            }
-        }
-    }
-
-    fn path(&self) -> &Path {
-        use Output::*;
-
-        match self {
-            Html(out_spec) | Latex(out_spec) | Txt(out_spec) | Json(out_spec) => &out_spec.file,
-        }
-    }
-
-    fn template_path(&self) -> Option<&Path> {
-        match self {
-            Output::Html(spec) | Output::Latex(spec) => {
-                spec.template.as_ref().map(PathBuf::as_path)
-            }
-            Output::Txt(_) | Output::Json(_) => None,
-        }
-    }
-
-    fn spec<'a>(&'a self) -> &'a OutputSpec {
-        use self::Output::*;
-
-        match self {
-            Html(sp) | Latex(sp) | Txt(sp) | Json(sp) => sp,
-        }
-    }
-}
-
-
-impl<'de> Deserialize<'de> for Output {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        let out_spec = OutputSpec::deserialize(deserializer)?;
-
-        // Check that template filename is valid UTF-8
-        out_spec.utf8_check().map_err(|path_disp| {
-            D::Error::custom(format!(
-                "Filename cannot be decoded to UTF-8: {}",
-                path_disp
-            ))
-        })?;
-
-        let ext = out_spec
-            .file
-            .extension()
-            .and_then(OsStr::to_str)
-            .map(|s| s.to_lowercase());
-        match ext.as_ref().map(String::as_str) {
-            Some("html") => Ok(Output::Html(out_spec)),
-            Some("tex") => Ok(Output::Latex(out_spec)),
-            Some("txt") => Ok(Output::Txt(out_spec)),
-            Some("json") => Ok(Output::Json(out_spec)),
-            _ => Err(D::Error::custom(format!(
-                "Unknown or unsupported format of output file: {}",
-                out_spec.file.display()
-            ))),
-        }
     }
 }
 
@@ -241,7 +224,7 @@ impl Settings {
         let mut settings: Settings = toml::from_str(&contents)
             .with_context(|| format!("Could not parse project file '{}'", path.display()))?;
 
-        settings.resolve(project_dir);
+        settings.resolve(project_dir)?;
         Ok(settings)
     }
 
@@ -249,10 +232,12 @@ impl Settings {
         String::from("Ch.")
     }
 
-    fn resolve(&mut self, project_dir: &Path) {
+    fn resolve(&mut self, project_dir: &Path) -> Result<()> {
         for output in self.output.iter_mut() {
-            output.resolve(project_dir);
+            output.resolve(project_dir)?;
         }
+
+        Ok(())
     }
 }
 
@@ -421,7 +406,7 @@ impl Project {
             .with_context(|| format!("Processing command '{}' failed", cmd_src))
     }
 
-    fn post_process(&self, output: &OutputSpec) -> Result<()> {
+    fn post_process(&self, output: &Output) -> Result<()> {
         let cmds = match output.post_process.as_ref() {
             Some(cmds) if !cmds.is_empty() => cmds,
             _ => return Ok(()),
@@ -457,19 +442,20 @@ impl Project {
 
     pub fn render(&self) -> Result<()> {
         self.settings.output.iter().try_for_each(|output| {
-            use self::Output::*;
+            use self::Format::*;
 
-            cli::status("Rendering", output.spec().output_filename());
+            cli::status("Rendering", output.output_filename());
 
-            match output {
-                Html(output) => RHtml::render(self, &output),
-                Latex(output) => RTex::render(self, &output),
-                Json(output) => RJson::render(self, &output),
-                Txt(output) => RTxt::render(self, &output),
+            match output.format {
+                Html => RHtml::render(self, &output),
+                Latex => RTex::render(self, &output),
+                Json => RJson::render(self, &output),
+                Txt => RTxt::render(self, &output),
+                Auto => Format::no_auto(),
             }
-            .with_context(|| format!("Could render output file '{}'", output.path().display()))?;
+            .with_context(|| format!("Could render output file '{}'", output.file.display()))?;
 
-            self.post_process(output.spec())
+            self.post_process(&output)
         })
     }
 

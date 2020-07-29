@@ -1,6 +1,6 @@
 use std::fs::File;
 
-use crate::project::{Project, OutputSpec, Metadata};
+use crate::project::{Project, Output, Metadata};
 use crate::book::Song;
 use crate::parser::ParsingDebug;
 use crate::{ProgramMeta, PROGRAM_META};
@@ -21,7 +21,7 @@ struct JsonDoc<'a> {
 pub struct RJson;
 
 impl Render for RJson {
-    fn render<'a>(project: &'a Project, output: &'a OutputSpec) -> Result<&'a OutputSpec> {
+    fn render<'a>(project: &'a Project, output: &'a Output) -> Result<&'a Output> {
         let json_doc = JsonDoc {
             book: project.metadata(),
             songs: project.songs(),

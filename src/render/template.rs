@@ -4,7 +4,7 @@ use std::collections::HashMap;
 use tera::{self, Tera, Context, Value};
 use serde_json::Map as JsonMap;
 
-use crate::project::{Project, OutputSpec};
+use crate::project::{Project, Output};
 use crate::PROGRAM_META;
 use crate::error::*;
 use super::Render;
@@ -99,11 +99,11 @@ struct TeraRender<'a> {
     tera: Tera,
     tpl_name: String,
     project: &'a Project,
-    output: &'a OutputSpec,
+    output: &'a Output,
 }
 
 impl<'a> TeraRender<'a> {
-    fn new<DT: DefaultTemaplate>(project: &'a Project, output: &'a OutputSpec) -> Result<Self> {
+    fn new<DT: DefaultTemaplate>(project: &'a Project, output: &'a Output) -> Result<Self> {
         let mut tera = Tera::default();
 
         let tpl_name = if let Some(template) = output.template.as_ref() {
@@ -132,7 +132,7 @@ impl<'a> TeraRender<'a> {
         })
     }
 
-    fn render(&self) -> Result<&'a OutputSpec> {
+    fn render(&self) -> Result<&'a Output> {
         let mut context = Context::new();
         context.insert("book", self.project.metadata());
         context.insert("songs", self.project.songs());
@@ -159,7 +159,7 @@ impl DefaultTemaplate for RHtml {
 }
 
 impl Render for RHtml {
-    fn render<'a>(project: &'a Project, output: &'a OutputSpec) -> Result<&'a OutputSpec> {
+    fn render<'a>(project: &'a Project, output: &'a Output) -> Result<&'a Output> {
         let render = TeraRender::new::<Self>(project, output)?;
         render.render()
     }
@@ -173,7 +173,7 @@ impl DefaultTemaplate for RTex {
 }
 
 impl Render for RTex {
-    fn render<'a>(project: &'a Project, output: &'a OutputSpec) -> Result<&'a OutputSpec> {
+    fn render<'a>(project: &'a Project, output: &'a Output) -> Result<&'a Output> {
         let mut render = TeraRender::new::<Self>(project, output)?;
 
         // Setup Latex escaping
