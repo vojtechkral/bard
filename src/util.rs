@@ -137,7 +137,8 @@ impl ExitStatusExt for ExitStatus {
             return Ok(());
         }
 
-        if cfg!(unix) {
+        #[cfg(unix)]
+        {
             if let Some(signal) = self.signal() {
                 bail!("Process killed by signal: {}", signal);
             }
