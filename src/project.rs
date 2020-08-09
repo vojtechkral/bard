@@ -89,7 +89,6 @@ impl CmdSpec {
 #[serde(rename_all = "lowercase")]
 pub enum Format {
     #[serde(alias = "xhtml")]
-    #[serde(alias = "xml")]
     Html,
     Latex,
     Txt,
@@ -153,7 +152,7 @@ impl Output {
             .map(str::to_lowercase);
 
         self.format = match ext.as_ref().map(String::as_str) {
-            Some("html") | Some("xhtml") | Some("htm") | Some("xml") | Some("xht") => Format::Html,
+            Some("html") | Some("xhtml") | Some("htm") | Some("xht") => Format::Html,
             Some("tex") => Format::Latex,
             Some("txt") => Format::Txt,
             Some("json") => Format::Json,
