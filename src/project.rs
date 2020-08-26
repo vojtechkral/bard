@@ -3,12 +3,10 @@ use std::iter;
 use std::path::{self, Path, PathBuf};
 use std::ffi::OsStr;
 use std::collections::HashMap;
-use std::env;
 use std::fs;
 use std::process::Command;
 
 use toml;
-use serde::{Deserialize, Deserializer};
 use tera::{self, Tera, Context};
 
 use crate::default_project::DEFAULT_PROJECT;
@@ -17,55 +15,54 @@ use crate::music::Notation;
 use crate::parser::ParsingDebug;
 use crate::render::{Render, RHtml, RTex, RJson, RTxt};
 use crate::cli;
-use crate::util::ExitStatusExt as _;
+use crate::util::*;
 use crate::error::*;
 
 pub use toml::Value;
 
 pub const PROJECT_FILE: &'static str = "bard.toml";
+pub const DIR_SONGS: &'static str = "songs";
+pub const DIR_TEMPLATES: &'static str = "templates";
+pub const DIR_OUTPUT: &'static str = "output";
 
+fn dir_songs() -> PathBuf {
+    DIR_SONGS.to_string().into()
+}
+
+fn dir_templates() -> PathBuf {
+    DIR_TEMPLATES.to_string().into()
+}
+
+fn dir_output() -> PathBuf {
+    DIR_OUTPUT.to_string().into()
+}
 
 pub type Metadata = HashMap<Box<str>, Value>;
 
-fn deserialize_inputs<'de, D>(deserializer: D) -> Result<Vec<String>, D::Error>
-where
-    D: Deserializer<'de>,
-{
-    #[derive(Deserialize, Debug)]
-    #[serde(untagged)]
-    enum DeInput {
-        One(String),
-        Many(Vec<String>),
-    }
-
-    let input = DeInput::deserialize(deserializer)?;
-
-    Ok(match input {
-        DeInput::One(glob) => vec![glob],
-        DeInput::Many(vec) => vec,
-    })
+#[derive(Deserialize, Debug)]
+#[serde(untagged)]
+pub enum SongsGlobs {
+    One(String),
+    Many(Vec<String>),
 }
 
-trait PathBufExt {
-    fn resolve(&mut self, project_dir: &Path);
-    fn resolved(self, project_dir: &Path) -> Self;
-    fn utf8_check(&self) -> Result<(), path::Display>;
+impl SongsGlobs {
+    fn iter<'a>(&'a self) -> impl Iterator<Item = &'a str> {
+        let mut pos = 0;
+
+        iter::from_fn(move || match self {
+            Self::One(s) => Some(s.as_str()),
+            Self::Many(v) => v.get(pos).map(|s| {
+                pos += 1;
+                s.as_str()
+            }),
+        })
+    }
 }
 
-impl PathBufExt for PathBuf {
-    fn resolve(&mut self, project_dir: &Path) {
-        if self.is_relative() {
-            *self = project_dir.join(&self);
-        }
-    }
-
-    fn resolved(mut self, project_dir: &Path) -> Self {
-        self.resolve(project_dir);
-        self
-    }
-
-    fn utf8_check(&self) -> Result<(), path::Display> {
-        self.to_str().map(|_| ()).ok_or(self.display())
+impl Default for SongsGlobs {
+    fn default() -> Self {
+        Self::One("*.md".into())
     }
 }
 
@@ -128,18 +125,19 @@ impl Output {
         if let Some(template) = self.template.as_ref() {
             template.utf8_check()?;
         }
+
         self.file.utf8_check()
     }
 
-    fn resolve(&mut self, project_dir: &Path) -> Result<()> {
+    fn resolve(&mut self, dir_templates: &Path, dir_output: &Path) -> Result<()> {
         // Check that filenames are valid UTF-8
         self.utf8_check()
             .map_err(|p| anyhow!("Filename cannot be decoded to UTF-8: {}", p))?;
 
         if let Some(template) = self.template.as_mut() {
-            template.resolve(project_dir);
+            template.resolve(dir_templates);
         }
-        self.file.resolve(project_dir);
+        self.file.resolve(dir_output);
 
         if !matches!(self.format, Format::Auto) {
             return Ok(());
@@ -199,8 +197,14 @@ impl Output {
 
 #[derive(Deserialize, Debug)]
 pub struct Settings {
-    #[serde(deserialize_with = "deserialize_inputs")]
-    pub input: Vec<String>,
+    #[serde(default = "dir_songs")]
+    dir_songs: PathBuf,
+    #[serde(default = "dir_templates")]
+    dir_templates: PathBuf,
+    #[serde(default = "dir_output")]
+    dir_output: PathBuf,
+
+    songs: SongsGlobs,
     pub output: Vec<Output>,
 
     #[serde(default)]
@@ -232,8 +236,12 @@ impl Settings {
     }
 
     fn resolve(&mut self, project_dir: &Path) -> Result<()> {
+        self.dir_songs.resolve(project_dir);
+        self.dir_templates.resolve(project_dir);
+        self.dir_output.resolve(project_dir);
+
         for output in self.output.iter_mut() {
-            output.resolve(project_dir)?;
+            output.resolve(&self.dir_templates, &self.dir_output)?;
         }
 
         Ok(())
@@ -242,26 +250,24 @@ impl Settings {
 
 #[derive(Debug)]
 pub struct Project {
-    project_file: PathBuf,
     pub project_dir: PathBuf,
     pub settings: Settings,
-    input_paths: Vec<PathBuf>,
     pub book: Book,
+
+    project_file: PathBuf,
+    input_paths: Vec<PathBuf>,
 }
 
 impl Project {
     pub fn new<P: AsRef<Path>>(cwd: P) -> Result<Project> {
         let cwd = cwd.as_ref();
         let (project_file, project_dir) = Self::find_in_parents(cwd).ok_or(anyhow!(
-            "Could not find 'bard.toml' in current or parent directories\nCurrent directory: '{}'",
+            "Could not find {} in current or parent directories\nCurrent directory: '{}'",
+            PROJECT_FILE,
             cwd.display()
         ))?;
 
         cli::status("Loading", &format!("project at {}", project_dir.display()));
-
-        // cd into the project dir, this ensures globbing and
-        // template and output file relative paths work
-        env::set_current_dir(&project_dir).context("Could not read project directory")?;
 
         let settings = Settings::from_file(&project_file, &project_dir)?;
         let book = Book::new(settings.notation, &settings.chorus_label, settings.debug);
@@ -274,7 +280,7 @@ impl Project {
             book,
         };
 
-        project.collect_input_paths()?;
+        project.input_paths = project.collect_input_paths()?;
         project.book.load_files(&project.input_paths)?;
 
         Ok(project)
@@ -285,9 +291,9 @@ impl Project {
 
         let mut parent = start_dir;
         loop {
-            let bard_toml = parent.join(PROJECT_FILE);
-            if bard_toml.exists() {
-                return Some((bard_toml, parent.into()));
+            let project_file = parent.join(PROJECT_FILE);
+            if project_file.exists() {
+                return Some((project_file, parent.into()));
             }
 
             parent = parent.parent()?;
@@ -295,59 +301,38 @@ impl Project {
     }
 
     pub fn init<P: AsRef<Path>>(project_dir: P) -> Result<()> {
-        let project_dir = project_dir.as_ref();
-
-        if let Some(path) = DEFAULT_PROJECT
-            .iter()
-            .map(|entry| entry.path(project_dir))
-            .find(|path| path.exists())
-        {
-            bail!("File already exists: '{}'", path.display());
-        }
-
-        for entry in DEFAULT_PROJECT {
-            entry.create(project_dir)?;
-        }
-
-        Ok(())
+        DEFAULT_PROJECT.resolve(project_dir.as_ref()).create()
     }
 
-    fn collect_input_paths(&mut self) -> Result<()> {
-        self.input_paths = self
-            .settings
-            .input
+    fn collect_input_paths(&mut self) -> Result<Vec<PathBuf>> {
+        // glob doesn't support setting a base for relative paths,
+        // so we have to cd into the songs dir...
+        let _cwd = CwdGuard::new(&self.settings.dir_songs)?;
+
+        self.settings
+            .songs
             .iter()
             .map(|g| (g, glob::glob(g)))
             .try_fold(vec![], |mut paths, (glob_src, glob)| {
                 let glob =
                     glob.with_context(|| format!("Invalid input files pattern: '{}'", glob_src))?;
 
-                let mut matched = false;
                 let orig_idx = paths.len();
                 for globres in glob {
-                    matched = true;
-
                     let path = globres
                         .context("Could not locate input files")?
-                        .resolved(&self.project_dir);
+                        .resolved(&self.settings.dir_songs);
 
                     paths.push(path);
                 }
 
-                if !matched {
-                    // Pattern matched no files
-                    bail!("No file(s) found for input pattern: '{}'", glob_src);
-                } else {
-                    // Sort the entries collected for this glob.
-                    // This way, paths from one glob pattern are sorted alphabetically,
-                    // but order of globs as given in the input array is preserved.
-                    paths[orig_idx..].sort();
+                // Sort the entries collected for this glob.
+                // This way, paths from one glob pattern are sorted alphabetically,
+                // but order of globs as given in the input array is preserved.
+                paths[orig_idx..].sort();
 
-                    Ok(paths)
-                }
-            })?;
-
-        Ok(())
+                Ok(paths)
+            })
     }
 
     pub fn metadata(&self) -> &Metadata {
@@ -394,7 +379,7 @@ impl Project {
             cmd.arg(&arg_interp);
         }
 
-        cmd.current_dir(&self.project_dir);
+        cmd.current_dir(&self.settings.dir_output);
 
         let status = cmd
             .status()
@@ -440,6 +425,8 @@ impl Project {
     }
 
     pub fn render(&self) -> Result<()> {
+        fs::create_dir_all(&self.settings.dir_output)?;
+
         self.settings.output.iter().try_for_each(|output| {
             use self::Format::*;
 

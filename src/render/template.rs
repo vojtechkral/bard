@@ -51,7 +51,6 @@ fn filter_latex_inner(
             let mut escaped = JsonMap::new();
             for (key, value) in map.iter() {
                 let value = filter_latex_inner(value, args, pre_spaces)?;
-                dbg!(&value);
                 escaped.insert(latex_escape(key, pre_spaces), value);
             }
             Ok(Value::Object(escaped))
@@ -107,17 +106,12 @@ impl<'a> TeraRender<'a> {
         let mut tera = Tera::default();
 
         let tpl_name = if let Some(template) = output.template.as_ref() {
-            if !template.exists() {
-                // Initialize the template file with default contents
-                fs::write(&template, DT::TPL_CONTENT)?;
-            }
-
             tera.add_template_file(&template, None)
                 .context("Tera template error")?;
 
+            // NB: unwrap() should be ok, UTF-8 validity is checked while parsing
+            // project settings TOML:
             template.to_str().unwrap().to_string()
-        // NB: ^ unwrap should be ok, UTF-8 validity is checked while parsing
-        // project settings TOML
         } else {
             tera.add_raw_template(DT::TPL_NAME, DT::TPL_CONTENT)
                 .expect("Internal error: Could not load default Tera template");
@@ -154,8 +148,8 @@ impl<'a> TeraRender<'a> {
 pub struct RHtml;
 
 impl DefaultTemaplate for RHtml {
-    const TPL_NAME: &'static str = "template-html.html";
-    const TPL_CONTENT: &'static str = include_str!("../../default/template-html.html");
+    const TPL_NAME: &'static str = "html.html";
+    const TPL_CONTENT: &'static str = include_str!("../../default/templates/html.html");
 }
 
 impl Render for RHtml {
@@ -168,8 +162,8 @@ impl Render for RHtml {
 pub struct RTex;
 
 impl DefaultTemaplate for RTex {
-    const TPL_NAME: &'static str = "template-tex.tex";
-    const TPL_CONTENT: &'static str = include_str!("../../default/template-tex.tex");
+    const TPL_NAME: &'static str = "pdf.tex";
+    const TPL_CONTENT: &'static str = include_str!("../../default/templates/pdf.tex");
 }
 
 impl Render for RTex {

@@ -1,2 +1,8 @@
 /target
 /scratch
+/default/output/*
+!/default/output/songbook.pdf
+!/default/output/songbook.html
+/example/output/*
+!/example/output/songbook.pdf
+!/example/output/songbook.html

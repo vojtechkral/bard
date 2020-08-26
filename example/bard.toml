@@ -1,17 +1,23 @@
-input = "songs/*.md"
+
+songs = [
+    "Danny Boy.md",
+    "Handsome Molly.md",
+    "Whiskey in the Jard.md",
+    "Wild Mountain Thyme.md",
+]
 
 notation = "english"
 chorus_label = "Ch."
 
 [[output]]
 file = "songbook.tex"
-template = "template-tex.tex"
+template = "pdf.tex"
 font = "DejaVu Sans"
 process = "tectonic {{file}}"
 
 [[output]]
 file = "songbook.html"
-template = "template-html.html"
+template = "html.html"
 
 [[output]]
 file = "songbook.txt"

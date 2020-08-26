@@ -1,17 +1,19 @@
-input = "songs/*.md"
+songs = [
+    "yippie.md"
+]
 
 notation = "english"
 chorus_label = "Ch."
 
 [[output]]
 file = "songbook.tex"
-template = "template-tex.tex"
+template = "pdf.tex"
 font = "DejaVu Sans"
 process = "xelatex {{file}}"
 
 [[output]]
 file = "songbook.html"
-template = "template-html.html"
+template = "html.html"
 
 [book]
 title = "My Songbook"
