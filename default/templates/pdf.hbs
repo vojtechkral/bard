@@ -1,0 +1,208 @@
+{{!--
+ The content of all variables is by default escaped with a TeX
+ escaping function similar to how special characters are escaped in HTML.
+ The escaping function doesn't escape spaces.
+ To preserve spaces, use {{{ (pre variable) }}}, which replaces spaces
+ with the non-breaking space TeX entity '~'.
+--}}
+
+{{!-- Document header --}}
+
+\documentclass[{{default output.fontsize "12"}}pt,a5paper,openany]{memoir}
+\setheadfoot{0pt}{0pt}
+\setlrmarginsandblock{1cm}{1cm}{*}
+\setulmarginsandblock{.75cm}{1cm}{*}
+\checkandfixthelayout
+\raggedbottom
+
+\usepackage{fontspec}
+\usepackage{titlesec}
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage[defaultlines=5,all]{nowidow}
+\usepackage[pdfusetitle,colorlinks=true]{hyperref}
+
+%% Page style
+\makepagestyle{songs}
+\makeoddfoot{songs}{}{}{\thepage}
+\makeevenfoot{songs}{\thepage}{}{}
+% Patch cleardoublepage to not get blank pages after title & contents pages:
+\renewcommand\cleardoublepage{\clearpage}
+% Suppress page numbers in the toc/frontmatter:
+\aliaspagestyle{chapter}{empty}
+
+%% Fonts
+\setmainfont[Ligatures=TeX]{ {{~ default output.font "DejaVu Sans" ~}} }
+
+%% Spacings
+\setlength{\parindent}{0pt}
+\setlength{\tabcolsep}{0pt}
+\setlength{\parskip}{0pt}
+
+%% ToC style
+% Hide the title of the ToC:
+\renewcommand\tocheadstart{}
+\renewcommand\printtoctitle[1]{}
+\renewcommand\aftertoctitle{}
+% Hide section numbers in the ToC:
+\renewcommand\numberline[1]{}
+\renewcommand\cftdotsep{1}
+
+%% Hyperlinks setup
+\hypersetup{
+  bookmarks=true,
+  linkcolor=.,
+  urlcolor=blue,
+  pdfcreator={{ program.name }} v. {{ program.version }} - {{ program.homepage }},
+}
+
+%% Song title and subtitle formats
+\titleformat{\section}
+  {\centering\large\bfseries}{}{0pt}{\underline}
+\titlespacing*{\section}
+  {0pt}{0pt}{.25ex}
+\newcommand\songtitle[1]{%
+  % This is a trick to only layout a song on the current page
+  % if it fits, otherwise a pagebreak is inserted
+  \FloatBlock
+  \vfil
+  \pagebreak[2]
+  \vfilneg
+  \section{#1}
+}
+\newcommand\subtitle[1]{%
+  \emph{#1}
+}
+
+%% Chord layout command
+\makeatletter
+\newcommand{\chord}{\@ifstar{\@chordalt}{\@chord}}
+\newcommand{\@chord}[2]{%
+  \begin{tabular}[b]{l}%
+    \textbf{\textcolor{red}{#1}}\\%  % The chord
+    #2\mbox{}\end{tabular}%          % The lyrics
+}
+\newcommand{\@chordalt}[3]{%
+  \begin{tabular}[b]{l}%
+    \textbf{\textcolor{red}{#1}}\\%  % The chord
+    \textbf{\textcolor{blue}{#2}}\\% % The alt chord
+    #3\mbox{}\end{tabular}%          % The lyrics
+}
+\makeatother
+
+%% Time layout command
+\newcommand\timesign[2]{%
+  \begin{large}\( {#1} / {#2} \)\end{large}
+}
+
+{{!-- HB inlines: Block types --}}
+
+{{#*inline "verse-label"}}
+  {{~#if verse}}{{verse}}.{{/if~}}
+  {{~#if (contains this "chorus")}}{{@root.book.chorus_label}}{{chorus}}.{{/if~}}
+  {{~#if custom}}{{custom}}{{/if~}}
+{{/inline}}
+
+{{#*inline "b-verse"~}}
+  {{#each paragraphs~}}
+    \item[{{#if @first}}{{>verse-label ../label}}{{/if}}] {{#each this}}{{> (lookup this "type") }}{{/each}}{{/each}}
+{{/inline}}
+
+{{#*inline "b-bullet-list"~}}
+  \item[] \begin{itemize}[noitemsep]{{#each items}}\item {{ this }}
+{{/each}}
+  \end{itemize}
+{{/inline}}
+
+{{#*inline "b-horizontal-line"}}
+  \item[] \vphantom{}\hrule
+{{/inline}}
+
+{{#*inline "b-pre"}}
+  \item[] \begin{verbatim}{{{ text }}}\end{verbatim}
+{{/inline}}
+
+{{!-- HB inlines: Inline types --}}
+
+{{#*inline "i-text"}}{{{(pre text)}}}{{/inline}}
+
+{{#*inline "i-chord"}}
+  {{~#if alt_chord}}\chord*{ {{{~ (pre chord) ~}}} }{ {{{~ (pre alt_chord) ~}}} }{
+    {{~#each inlines}}{{> (lookup this "type") }}{{/each~}}
+  }{{/if~}}
+  {{~#unless alt_chord}}\chord{ {{{~ (pre chord) ~}}} }{
+    {{~#each inlines}}{{> (lookup this "type") }}{{/each~}}
+  }{{/unless~}}
+{{/inline}}
+
+{{!-- Nb. the i-break element is a line separator, not terminator,
+  ie. no i-break after the last inline element.
+  That means we can break the current table cell/row and create a new one. --}}
+{{#*inline "i-break"}}\\\
+{{/inline}}
+{{#*inline "i-emph"}}\emph{ {{~#each inlines}}{{> (lookup this "type") }}{{/each~}} }{{/inline}}
+{{#*inline "i-strong"}}\textbf{ {{~#each inlines}}{{> (lookup this "type") }}{{/each~}} }{{/inline}}
+{{#*inline "i-link"}}\href{ {{~ url ~}} }{ {{{~ (pre text) ~}}} }{{/inline}}
+
+{{!-- TODO: i-image, i-chorus-ref --}}
+
+{{!-- Main content --}}
+
+% Metadata
+\title{ {{~ book.title ~}} }
+
+% Document
+\begin{document}
+
+%% Title page
+\frontmatter
+\begin{titlingpage}
+  \begin{vplace}[0.5]
+    \begin{center}
+      \Huge{\textbf{ {{~ book.title ~}} }} \\
+      \vspace{0.5cm}
+      \LARGE{ {{~ book.subtitle ~}} } \\
+      \vspace{10cm}
+      \small{ {{~ book.title_note ~}} }
+    \end{center}
+  \end{vplace}
+\end{titlingpage}
+
+%% Contents page
+\tableofcontents*
+
+%% Songs
+\mainmatter
+\pagestyle{songs}
+{{#each songs -}}
+  %% song {{ @index }}
+  \songtitle{ {{~ title ~}} }
+
+  {{#if subtitles ~}}
+    \begin{center}
+      {{#each subtitles}}\subtitle{ {{~ this ~}} }{{#unless @last}}\\\{{/unless}}{{/each}}
+    \end{center}
+  {{/if}}
+  {{#unless subtitles}}\vphantom{}{{/unless}}
+
+  \begin{description}[leftmargin=3em,style=nextline,itemsep=1ex]
+    {{#each blocks}}{{> (lookup this "type") }}{{/each}}
+    {{#unless blocks}}
+      {{!-- No song.blocks, we need to insert and empty item,
+        otherwise LaTeX fails on an empty description env. --}}
+      \item
+    {{/unless}}
+  \end{description}
+{{/each}}
+
+\backmatter
+\pagestyle{empty}
+
+{{#if book.backmatter}}
+\pagebreak
+\begin{center}
+  {{ book.backmatter }}
+\end{center}
+{{/if}}
+
+\end{document}

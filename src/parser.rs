@@ -1,855 +1,1334 @@
 use std::mem;
-use std::path::Path;
-use std::io;
-use std::fs;
+use std::str;
 
-use pulldown_cmark as md;
+use comrak::{ComrakExtensionOptions, ComrakOptions, ComrakParseOptions, ComrakRenderOptions};
+use comrak::nodes::{AstNode, NodeValue, ListType};
+use lazy_static::lazy_static;
+use regex::{Regex, Captures};
 
-use crate::music::{Time, Notation, Chromatic};
-use crate::util::SmallStr;
+use crate::book::*;
+use crate::util::{BStr, ByteSliceExt};
+use crate::music::{self, Notation};
+use crate::error::*;
 
+type AstRef<'a> = &'a AstNode<'a>;
+type Arena<'a> = comrak::Arena<AstNode<'a>>;
 
-pub type Range = std::ops::Range<usize>;
-
-#[derive(Default, Clone, Copy, PartialEq, Eq, Debug)]
-pub struct Transpose {
-    pub delta: Chromatic,
-    pub notation: Option<Notation>,
+lazy_static! {
+    static ref EXTENSION: Regex = Regex::new(r"(^|\s)(!+)(\S+)").unwrap();
 }
 
-impl Transpose {
-    pub fn new(delta: Chromatic, notation: Option<Notation>) -> Transpose {
-        Transpose { delta, notation }
-    }
-
-    pub fn is_some(&self) -> bool {
-        self.delta != 0.into() || self.notation.is_some()
-    }
-
-    pub fn get_notation(&self, default: Notation) -> Notation {
-        self.notation.unwrap_or(default)
-    }
+/// Parser for a candidate bard MD extension
+#[derive(Debug)]
+struct Extension {
+    num_excls: u32,
+    content: String,
+    /// Contains a space char if there was one in front of the ext,
+    /// used to preserve proper spacing when chord refs are mixed in text.
+    prefix_space: Option<char>,
 }
 
-#[derive(Clone, PartialEq, Eq, Debug)]
-pub enum Event {
-    Song(SmallStr),
-    Subtitle(SmallStr),
-
-    Clef {
-        time: Option<Time>,
-        notation: Option<Notation>,
-    },
-    Transpose {
-        chord_set: u32,
-        transpose: Transpose,
-    },
-
-    Verse {
-        label: SmallStr,
-        chorus: bool,
-    },
-    Span {
-        chord: SmallStr,
-        lyrics: SmallStr,
-        newline: bool,
-        range: Range,
-    },
-
-    Bullet(SmallStr),
-    Rule,
-    Pre(SmallStr),
-}
-
-
-trait StringExt {
-    fn take(&mut self) -> SmallStr;
-}
-
-impl StringExt for String {
-    fn take(&mut self) -> SmallStr {
-        let res = self.as_str().into();
-        self.clear();
-        res
-    }
-}
-
-
-/// Parsing state: What element we're currently parsing
-#[derive(Clone, Copy, Eq, PartialEq, Debug)]
-enum Element {
-    Header(u32),
-    TextLyrics,
-    Bullet,
-    Pre,
-}
-
-#[derive(Default, Serialize, Debug)]
-pub struct ParsingDebug {
-    pub evts_md: Vec<SmallStr>,
-    pub evts_bard: Vec<SmallStr>,
-}
-
-impl ParsingDebug {
-    pub fn append(&mut self, mut other: ParsingDebug) {
-        self.evts_md.append(&mut other.evts_md);
-        self.evts_bard.append(&mut other.evts_bard);
-    }
-}
-
-pub struct Events<'a> {
-    md: md::OffsetIter<'a>,
-
-    elem: Element,
-    text: String,
-    chord: Option<SmallStr>,
-    chord_range: Range,
-    ol_level: u32,
-    ol_item: Option<i32>,
-    bq_level: u32,
-    verse_open: bool,
-    newline: bool,
-    line_start: bool,
-
-    stashed: Option<Event>,
-
-    debug: Option<ParsingDebug>,
-}
-
-impl<'a> Events<'a> {
-    fn new(md: md::OffsetIter<'a>, collect_debug: bool) -> Events<'a> {
-        let debug = if collect_debug {
-            Some(ParsingDebug::default())
-        } else {
-            None
-        };
-
-        Events {
-            md,
-            elem: Element::TextLyrics,
-            text: String::new(),
-            chord: None,
-            chord_range: 0..0,
-            ol_level: 0,
-            ol_item: None,
-            bq_level: 0,
-            verse_open: false,
-            newline: true,
-            line_start: true,
-            stashed: None,
-            debug,
+impl<'a> From<Captures<'a>> for Extension {
+    fn from(caps: Captures<'a>) -> Self {
+        let prefix_space = caps.get(1).unwrap().as_str().chars().next();
+        let num_excls = caps.get(2).unwrap().as_str().len() as _;
+        let content = caps.get(3).unwrap().as_str().to_owned();
+        Self {
+            num_excls,
+            content,
+            prefix_space,
         }
     }
+}
 
-    pub fn take_debug(&mut self) -> Option<ParsingDebug> {
-        self.debug.take()
-    }
-
-    fn start_tag(&mut self, tag: md::Tag) -> Option<Event> {
-        use self::md::Tag::*;
-
-        match tag {
-            Paragraph => None,
-            Heading(num) => {
-                self.elem = Element::Header(num.min(3));
-                self.text.clear();
-                self.verse_end();
-                None
-            }
-            BlockQuote => {
-                self.bq_level += 1;
-                self.verse_end();
-                None
-                // Note: A verse start is not dispatched right away,
-                // there might be a list following.
-            }
-            CodeBlock(_s) => {
-                self.elem = Element::Pre;
-                self.text.clear();
-                self.verse_end();
-                None
-            }
-            List(Some(num)) => {
-                self.ol_level += 1;
-                if self.ol_level == 1 {
-                    // Here we subtract one because Item event will add one
-                    self.ol_item = Some(num as i32 - 1);
+impl Extension {
+    fn try_parse_xpose(&self) -> Option<Transpose> {
+        if self.content.starts_with(&['+', '-'][..]) {
+            if let Ok(delta) = self.content.parse::<i32>() {
+                match self.num_excls {
+                    1 => return Some(Transpose::Transpose(delta)),
+                    2 => return Some(Transpose::AltTranspose(delta)),
+                    _ => {}
                 }
-                self.verse_end();
-                None
-                // Note: A verse start is not dispatched right away,
-                // there might be a blockquoute following.
             }
-            List(None) => {
-                if self.elem == Element::TextLyrics {
-                    self.elem = Element::Bullet;
-                }
-                None
-            }
-            Item => {
-                if let Some(i) = self.ol_item.as_mut() {
-                    *i += 1;
-                }
-                None
-            }
-            FootnoteDefinition(_s) => None,
-            Emphasis => {
-                self.line_start = false;
-                None
-            }
-            Strong => {
-                self.line_start = false;
-                None
-            }
-            Strikethrough => {
-                self.line_start = false;
-                None
-            }
-            Link(_link_type, _url, _title) => {
-                self.line_start = false;
-                None
-            }
-            Image(_link_type, _url, _title) => {
-                self.line_start = false;
-                None
-            }
-
-            Table(_) | TableHead | TableRow | TableCell => unreachable!(),
         }
-    }
 
-    fn end_tag(&mut self, tag: md::Tag) -> Option<Event> {
-        use self::md::Tag::*;
-
-        match tag {
-            Paragraph => {
-                if self.elem == Element::TextLyrics {
-                    self.line_end(true)
-                } else {
-                    None
-                }
+        if let Ok(notation) = self.content.parse::<Notation>() {
+            match self.num_excls {
+                1 => return Some(Transpose::Notation(notation)),
+                2 => return Some(Transpose::AltNotation(notation)),
+                _ => {}
             }
-            Heading(num) => {
-                self.elem = Element::TextLyrics;
-                let text = self.text.take();
-                Some(match num {
-                    1 => Event::Song(text.into()),
-                    2 => Event::Subtitle(text.into()),
-                    _ => self.verse_event(text, self.bq_level > 0),
-                })
-            }
-            BlockQuote => {
-                self.bq_level = self
-                    .bq_level
-                    .checked_sub(1)
-                    .expect("Internal error: Invalid parser state");
-                None
-            }
-            CodeBlock(_s) => {
-                self.elem = Element::TextLyrics;
-                let text = self.text.take();
-                Some(Event::Pre(text))
-            }
-            List(Some(_num)) => {
-                self.ol_level = self
-                    .ol_level
-                    .checked_sub(1)
-                    .expect("Internal error: Invalid parser state");
-                if self.ol_level == 0 {
-                    self.ol_item = None;
-                }
-                None
-            }
-            List(None) => {
-                if self.elem == Element::Bullet {
-                    self.elem = Element::TextLyrics;
-                }
-                None
-            }
-            Item => self.line_end(true),
-            FootnoteDefinition(_s) => None,
-            Emphasis => None,
-            Strong => None,
-            Strikethrough => None,
-            Link(_link_type, _url, _title) => None,
-            Image(_link_type, _url, _title) => None,
-
-            Table(_) | TableHead | TableRow | TableCell => unreachable!(),
         }
+
+        None
     }
 
-    fn get_span(&mut self) -> Option<Event> {
-        if !self.text.is_empty() || self.chord.is_some() {
-            // We preserve buffer capacity here
-
-            let chord = self.chord.take().unwrap_or(Default::default());
-            let lyrics = self.text.as_str().into();
-            self.text.clear();
-
-            Some(Event::Span {
-                chord,
-                lyrics,
-                newline: mem::replace(&mut self.newline, false),
-                range: self.chord_range.clone(),
-            })
+    fn try_parse_chorus_ref(&self) -> Option<u32> {
+        if self.num_excls == 1 && self.content.chars().all(|c| c == '>') {
+            Some(self.content.len() as _)
         } else {
             None
         }
     }
 
-    fn verse_event(&mut self, label: SmallStr, chorus: bool) -> Event {
-        self.verse_open = true;
-        Event::Verse { label, chorus }
-    }
-
-    /// Ensures that a verse is always open before dispatching a span
-    fn verse_or_span(&mut self) -> Option<Event> {
-        if let Some(evt) = self.get_span() {
-            if !self.verse_open {
-                self.stashed = Some(evt);
-
-                let label = self
-                    .ol_item
-                    .map(|i| format!("{}.", i).into())
-                    .unwrap_or(Default::default());
-
-                Some(self.verse_event(label, self.bq_level > 0))
-            } else {
-                Some(evt)
-            }
+    fn try_parse(&self) -> Option<Inline> {
+        if let Some(xpose) = self.try_parse_xpose() {
+            // Transposition extension recognized
+            Some(Inline::Transpose(xpose))
+        } else if let num @ Some(_) = self.try_parse_chorus_ref() {
+            // Chorus reference extension recognized
+            Some(Inline::ChorusRef { num })
         } else {
+            // No recognized extension, just push as regular text
             None
         }
     }
+}
 
-    fn verse_end(&mut self) {
-        self.verse_open = false;
-        self.newline = true;
-    }
+/// Parser transposition state
+#[derive(Clone, Default, Debug)]
+pub struct Transposition {
+    /// Source notation of the song
+    src_notation: Notation,
+    /// Transposition of chords
+    xpose: Option<i32>,
+    /// Notation conversion of chords
+    notation: Option<Notation>,
+    /// Transposition of alt chords (2nd row)
+    alt_xpose: Option<i32>,
+    /// Notation conversion of alt chords (2nd row)
+    alt_notation: Option<Notation>,
 
-    fn parse_dollar(&mut self) -> Option<Event> {
-        if !self.line_start || self.chord.is_some() || self.text.get(0..1) != Some("$") {
-            return None;
-        }
+    /// Option to disable transposition for unit testing,
+    /// ie. leave `Inline::Transpose` in the AST so they can be checked.
+    disabled: bool,
+}
 
-        let mut time: Option<Time> = None;
-        let mut notation: Option<Notation> = None;
-
-        for arg in self.text[1..].split_ascii_whitespace() {
-            if arg
-                .chars()
-                .next()
-                .map(|c| c.is_ascii_digit())
-                .unwrap_or(false)
-            {
-                // This looks like a time signtarue argument
-                if time.is_some() {
-                    return None;
-                }
-
-                match arg
-                    .find('/')
-                    .map(|i| arg.split_at(i))
-                    .map(|(a, b)| (a.parse(), b.get(1..).and_then(|b| b.parse().ok())))
-                {
-                    Some((Ok(a), Some(b))) => time = Some((a, b)),
-                    _ => return None,
-                }
-            } else {
-                // This looks like a notation argument
-                if notation.is_some() {
-                    return None;
-                }
-
-                match arg.parse() {
-                    Ok(m) => notation = Some(m),
-                    Err(_) => return None,
-                }
-            }
-        }
-
-        if time.is_some() || notation.is_some() {
-            self.text.clear();
-            Some(Event::Clef { time, notation })
-        } else {
-            None
+impl Transposition {
+    fn new(src_notation: Notation) -> Self {
+        Self {
+            src_notation,
+            ..Default::default()
         }
     }
 
-    fn parse_carret(&mut self) -> Option<Event> {
-        if !self.line_start || self.chord.is_some() {
-            return None;
+    fn update(&mut self, xpose: Transpose) {
+        if self.disabled {
+            return;
         }
 
-        let num_carrets = self.text.chars().take_while(|c| *c == '^').count();
-
-        if num_carrets == 0 || num_carrets > 2 {
-            return None;
-        }
-
-        let mut delta: Option<Chromatic> = None;
-        let mut notation: Option<Notation> = None;
-
-        for arg in self.text[num_carrets..].split_ascii_whitespace() {
-            if arg
-                .chars()
-                .next()
-                .map(|c| c == '-' || c == '+' || c.is_ascii_digit())
-                .unwrap_or(false)
-            {
-                // This looks like a numerical pitch delta argument
-                if delta.is_some() {
-                    return None;
-                }
-
-                match arg.parse() {
-                    Ok(d) => delta = Some(d),
-                    Err(_) => return None,
-                }
-            } else {
-                // This looks like a notation argument
-                if notation.is_some() {
-                    return None;
-                }
-
-                match arg.parse() {
-                    Ok(m) => notation = Some(m),
-                    Err(_) => return None,
-                }
-            }
-        }
-
-        if delta.is_some() || notation.is_some() {
-            self.text.clear();
-            let transpose = Transpose::new(delta.unwrap_or(0.into()), notation);
-            let chord_set = num_carrets as u32 - 1;
-            Some(Event::Transpose {
-                chord_set,
-                transpose,
-            })
-        } else {
-            None
+        match xpose {
+            Transpose::Transpose(d) => self.xpose = Some(d),
+            Transpose::Notation(nt) => self.notation = Some(nt),
+            Transpose::AltTranspose(d) => self.alt_xpose = Some(d),
+            Transpose::AltNotation(nt) => self.alt_notation = Some(nt),
         }
     }
 
-    fn line_end(&mut self, verse_end: bool) -> Option<Event> {
-        use Element::*;
+    fn is_some(&self) -> bool {
+        self.xpose.is_some()
+            || self.notation.is_some()
+            || self.alt_xpose.is_some()
+            || self.alt_notation.is_some()
+    }
+}
 
-        let res = match self.elem {
-            TextLyrics => {
-                // Check if this line is a time, notation or transposition instruction
-                if let Some(evt) = self.parse_dollar() {
-                    Some(evt)
-                } else if let Some(evt) = self.parse_carret() {
-                    Some(evt)
-                } else {
-                    // Dispatch span, if any
-                    self.verse_or_span()
-                }
-            }
-            Bullet => Some(Event::Bullet(self.text.take())),
-            _ => None,
-        };
+/// Custom operations on Comrak AST nodes
+trait NodeExt<'a> {
+    fn is_block(&self) -> bool;
+    fn is_text(&self) -> bool;
+    fn is_h(&self, level: u32) -> bool;
+    fn is_p(&self) -> bool;
+    fn is_code(&self) -> bool;
+    fn is_break(&self) -> bool;
+    fn is_link(&self) -> bool;
+    fn is_item(&self) -> bool;
+    fn is_bq(&self) -> bool;
 
-        self.newline = true;
-        self.line_start = true;
+    /// Recursively concatenate all text fields, ie. remove
+    /// formatting and just return the text.
+    fn as_plaintext(&'a self) -> String;
 
-        if verse_end {
-            self.verse_end();
-        }
+    /// Split the current node at the specified child index.
+    /// This effectively: 1. duplicates the current node, the copy is
+    /// added as originals next sibling, 2. moves children starting from index
+    /// `at_child` (inclusive) from the original to the copy.
+    fn split_at(&'a self, at_child: usize, arena: &'a Arena<'a>) -> AstRef<'a>;
 
-        res
+    /// Preprocesses the AST, performing the following operations:
+    /// - Link child nodes are converted to plaintext
+    /// - Inline `Code`, `LineBreak`s and `SoftBreak`s 'bubble up' to the top level
+    ///   of the current block element. That is, if a `Code` inline is nested
+    ///   within another inline element, the element is split and the code is brought up.
+    ///   This happens recursively. This is done so that inline code spans can be easily
+    ///   collected into Chord spans with the content that follows until the next inline code
+    ///   or linebreak.
+    fn preprocess(&'a self, arena: &'a Arena<'a>);
+
+    /// Parse a text node. It may parse into a series of `Inline`s
+    /// since extension parsing is handled here.
+    fn parse_text(&self, target: &mut Vec<Inline>, xp: &mut Transposition);
+
+    /// Generate `Inline`s out of this inline node.
+    /// Also recursively applies to children when applicable.
+    fn make_inlines(&'a self, target: &mut Vec<Inline>, xp: &mut Transposition);
+}
+
+impl<'a> NodeExt<'a> for AstNode<'a> {
+    fn is_block(&self) -> bool {
+        self.data.borrow().value.block()
     }
 
-    fn next_inner(&mut self) -> Option<Event> {
-        use self::md::Event as M;
+    fn is_text(&self) -> bool {
+        self.data.borrow().value.text().is_some()
+    }
 
-        loop {
-            if self.stashed.is_some() {
-                return self.stashed.take();
-            }
+    fn is_h(&self, level: u32) -> bool {
+        matches!(self.data.borrow().value,
+            NodeValue::Heading(h) if h.level == level
+        )
+    }
 
-            let (md_evt, range) = self.md.next()?;
+    fn is_p(&self) -> bool {
+        matches!(self.data.borrow().value, NodeValue::Paragraph)
+    }
 
-            if let Some(debug) = self.debug.as_mut() {
-                let evt_s = format!("{:?}", md_evt).into();
-                debug.evts_md.push(evt_s);
-            }
+    fn is_code(&self) -> bool {
+        matches!(self.data.borrow().value, NodeValue::Code(..))
+    }
 
-            let evt = match md_evt {
-                M::Start(t) => self.start_tag(t),
-                M::End(t) => self.end_tag(t),
-                M::Text(s) => {
-                    self.text.push_str(&s);
-                    None
-                }
-                M::Code(s) => {
-                    if self.elem == Element::TextLyrics {
-                        // Save the chord in state, dispatch previously collected span, if any
-                        let evt = self.verse_or_span();
-                        self.chord = Some(s.into());
-                        self.chord_range = range;
-                        evt
-                    } else {
-                        None
-                    }
-                }
-                M::Html(_s) => None,
-                M::FootnoteReference(_s) => None,
-                M::SoftBreak | M::HardBreak => self.line_end(false),
-                M::Rule => Some(Event::Rule),
-                M::TaskListMarker(_) => None,
+    fn is_break(&self) -> bool {
+        matches!(
+            self.data.borrow().value,
+            NodeValue::LineBreak | NodeValue::SoftBreak
+        )
+    }
+
+    fn is_link(&self) -> bool {
+        matches!(self.data.borrow().value, NodeValue::Link(..))
+    }
+
+    fn is_item(&self) -> bool {
+        matches!(self.data.borrow().value, NodeValue::Item(..))
+    }
+
+    fn is_bq(&self) -> bool {
+        matches!(self.data.borrow().value, NodeValue::BlockQuote)
+    }
+
+    fn as_plaintext(&'a self) -> String {
+        fn recurse<'a>(this: &'a AstNode<'a>, res: &mut String) {
+            let value = this.data.borrow();
+            let text_b = match &value.value {
+                NodeValue::Text(b) | NodeValue::Code(b) => Some(b),
+                _ => None,
             };
 
-            if evt.is_some() {
-                return evt;
+            if let Some(bytes) = text_b {
+                let utf8 = String::from_utf8_lossy(&bytes[..]);
+                res.push_str(&utf8);
+            } else {
+                for c in this.children() {
+                    recurse(c, res);
+                }
             }
+        }
+
+        let mut res = String::new();
+        recurse(self, &mut res);
+        res
+    }
+
+    fn split_at(&'a self, at_child: usize, arena: &'a Arena<'a>) -> AstRef<'a> {
+        // Clone the data and alloc a new node in the arena:
+        let data2 = self.data.clone();
+        let node2 = arena.alloc(AstNode::new(data2));
+
+        // Append as the next sibling
+        self.insert_after(node2);
+
+        // Move [i, len) children to node2
+        for child in self.children().skip(at_child) {
+            node2.append(child); // Yes, this will detach the child from self
+        }
+
+        node2
+    }
+
+    fn preprocess(&'a self, arena: &'a Arena<'a>) {
+        // First make sure children are already preprocessed
+        // (We're doing a DFS descent basically.)
+        self.children().for_each(|c| c.preprocess(arena));
+
+        // The preprocessing is only applicable to inlines
+        if self.is_block() {
+            return;
+        }
+
+        if self.is_link() {
+            if self.children().count() == 1
+                && self.children().next().map_or(false, NodeExt::is_text)
+            {
+                // This is a plaintext link, nothing needs to be done
+            } else {
+                // Convert link to plaintext
+                let plain = self.as_plaintext().into_bytes();
+                for c in self.children() {
+                    c.detach();
+                }
+                let textnode = arena.alloc(AstNode::from(NodeValue::Text(plain)));
+                self.append(textnode);
+            }
+
+            return;
+        }
+
+        let mut start_node = Some(self);
+        while let Some(node) = start_node.take() {
+            if let Some((i, child)) = node
+                .children()
+                .enumerate()
+                .find(|(_, c)| c.is_code() || c.is_break())
+            {
+                // We want to take this child and append as a sibling to self,
+                // but first self needs to be duplicated with the already-processed nodes
+                // removed. The processing then should go on to the duplicated node...
+                child.detach();
+                let node2 = node.split_at(i, arena);
+                node.insert_after(child);
+                start_node = Some(node2);
+            }
+        }
+    }
+
+    fn parse_text(&self, target: &mut Vec<Inline>, xp: &mut Transposition) {
+        let data = self.data.borrow();
+        let text = match &data.value {
+            NodeValue::Text(text) => text,
+            other => unreachable!("Unexpected element: {:?}", other),
+        };
+
+        let text = String::from_utf8_lossy(&*text);
+        let mut pos = 0;
+
+        for caps in EXTENSION.captures_iter(&*text) {
+            let hit = caps.get(0).unwrap();
+
+            // Try parsing an extension
+            let ext = Extension::from(caps);
+            if let Some(inline) = ext.try_parse() {
+                // First see if there's regular text preceding the extension
+                let preceding = &text[pos..hit.start()];
+                if !preceding.is_empty() {
+                    let preceding = Inline::Text {
+                        text: preceding.into(),
+                    };
+                    target.push(preceding);
+                }
+
+                if inline.is_xpose() && !xp.disabled {
+                    // Update transposition state and throw the inline away,
+                    // we're normally not keeping them in the AST
+                    xp.update(inline.unwrap_xpose());
+
+                    // If the extension is first on the line (ie. no leading ws)
+                    // then we should consume the following whitespace char
+                    // (there must be either whitespace or EOL).
+                    if ext.prefix_space.is_none() && hit.end() < text.len() {
+                        pos = hit.end() + 1;
+                        dbg!(pos);
+                    } else {
+                        pos = hit.end();
+                    }
+                } else {
+                    // inline not xpose or xp disabled
+                    target.push(inline);
+                    pos = hit.end();
+                }
+            }
+        }
+
+        // Also add text past the last extension (if any)
+        let rest = &text[pos..];
+        if !rest.is_empty() {
+            let rest = Inline::Text { text: rest.into() };
+            target.push(rest);
+        }
+    }
+
+    fn make_inlines(&'a self, target: &mut Vec<Inline>, xp: &mut Transposition) {
+        fn recurse<'a>(this: &'a AstNode<'a>, xp: &mut Transposition) -> Box<[Inline]> {
+            this.children()
+                .fold(vec![], |mut vec, node| {
+                    node.make_inlines(&mut vec, xp);
+                    vec
+                })
+                .into()
+        }
+
+        assert!(!self.is_block());
+
+        let single = match &self.data.borrow().value {
+            NodeValue::Text(..) => {
+                self.parse_text(target, xp);
+                return;
+            }
+            NodeValue::HtmlInline(..) => return,
+            NodeValue::Emph => Inline::Emph(Inlines::new(recurse(self, xp))),
+            NodeValue::Strong => Inline::Strong(Inlines::new(recurse(self, xp))),
+            NodeValue::Link(link) => {
+                let mut children = self.children();
+                let text = children.next().unwrap();
+                assert!(children.next().is_none());
+                assert!(text.is_text());
+                let text = text.as_plaintext().into();
+
+                let link = Link::link(link.url.into_bstr(), link.title.into_bstr(), text);
+                Inline::Link(link)
+            }
+            NodeValue::Image(link) => Inline::Image {
+                link: Link::img(link.url.into_bstr(), link.title.into_bstr()),
+            },
+            NodeValue::FootnoteReference(..) => return,
+
+            // TODO: Ensure extensions are not enabled through a test
+            other => {
+                unreachable!("Unexpected element: {:?}", other);
+            }
+        };
+
+        target.push(single);
+    }
+}
+
+
+#[derive(Debug)]
+struct ChordBuilder {
+    chord: BStr,
+    alt_chord: Option<BStr>,
+    inlines: Vec<Inline>,
+    line: u32,
+}
+
+impl ChordBuilder {
+    fn new(chord: BStr, line: u32) -> Self {
+        Self {
+            chord,
+            alt_chord: None,
+            inlines: vec![],
+            line,
+        }
+    }
+
+    fn inlines_mut<'s>(&'s mut self) -> &'s mut Vec<Inline> {
+        &mut self.inlines
+    }
+
+    fn transpose(&mut self, xp: &Transposition) -> Result<()> {
+        if xp.disabled {
+            return Ok(());
+        }
+
+        let src_nt = xp.src_notation;
+        let chord = music::Chord::parse(&self.chord, src_nt)
+            .with_context(|| format!("Unknown chord `{}` on line {}", self.chord, self.line))?;
+
+        if xp.xpose.is_some() || xp.notation.is_some() {
+            let delta = xp.xpose.unwrap_or(0);
+            let notation = xp.notation.unwrap_or(src_nt);
+            self.chord = chord.transposed(delta).to_string(notation).into();
+        }
+
+        if xp.alt_xpose.is_some() || xp.alt_notation.is_some() {
+            let delta = xp.alt_xpose.unwrap_or(0);
+            let notation = xp.alt_notation.unwrap_or(src_nt);
+            self.alt_chord = Some(chord.transposed(delta).to_string(notation).into());
+        }
+
+        Ok(())
+    }
+
+    fn finalize(self, inlines: &mut Vec<Inline>) {
+        let chord = Chord::new(self.chord, self.alt_chord, self.line);
+        let chord = Inline::Chord(Inlines {
+            data: chord,
+            inlines: self.inlines.into(),
+        });
+        inlines.push(chord);
+    }
+}
+
+
+#[derive(Debug)]
+struct VerseBuilder {
+    label: VerseLabel,
+    paragraphs: Vec<Paragraph>,
+    xp: Transposition,
+}
+
+impl VerseBuilder {
+    fn new(label: VerseLabel, xp: Transposition) -> Self {
+        Self {
+            label,
+            paragraphs: vec![],
+            xp,
+        }
+    }
+
+    fn with_p_nodes<'a, I>(label: VerseLabel, xp: Transposition, mut nodes: I) -> Result<Self>
+    where
+        I: Iterator<Item = AstRef<'a>>,
+    {
+        nodes.try_fold(Self::new(label, xp), |mut this, node| {
+            this.add_p_node(node)?;
+            Ok(this)
+        })
+    }
+
+    fn add_p_inner(&mut self, node: AstRef) -> Result<()> {
+        assert!(node.is_p());
+
+        let mut para: Vec<Inline> = vec![];
+        let mut cb = None::<ChordBuilder>;
+        let mut skip_break = false;
+        for c in node.children() {
+            let c_data = c.data.borrow();
+            if let NodeValue::Code(code) = &c_data.value {
+                if let Some(cb) = cb.take() {
+                    cb.finalize(&mut para);
+                }
+
+                let mut new_cb = ChordBuilder::new(code.into_bstr(), c_data.start_line);
+                if self.xp.is_some() {
+                    new_cb.transpose(&self.xp).with_context(|| {
+                        format!(
+                            "Failed to transpose: Uknown chord `{}` on line {}",
+                            new_cb.chord, new_cb.line
+                        )
+                    })?;
+                }
+                cb = Some(new_cb);
+            } else if c.is_break() {
+                if let Some(cb) = cb.take() {
+                    cb.finalize(&mut para);
+                }
+
+                if !skip_break {
+                    para.push(Inline::Break);
+                } else {
+                    skip_break = false;
+                }
+            } else {
+                // c must be another inline element.
+                // See if a chord is currently open
+                if let Some(cb) = cb.as_mut() {
+                    // Add the inlines to the current chord
+                    c.make_inlines(cb.inlines_mut(), &mut self.xp);
+                } else {
+                    // Otherwise just push as a standalone inline
+                    c.make_inlines(&mut para, &mut self.xp);
+                }
+            }
+        }
+
+        if let Some(cb) = cb.take() {
+            cb.finalize(&mut para);
+        }
+
+        if !para.is_empty() {
+            self.paragraphs.push(para.into());
+        }
+
+        Ok(())
+    }
+
+    /// Add node containing a paragraph (or multiple ones in case of nested lists)
+    fn add_p_node(&mut self, node: AstRef) -> Result<()> {
+        // This is called from SongBuilder, ie. if we come across a List
+        // or a BlockQuote here, that means it must be a nested one,
+        // as top-level ones are handled in SongBuilder.
+        // These nested lists/bqs are undefined by bard MD,
+        // ATM we just ignore them as such, but parse the paragraphs within.
+        match &node.data.borrow().value {
+            NodeValue::Paragraph => self.add_p_inner(node),
+            NodeValue::BlockQuote | NodeValue::List(..) | NodeValue::Item(..) => {
+                node.children().try_for_each(|c| self.add_p_node(c))
+            }
+            other => unreachable!("Unexpected element: {:?}", other),
+        }
+    }
+
+    fn finalize(self) -> (Verse, Transposition) {
+        let verse = Verse::new(self.label.into(), self.paragraphs);
+        (verse, self.xp)
+    }
+}
+
+#[derive(Debug)]
+struct SongBuilder<'a> {
+    nodes: &'a [AstRef<'a>],
+    title: String,
+    subtitles: Vec<BStr>,
+    verse: Option<VerseBuilder>,
+    blocks: Vec<Block>,
+    xp: Transposition,
+}
+
+impl<'a> SongBuilder<'a> {
+    fn new(nodes: &'a [AstRef<'a>], notation: Notation, fallback_title: &str) -> Self {
+        // Read song title or use fallback
+        let (title, nodes) = match nodes.first() {
+            Some(n) if n.is_h(1) => (n.as_plaintext().into(), &nodes[1..]),
+            _ => (fallback_title.into(), nodes),
+        };
+
+        // Collect subtitles - H2s following the title (if any)
+        let subtitles: Vec<_> = nodes
+            .iter()
+            .take_while(|node| node.is_h(2))
+            .map(|node| node.as_plaintext().into())
+            .collect();
+
+        // Shift nodes to the song content
+        let nodes = &nodes[subtitles.len()..];
+
+        Self {
+            nodes,
+            title,
+            subtitles,
+            verse: None,
+            blocks: vec![],
+            xp: Transposition::new(notation),
+        }
+    }
+
+    fn set_xp_disabled(&mut self, disabled: bool) {
+        self.xp.disabled = disabled;
+    }
+
+    fn verse_mut<'s>(&'s mut self) -> &'s mut VerseBuilder {
+        if self.verse.is_none() {
+            self.verse = Some(VerseBuilder::new(VerseLabel::None {}, self.xp.clone()));
+        }
+
+        self.verse.as_mut().unwrap()
+    }
+
+    fn verse_finalize(&mut self) {
+        if let Some(verse) = self.verse.take() {
+            let (verse, xp) = verse.finalize();
+            self.blocks.push(Block::Verse(verse));
+            self.xp = xp;
+        }
+    }
+
+    fn parse_bq(&mut self, bq: AstRef, level: u32) -> Result<()> {
+        assert!(bq.is_bq());
+
+        let mut prev_bq = false;
+        for c in bq.children() {
+            if c.is_bq() {
+                self.verse_finalize();
+                self.parse_bq(c, level + 1)?;
+                prev_bq = true;
+            } else {
+                if prev_bq {
+                    self.verse_finalize();
+                    prev_bq = false;
+                }
+
+                if !self.verse.is_some() {
+                    let label = VerseLabel::Chorus(Some(level));
+                    let verse = VerseBuilder::new(label, self.xp.clone());
+                    self.verse = Some(verse);
+                }
+
+                self.verse_mut().add_p_node(c)?;
+            }
+        }
+
+        Ok(())
+    }
+
+    fn parse(&mut self) -> Result<()> {
+        for node in self.nodes.iter() {
+            if !node.is_p() {
+                self.verse_finalize();
+            }
+
+            match &node.data.borrow().value {
+                NodeValue::Paragraph => self.verse_mut().add_p_node(node)?,
+
+                NodeValue::List(list) if matches!(list.list_type, ListType::Ordered) => {
+                    for (i, item) in node.children().enumerate() {
+                        assert!(item.is_item());
+                        self.verse_finalize();
+
+                        let label = VerseLabel::Verse((list.start + i) as u32);
+                        let verse =
+                            VerseBuilder::with_p_nodes(label, self.xp.clone(), item.children())?;
+                        self.verse = Some(verse);
+                    }
+                }
+
+                NodeValue::List(..) => {
+                    let items: Vec<BStr> = node
+                        .children()
+                        .map(|item| item.as_plaintext().into())
+                        .collect();
+                    let list = BulletList {
+                        items: items.into(),
+                    };
+                    self.blocks.push(Block::BulletList(list));
+                }
+
+                NodeValue::BlockQuote => self.parse_bq(node, 1)?,
+
+                NodeValue::Heading(h) if h.level >= 3 => {
+                    let label = VerseLabel::Custom(node.as_plaintext().into());
+                    self.verse = Some(VerseBuilder::new(label, self.xp.clone()));
+                }
+
+                NodeValue::ThematicBreak => {
+                    self.blocks.push(Block::HorizontalLine);
+                }
+
+                NodeValue::CodeBlock(cb) => self.blocks.push(Block::Pre {
+                    text: cb.literal.into_bstr(),
+                }),
+
+                // FIXME: is this ok?
+                _ => {}
+            }
+        }
+
+        Ok(())
+    }
+
+    fn finalize(mut self) -> Song {
+        self.verse_finalize();
+
+        // Chorus labels and chorus references carry a number
+        // identifying the chorus. However, if there's just one chorus
+        // in the song, we set the number to None, the number would be useless/distracting.
+        let max_chorus = self
+            .blocks
+            .iter()
+            .map(|b| b.chorus_num().unwrap_or(0))
+            .max()
+            .unwrap_or(0);
+        if max_chorus < 2 {
+            self.blocks.iter_mut().for_each(Block::remove_chorus_num);
+        }
+
+        let mut song = Song {
+            title: self.title.into(),
+            subtitles: self.subtitles.into(),
+            blocks: self.blocks.into(),
+            notation: self.xp.src_notation,
+        };
+
+        song.postprocess();
+        song
+    }
+}
+
+struct SongsIter<'s, 'a> {
+    slice: &'s [AstRef<'a>],
+}
+
+impl<'s, 'a> SongsIter<'s, 'a> {
+    fn new(slice: &'s [AstRef<'a>]) -> Self {
+        Self { slice }
+    }
+
+    fn find_next_h1(&self) -> Option<usize> {
+        self.slice[1..]
+            .iter()
+            .enumerate()
+            .find_map(|(i, node)| if node.is_h(1) { Some(i + 1) } else { None })
+    }
+}
+
+impl<'s, 'a> Iterator for SongsIter<'s, 'a> {
+    type Item = &'s [AstRef<'a>];
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.slice.is_empty() {
+            return None;
+        }
+
+        if let Some(next_h1) = self.find_next_h1() {
+            let (ret, next_slice) = self.slice.split_at(next_h1);
+            self.slice = next_slice;
+            Some(ret)
+        } else {
+            // Return the whole remaining slice
+            Some(mem::replace(&mut self.slice, &[]))
         }
     }
 }
 
-impl<'a> Iterator for Events<'a> {
-    type Item = Event;
-
-    fn next(&mut self) -> Option<Event> {
-        self.next_inner().map(|evt| {
-            if let Some(debug) = self.debug.as_mut() {
-                let evt_s = format!("{:?}", evt).into();
-                debug.evts_bard.push(evt_s);
-            }
-            evt
-        })
-    }
+#[derive(Debug)]
+pub struct Parser<'i> {
+    input: &'i str,
+    notation: Notation,
+    fallback_title: BStr,
+    xp_disabled: bool,
 }
 
-pub struct MDFile {
-    content: String,
-    collect_debug: bool,
-}
-
-impl MDFile {
-    pub fn new<P: AsRef<Path>>(path: P, collect_debug: bool) -> io::Result<MDFile> {
-        let content = fs::read_to_string(&path)?;
-
-        Ok(MDFile {
-            content,
-            collect_debug,
-        })
-    }
-
-    pub fn from_str(s: &str, collect_debug: bool) -> MDFile {
-        MDFile {
-            content: s.into(),
-            collect_debug,
+impl<'i> Parser<'i> {
+    pub fn new(input: &'i str, notation: Notation, fallback_title: &str) -> Self {
+        Self {
+            input,
+            notation,
+            fallback_title: fallback_title.into(),
+            xp_disabled: false,
         }
     }
 
-    pub fn content<'a>(&'a self) -> &'a str {
-        self.content.as_str()
+    #[cfg(test)]
+    fn set_xp_disabled(&mut self, disabled: bool) {
+        self.xp_disabled = disabled;
     }
 
-    pub fn parse<'a>(&'a self) -> Events<'a> {
-        // TODO: link callback
+    fn comrak_config() -> ComrakOptions {
+        ComrakOptions {
+            extension: ComrakExtensionOptions {
+                strikethrough: false,
+                tagfilter: false,
+                table: false,
+                autolink: false,
+                tasklist: false,
+                superscript: false,
+                header_ids: None,
+                footnotes: false,
+                description_lists: false,
+                front_matter_delimiter: None,
+            },
+            parse: ComrakParseOptions {
+                smart: false,
+                default_info_string: None,
+            },
+            render: ComrakRenderOptions {
+                hardbreaks: false,
+                github_pre_lang: false,
+                width: 0,
+                unsafe_: false,
+                escape: false,
+            },
+        }
+    }
 
-        let parser = md::Parser::new(&self.content).into_offset_iter();
-        Events::new(parser, self.collect_debug)
+    pub fn parse<'s>(&mut self, songs: &'s mut Vec<Song>) -> Result<&'s mut [Song]> {
+        let arena = Arena::new();
+        let root = comrak::parse_document(&arena, self.input, &Self::comrak_config());
+        let root_elems: Vec<_> = root.children().collect();
+
+        // Parsing is done in four steps:
+        //
+        // 1. Split the source AST in individual songs (they are separated by H1s),
+        //    this is done by SongIter.
+        //    For each song:
+        // 2. Preprocess the AST for easier parsing, this mainly involves bringing up
+        //    Code inlines and line breaks to the top level (out of arbitrary nested levels).
+        //    This is done by methods in NodeExt
+        // 3. Parse the song content, this is done in SongBuilder, VerseBuilder et al.,
+        //    as well as helper methods in NodeExt.
+        //    Parsing bard MD extensions, incl. transposition, is also done here.
+        //    Transposition is applied right away, which is the sole reason
+        //    why parsing is fallible (chords may fail to be understood by the music module).
+        // 4. Postprocess the song data and convert into the final Song AST,
+        //    as of now this is just removing of empty paragraphs/verses,
+        //    this is actually implemented on the Song AST type (in book).
+        //
+        // The Result is on or more Song structures which are appended to the songs vec passed in.
+        // See the book module where the bard AST is defined.
+
+        let orig_len = songs.len();
+        for song_nodes in SongsIter::new(&root_elems) {
+            song_nodes.iter().for_each(|node| node.preprocess(&arena));
+
+            let mut song = SongBuilder::new(song_nodes, self.notation, &self.fallback_title);
+            song.set_xp_disabled(self.xp_disabled);
+            song.parse()?;
+            songs.push(song.finalize());
+        }
+
+        Ok(&mut songs[orig_len..])
     }
 }
-
 
 #[cfg(test)]
 mod tests {
-    use std::cmp::Ordering;
+    use serde_json::json;
 
     use super::*;
 
-    /// Event reimplemented with str refs instead of boxed strings for easier
-    /// testing
-    #[derive(PartialEq, Eq, Debug)]
-    pub enum E<'a> {
-        Song(&'a str),
-        Subtitle(&'a str),
-
-        Clef {
-            time: Option<Time>,
-            notation: Option<Notation>,
-        },
-        Transpose {
-            chord_set: u32,
-            transpose: Transpose,
-        },
-
-        Verse {
-            label: &'a str,
-            chorus: bool,
-        },
-        Span {
-            chord: &'a str,
-            lyrics: &'a str,
-            newline: bool,
-        },
-
-        Bullet(&'a str),
-        Rule,
-        Pre(&'a str),
+    fn parse(input: &str, disable_xpose: bool) -> Vec<Song> {
+        let mut songs = vec![];
+        let mut parser = Parser::new(input, Notation::default(), "Fallback");
+        parser.set_xp_disabled(disable_xpose);
+        parser.parse(&mut songs).unwrap();
+        songs
     }
 
-    impl<'a> From<&'a Event> for E<'a> {
-        fn from(evt: &'a Event) -> Self {
-            use Event::*;
+    fn parse_one(input: &str) -> Song {
+        let mut songs = parse(input, false);
+        assert_eq!(songs.len(), 1);
+        let song = songs.drain(..).next().unwrap();
+        song
+    }
 
-            match evt {
-                Song(s) => E::Song(s),
-                Subtitle(s) => E::Subtitle(&*s),
-                Clef { time, notation } => E::Clef {
-                    time: *time,
-                    notation: *notation,
+    fn parse_one_para(input: &str) -> Paragraph {
+        let blocks = parse_one(input).blocks;
+        let block = Vec::from(blocks).drain(..).next().unwrap();
+        match block {
+            Block::Verse(v) => Vec::from(v.paragraphs).drain(..).next().unwrap(),
+            _ => panic!("First block in this Song isn't a Verse"),
+        }
+    }
+
+    #[test]
+    fn songs_split() {
+        let input = r#"
+No-heading lyrics
+# Song 1
+Lyrics lyrics...
+# Song 2
+Lyrics lyrics...
+        "#;
+
+        let songs = parse(&input, false);
+
+        assert_eq!(songs.len(), 3);
+        assert_eq!(&*songs[0].title, "Fallback");
+        assert_eq!(&*songs[1].title, "Song 1");
+        assert_eq!(&*songs[2].title, "Song 2");
+    }
+
+    #[test]
+    fn ast_split_at() {
+        let input = r#"_text **strong** `C`text2 **strong2**_"#;
+
+        let arena = Arena::new();
+        let options = ComrakOptions::default();
+        let root = comrak::parse_document(&arena, input, &options);
+
+        let para = root.children().next().unwrap();
+        let em = para.children().next().unwrap();
+        let code = em.split_at(3, &arena);
+        let em2 = code.split_at(1, &arena);
+
+        assert_eq!(em.children().count(), 3);
+        assert_eq!(em.as_plaintext(), "text strong ");
+        assert_eq!(code.children().count(), 1);
+        assert_eq!(code.as_plaintext(), "C");
+        assert_eq!(em2.children().count(), 2);
+        assert_eq!(em2.as_plaintext(), "text2 strong2");
+    }
+
+    #[test]
+    fn ast_preprocess() {
+        let input = r#"
+Lyrics _em **strong `C` strong**
+em_ lyrics
+        "#;
+
+        let arena = Arena::new();
+        let options = ComrakOptions::default();
+        let root = comrak::parse_document(&arena, input, &options);
+
+        let para = root.children().next().unwrap();
+        para.preprocess(&arena);
+
+        assert_eq!(para.children().count(), 7);
+        let code = para
+            .children()
+            .find(|c| c.is_code())
+            .unwrap()
+            .as_plaintext();
+        assert_eq!(code, "C");
+        para.children().find(|c| c.is_break()).unwrap();
+    }
+
+    #[test]
+    fn parse_verses_basic() {
+        let input = r#"
+# Song
+1. First verse.
+
+Second paragraph of the first verse.
+
+2. Second verse.
+
+Second paragraph of the second verse.
+
+3. Third verse.
+4. Fourth verse.
+> Chorus.
+"#;
+
+        parse_one(input).assert_eq(json!({
+            "title": "Song",
+            "subtitles": [],
+            "notation": "english",
+            "blocks": [
+                {
+                    "type": "b-verse",
+                    "label": { "verse": 1 },
+                    "paragraphs": [
+                        [{ "type": "i-text", "text": "First verse." }],
+                        [{ "type": "i-text", "text": "Second paragraph of the first verse." }],
+                    ],
                 },
-                Transpose {
-                    chord_set,
-                    transpose,
-                } => E::Transpose {
-                    chord_set: *chord_set,
-                    transpose: *transpose,
+                {
+                    "type": "b-verse",
+                    "label": { "verse": 2 },
+                    "paragraphs": [
+                        [{ "type": "i-text", "text": "Second verse." }],
+                        [{ "type": "i-text", "text": "Second paragraph of the second verse." }],
+                    ],
                 },
-                Verse { label, chorus } => E::Verse {
-                    label: &label,
-                    chorus: *chorus,
+                {
+                    "type": "b-verse",
+                    "label": { "verse": 3 },
+                    "paragraphs": [[{ "type": "i-text", "text": "Third verse." }]],
                 },
-                Span {
-                    chord,
-                    lyrics,
-                    newline,
-                    ..
-                } => E::Span {
-                    chord: &chord,
-                    lyrics: &lyrics,
-                    newline: *newline,
+                {
+                    "type": "b-verse",
+                    "label": { "verse": 4 },
+                    "paragraphs": [[{ "type": "i-text", "text": "Fourth verse." }]],
                 },
-                Bullet(text) => E::Bullet(&text),
-                Rule => E::Rule,
-                Pre(text) => E::Pre(&*text),
+                {
+                    "type": "b-verse",
+                    "label": { "chorus": null },
+                    "paragraphs": [[{ "type": "i-text", "text": "Chorus." }]],
+                },
+            ],
+        }));
+    }
+
+    #[test]
+    fn parse_verses_corners() {
+        let input = r#"
+# Song
+
+Verse without any label.
+
+Next paragraph of that verse.
+
+### Custom label
+
+Lyrics Lyrics lyrics.
+
+> Chorus 1.
+>> Chorus 2.
+>
+> Chorus 1 again.
+>
+> More lyrics.
+
+Yet more lyrics (these should go to the chorus as well actually).
+
+>>> Chorus 3.
+
+More lyrics to the chorus 3.
+
+"#;
+
+        parse_one(input).assert_eq(json!({
+            "title": "Song",
+            "subtitles": [],
+            "notation": "english",
+            "blocks": [
+                {
+                    "type": "b-verse",
+                    "label": { "none": {} },
+                    "paragraphs": [
+                        [{ "type": "i-text", "text": "Verse without any label." }],
+                        [{ "type": "i-text", "text": "Next paragraph of that verse." }],
+                    ],
+                },
+                {
+                    "type": "b-verse",
+                    "label": { "custom": "Custom label" },
+                    "paragraphs": [
+                        [{ "type": "i-text", "text": "Lyrics Lyrics lyrics." }],
+                    ],
+                },
+                {
+                    "type": "b-verse",
+                    "label": { "chorus": 1 },
+                    "paragraphs": [
+                        [{ "type": "i-text", "text": "Chorus 1." }],
+                    ],
+                },
+                {
+                    "type": "b-verse",
+                    "label": { "chorus": 2 },
+                    "paragraphs": [
+                        [{ "type": "i-text", "text": "Chorus 2." }],
+                    ],
+                },
+                {
+                    "type": "b-verse",
+                    "label": { "chorus": 1 },
+                    "paragraphs": [
+                        [{ "type": "i-text", "text": "Chorus 1 again." }],
+                        [{ "type": "i-text", "text": "More lyrics." }],
+                        [{ "type": "i-text", "text": "Yet more lyrics (these should go to the chorus as well actually)." }],
+                    ],
+                },
+                {
+                    "type": "b-verse",
+                    "label": { "chorus": 3 },
+                    "paragraphs": [
+                        [{ "type": "i-text", "text": "Chorus 3." }],
+                        [{ "type": "i-text", "text": "More lyrics to the chorus 3." }],
+                    ],
+                },
+            ],
+        }));
+    }
+
+    #[test]
+    fn parse_subtitles() {
+        let input = r#"
+# Song
+## Subtitle 1
+## Subtitle 2
+
+Some lyrics.
+
+## This one should be ignored
+"#;
+
+        let song = parse_one(input);
+        assert_eq!(&*song.subtitles, &[
+            "Subtitle 1".into(),
+            "Subtitle 2".into(),
+        ]);
+    }
+
+    #[test]
+    fn parse_chords() {
+        let input = r#"
+# Song
+1. Sailing round `G`the ocean,
+Sailing round the `D`sea.
+"#;
+        parse_one_para(input).assert_eq(json!([
+            { "type": "i-text", "text": "Sailing round " },
+            {
+                "type": "i-chord",
+                "chord": "G",
+                "alt_chord": null,
+                "inlines": [{ "type": "i-text", "text": "the ocean," }],
+            },
+            { "type": "i-break" },
+            { "type": "i-text", "text": "Sailing round the " },
+            {
+                "type": "i-chord",
+                "chord": "D",
+                "alt_chord": null,
+                "inlines": [{ "type": "i-text", "text": "sea." }],
+            },
+        ]));
+    }
+
+    #[test]
+    fn parse_inlines() {
+        let input = r#"
+# Song
+1. Sailing **round `G`the _ocean,
+Sailing_ round the `D`sea.**
+"#;
+        parse_one_para(input).assert_eq(json!([
+            { "type": "i-text", "text": "Sailing " },
+            { "type": "i-strong", "inlines": [{ "type": "i-text", "text": "round " }] },
+            {
+                "type": "i-chord",
+                "chord": "G",
+                "alt_chord": null,
+                "inlines": [{
+                    "type": "i-strong",
+                    "inlines": [
+                        { "type": "i-text", "text": "the "  },
+                        { "type": "i-emph", "inlines": [{ "type": "i-text", "text": "ocean," }] },
+                    ]
+                }],
+            },
+            { "type": "i-break" },
+            {
+                "type": "i-strong",
+                "inlines": [
+                    { "type": "i-emph", "inlines": [{ "type": "i-text", "text": "Sailing" }] },
+                    { "type": "i-text", "text": " round the " },
+                ],
+            },
+            {
+                "type": "i-chord",
+                "chord": "D",
+                "alt_chord": null,
+                "inlines": [{
+                    "type": "i-strong",
+                    "inlines": [{ "type": "i-text", "text": "sea."  }]
+                }],
+            },
+        ]));
+    }
+
+    #[test]
+    fn parse_extensions() {
+        let input = r#"
+# Song
+
+!+5
+!!czech
+
+> Chorus.
+
+1. Lyrics !!> !!!english !+0
+!+2 More lyrics !>
+
+# Song two
+
+> Chorus.
+
+>> Chorus two.
+
+1. Reference both: !> !>>
+!> First on the line.
+Mixed !>> in text.
+
+"#;
+
+        let songs = parse(input, true);
+
+        songs[0].blocks.assert_eq(json!([
+            {
+              "type": "b-verse",
+              "label": { "none": {} },
+              "paragraphs": [
+                [
+                  { "type": "i-transpose", "t-transpose": 5 },
+                  { "type": "i-break" },
+                  { "type": "i-transpose", "t-alt-notation": "german" },
+                ]
+              ],
+            },
+            {
+              "type": "b-verse",
+              "label": { "chorus": null },
+              "paragraphs": [
+                [
+                  { "type": "i-text", "text": "Chorus." },
+                ]
+              ]
+            },
+            {
+              "type": "b-verse",
+              "label": { "verse": 1 },
+              "paragraphs": [
+                [
+                    { "type": "i-text", "text": "Lyrics !!> !!!english" },
+                    { "type": "i-transpose", "t-transpose": 0 },
+                    { "type": "i-break" },
+                    { "type": "i-transpose", "t-transpose": 2 },
+                    { "type": "i-text", "text": " More lyrics" },
+                    { "type": "i-chorus-ref", "num": null },
+                ]
+              ]
             }
-        }
-    }
+          ]
+        ));
 
-    impl<'a> PartialEq<&'a Event> for E<'a> {
-        fn eq(&self, evt: &&'a Event) -> bool {
-            let evt = Self::from(*evt);
-            *self == evt
-        }
-    }
-
-    impl<'a> PartialEq<E<'a>> for &Event {
-        fn eq(&self, e: &E<'a>) -> bool {
-            let self_e = E::from(*self);
-            self_e == *e
-        }
-    }
-
-    fn parse_one(s: &str) -> Event {
-        let md = MDFile::from_str(s, true);
-        let mut evts = md.parse();
-        let evt = evts.next();
-        println!("{:#?}", evts.take_debug());
-        evt.unwrap()
-    }
-
-    fn parse(s: &str, evts_expected: &[E<'static>]) {
-        let md = MDFile::from_str(s, true);
-        let mut evts_iter = md.parse();
-        let evts: Vec<_> = (&mut evts_iter).collect();
-        println!("{:#?}", evts_iter.take_debug());
-
-        for (actual, expected) in evts.iter().zip(evts_expected.iter()) {
-            assert_eq!(actual, *expected);
-        }
-
-        match evts.len().cmp(&evts_expected.len()) {
-            Ordering::Less => panic!("Not all expected events received"),
-            Ordering::Equal => { /* evt numbers match */ }
-            Ordering::Greater => panic!("Received more events than expected"),
-        }
-    }
-
-    #[test]
-    fn title() {
-        assert_eq!(&parse_one("# Title"), E::Song("Title"));
+        songs[1].blocks.assert_eq(json!([
+            {
+              "type": "b-verse",
+              "label": { "chorus": 1 },
+              "paragraphs": [
+                [
+                  { "type": "i-text", "text": "Chorus." },
+                ]
+              ]
+            },
+            {
+              "type": "b-verse",
+              "label": { "chorus": 2 },
+              "paragraphs": [
+                [
+                  { "type": "i-text", "text": "Chorus two." },
+                ]
+              ]
+            },
+            {
+              "type": "b-verse",
+              "label": { "verse": 1 },
+              "paragraphs": [
+                [
+                    { "type": "i-text", "text": "Reference both:" },
+                    { "type": "i-chorus-ref", "num": 1 },
+                    { "type": "i-chorus-ref", "num": 2 },
+                    { "type": "i-break" },
+                    { "type": "i-chorus-ref", "num": 1 },
+                    { "type": "i-text", "text": " First on the line." },
+                    { "type": "i-break" },
+                    { "type": "i-text", "text": "Mixed" },
+                    { "type": "i-chorus-ref", "num": 2 },
+                    { "type": "i-text", "text": " in text." },
+                ]
+              ]
+            }
+          ]
+        ));
     }
 
     #[test]
-    fn subtitle() {
-        assert_eq!(&parse_one("## Subtitle"), E::Subtitle("Subtitle"));
-    }
+    fn transposition() {
+        let input = r#"
+# Song
 
-    #[test]
-    fn clef() {
-        assert_eq!(&parse_one("$ 4/4 western"), E::Clef {
-            time: Some((4, 4)),
-            notation: Some(Notation::English)
-        });
-        assert_eq!(&parse_one("$ english 4/4"), E::Clef {
-            time: Some((4, 4)),
-            notation: Some(Notation::English)
-        });
-        assert_eq!(&parse_one("$ 4/4"), E::Clef {
-            time: Some((4, 4)),
-            notation: None
-        });
-        assert_eq!(&parse_one("$ german"), E::Clef {
-            time: None,
-            notation: Some(Notation::German)
-        });
+!+5
+!!czech
 
-        assert_eq!(&parse_one("$ blablabla"), E::Verse {
-            label: "",
-            chorus: false
-        });
-        assert_eq!(&parse_one("*$ 4/4 western*"), E::Verse {
-            label: "",
-            chorus: false
-        });
-        assert_eq!(&parse_one("**$ 4/4 western**"), E::Verse {
-            label: "",
-            chorus: false
-        });
-        assert_eq!(&parse_one("~$ 4/4 western~"), E::Verse {
-            label: "",
-            chorus: false
-        });
-    }
+> 1. `Bm`Yippie yea `D`oh! !+0
+!+0 Yippie yea `Bm`yay!
 
-    // TODO: Transpose
+"#;
 
-    #[test]
-    #[rustfmt::skip]
-    fn verse() {
-        parse(r#"1. `C`lyrics `Am`lyrics...
-2. `C`lyrics
-
-> chorus
-
-3. `C`lyrics
-"#,
-        &[
-            E::Verse { label: "1.", chorus: false },
-            E::Span { chord: "C", lyrics: "lyrics ", newline: true },
-            E::Span { chord: "Am", lyrics: "lyrics...", newline: false },
-            E::Verse { label: "2.", chorus: false },
-            E::Span { chord: "C", lyrics: "lyrics", newline: true },
-            E::Verse { label: "", chorus: true },
-            E::Span { chord: "", lyrics: "chorus", newline: true },
-            E::Verse { label: "3.", chorus: false },
-            E::Span { chord: "C", lyrics: "lyrics", newline: true },
-        ]);
-
-        // Multiple choruses
-        parse(r#"> 1. `C`chorus one
-> 2. `F`chorus two"#,
-        &[
-            E::Verse { label: "1.", chorus: true },
-            E::Span { chord: "C", lyrics: "chorus one", newline: true },
-            E::Verse { label: "2.", chorus: true },
-            E::Span { chord: "F", lyrics: "chorus two", newline: true },
-        ]);
-
-        // Custom verse label
-        parse(r#"### My label
-`C`lyrics
-###### My label
-`C`lyrics
-> ### My label
-`C`lyrics
-"#,
-        &[
-            E::Verse { label: "My label", chorus: false },
-            E::Span { chord: "C", lyrics: "lyrics", newline: true },
-            E::Verse { label: "My label", chorus: false },
-            E::Span { chord: "C", lyrics: "lyrics", newline: true },
-            E::Verse { label: "My label", chorus: true },
-            E::Span { chord: "C", lyrics: "lyrics", newline: true },
-        ]);
-
-        parse(r#"`D`lyrics
-
-New verse
-"#,
-        &[
-            E::Verse { label: "", chorus: false },
-            E::Span { chord: "D", lyrics: "lyrics", newline: true },
-            E::Verse { label: "", chorus: false },
-            E::Span { chord: "", lyrics: "New verse", newline: true },
-        ]);
-    }
-
-    #[test]
-    #[rustfmt::skip]
-    fn bullet() {
-        parse(r#"- item one
-- item two
-"#,
-        &[
-            E::Bullet("item one"),
-            E::Bullet("item two"),
-        ]);
-
-        parse(r#"- item one
-
-- item two
-
-- item three
-"#,
-        &[
-            E::Bullet("item one"),
-            E::Bullet("item two"),
-            E::Bullet("item three"),
-        ]);
-
-        parse(r#"1. `C`lyrics
-- bullet item
-
-`C` lyrics
-"#,
-        &[
-            E::Verse { label: "1.", chorus: false },
-            E::Span { chord: "C", lyrics: "lyrics", newline: true },
-            E::Bullet("bullet item"),
-            E::Verse { label: "", chorus: false },
-            E::Span { chord: "C", lyrics: " lyrics", newline: true },
-        ]);
-
-        // This is an oddball case, markdown considers the second line
-        // a ul item continuation, it's not feasible to make it start a verse.
-        parse(r#"- bullet item
-some would-be lyrics
-"#,
-        &[
-            E::Bullet("bullet item"),
-            E::Bullet("some would-be lyrics"),
-        ]);
-    }
-
-    #[test]
-    #[rustfmt::skip]
-    fn pre() {
-        parse(r#"```
-pre line 1
-pre line 2
-```"#,
-        &[E::Pre("pre line 1\npre line 2\n")]);
-
-        parse(r#"verse
-```
-pre line 1
-pre line 2
-```
-verse"#,
-        &[
-            E::Verse { label: "", chorus: false },
-            E::Span { chord: "", lyrics: "verse", newline: true },
-            E::Pre("pre line 1\npre line 2\n"),
-            E::Verse { label: "", chorus: false },
-            E::Span { chord: "", lyrics: "verse", newline: true },
-        ]);
+        let song = parse_one(input);
+        song.blocks.assert_eq(json!([
+            {
+              "type": "b-verse",
+              "label": { "chorus": null },
+              "paragraphs": [
+                [
+                  {
+                    "type": "i-chord",
+                    "chord": "Em",
+                    "alt_chord": "Hm",
+                    "inlines": [ { "type": "i-text", "text": "Yippie yea " } ],
+                  },
+                  {
+                    "type": "i-chord",
+                    "chord": "G",
+                    "alt_chord": "D",
+                    "inlines": [ { "type": "i-text", "text": "oh!" } ],
+                  },
+                  { "type": "i-break" },
+                  { "type": "i-text", "text": "Yippie yea " },
+                  {
+                    "type": "i-chord",
+                    "chord": "Bm",
+                    "alt_chord": "Hm",
+                    "inlines": [ { "type": "i-text", "text": "yay!" } ],
+                  },
+                ]
+              ]
+            }
+        ]));
     }
 }

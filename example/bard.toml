@@ -11,13 +11,13 @@ chorus_label = "Ch."
 
 [[output]]
 file = "songbook.tex"
-template = "pdf.tex"
+template = "pdf.hbs"
 font = "DejaVu Sans"
 process = "tectonic {{file}}"
 
 [[output]]
 file = "songbook.html"
-template = "html.html"
+template = "html.hbs"
 
 [[output]]
 file = "songbook.txt"

@@ -7,13 +7,12 @@ use std::fs;
 use std::process::Command;
 
 use toml;
-use tera::{self, Tera, Context};
+use handlebars::Handlebars;
 
 use crate::default_project::DEFAULT_PROJECT;
 use crate::book::{Book, Song};
 use crate::music::Notation;
-use crate::parser::ParsingDebug;
-use crate::render::{Render, RHtml, RTex, RJson, RTxt};
+use crate::render::{Render, RHtml, RTex, RJson};
 use crate::cli;
 use crate::util::*;
 use crate::error::*;
@@ -24,6 +23,9 @@ pub const PROJECT_FILE: &'static str = "bard.toml";
 pub const DIR_SONGS: &'static str = "songs";
 pub const DIR_TEMPLATES: &'static str = "templates";
 pub const DIR_OUTPUT: &'static str = "output";
+
+const CHORUS_LABEL_KEY: &str = "chorus_label";
+const CHORUS_LABEL_DEFAULT: &str = "Ch";
 
 fn dir_songs() -> PathBuf {
     DIR_SONGS.to_string().into()
@@ -88,7 +90,6 @@ pub enum Format {
     #[serde(alias = "xhtml")]
     Html,
     Latex,
-    Txt,
     Json,
     Auto,
 }
@@ -152,7 +153,6 @@ impl Output {
         self.format = match ext.as_ref().map(String::as_str) {
             Some("html") | Some("xhtml") | Some("htm") | Some("xht") => Format::Html,
             Some("tex") => Format::Latex,
-            Some("txt") => Format::Txt,
             Some("json") => Format::Json,
             _ => bail!(
                 "Unknown or unsupported format of output file: {}\nHint: Specify format with  \
@@ -178,7 +178,7 @@ impl Output {
     fn template_path(&self) -> Option<&Path> {
         match self.format {
             Format::Html | Format::Latex => self.template.as_ref().map(PathBuf::as_path),
-            Format::Txt | Format::Json => None,
+            Format::Json => None,
             Format::Auto => Format::no_auto(),
         }
     }
@@ -212,9 +212,6 @@ pub struct Settings {
     #[serde(default = "Settings::default_chorus_label")]
     pub chorus_label: String,
 
-    #[serde(default)]
-    pub debug: bool,
-
     #[serde(rename = "book")]
     pub metadata: Metadata,
 }
@@ -228,6 +225,13 @@ impl Settings {
             .with_context(|| format!("Could not parse project file '{}'", path.display()))?;
 
         settings.resolve(project_dir)?;
+
+        if !settings.metadata.contains_key(CHORUS_LABEL_KEY) {
+            settings
+                .metadata
+                .insert(CHORUS_LABEL_KEY.into(), CHORUS_LABEL_DEFAULT.into());
+        }
+
         Ok(settings)
     }
 
@@ -247,6 +251,30 @@ impl Settings {
         Ok(())
     }
 }
+
+#[derive(Serialize, Debug)]
+struct PostProcessCtx<'a> {
+    file: &'a str,
+    file_name: &'a str,
+    file_stem: &'a str,
+    project_dir: &'a str,
+}
+
+impl<'a> PostProcessCtx<'a> {
+    fn new(file: &'a Path, project_dir: &'a Path) -> Self {
+        // NOTE: Filenames should be known to be UTF-8-valid and canonicalized at this point
+        let file_name = file.file_name().unwrap();
+        let file_stem = file.file_stem().unwrap_or(file_name).to_str().unwrap();
+
+        Self {
+            file: file.to_str().unwrap(),
+            file_name: file_name.to_str().unwrap(),
+            file_stem,
+            project_dir: project_dir.to_str().unwrap(),
+        }
+    }
+}
+
 
 #[derive(Debug)]
 pub struct Project {
@@ -270,7 +298,7 @@ impl Project {
         cli::status("Loading", &format!("project at {}", project_dir.display()));
 
         let settings = Settings::from_file(&project_file, &project_dir)?;
-        let book = Book::new(settings.notation, &settings.chorus_label, settings.debug);
+        let book = Book::new(settings.notation, &settings.chorus_label);
 
         let mut project = Project {
             project_file,
@@ -343,16 +371,8 @@ impl Project {
         &self.book.songs
     }
 
-    pub fn parsing_debug(&self) -> Option<&ParsingDebug> {
-        if self.settings.debug {
-            self.book.parsing_debug.as_ref()
-        } else {
-            None
-        }
-    }
-
     fn post_process_one<'a>(
-        &'a self, context: &Context, mut iter: impl Iterator<Item = &'a str>,
+        &'a self, context: &'a PostProcessCtx<'a>, mut iter: impl Iterator<Item = &'a str>,
     ) -> Result<()> {
         let arg0 = match iter.next() {
             Some(arg0) => (arg0),
@@ -367,7 +387,8 @@ impl Project {
             cmd_src.push(' ');
             cmd_src.push_str(arg);
 
-            let arg_interp = Tera::one_off(arg, context, false).with_context(|| {
+            let hb = Handlebars::new();
+            let arg_interp = hb.render_template(arg, context).with_context(|| {
                 format!("Could not substitute command arguments: '{}'", cmd_src)
             })?;
 
@@ -396,21 +417,7 @@ impl Project {
             _ => return Ok(()),
         };
 
-        // NOTE: Filenames should be known to be UTF-8-valid and canonicalized at this
-        // point
-        let mut context = Context::new();
-        context.insert("file", output.file.to_str().unwrap());
-        let filename = output.file.file_name().unwrap();
-        context.insert("file_name", filename.to_str().unwrap());
-        let stem = output
-            .file
-            .file_stem()
-            .unwrap_or(filename)
-            .to_str()
-            .unwrap();
-        context.insert("file_stem", stem);
-        context.insert("project_dir", self.project_dir.to_str().unwrap());
-        let context = context;
+        let context = PostProcessCtx::new(&output.file, &self.project_dir);
 
         match cmds {
             CmdSpec::Basic(s) => self.post_process_one(&context, s.split_whitespace())?,
@@ -436,7 +443,6 @@ impl Project {
                 Html => RHtml::render(self, &output),
                 Latex => RTex::render(self, &output),
                 Json => RJson::render(self, &output),
-                Txt => RTxt::render(self, &output),
                 Auto => Format::no_auto(),
             }
             .with_context(|| format!("Could render output file '{}'", output.file.display()))?;

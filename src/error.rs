@@ -3,8 +3,7 @@ use std::io;
 
 use thiserror::Error;
 
-pub use anyhow::{anyhow, bail, ensure, Context as _, Result};
-
+pub use anyhow::{anyhow, bail, ensure, Context as _, Result, Error};
 
 #[derive(Error, Debug)]
 #[error("Error writing file '{0}'")]

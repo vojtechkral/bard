@@ -13,10 +13,10 @@ pub enum Notation {
     #[serde(alias = "western")]
     #[serde(alias = "dutch")]
     English,
+    #[serde(alias = "czech")]
     German,
     Nashville,
     Roman,
-    // TODO: Solfége? (Has many variants :-/)
 }
 
 impl Default for Notation {
@@ -31,9 +31,10 @@ impl FromStr for Notation {
     fn from_str(s: &str) -> Result<Notation, ()> {
         use self::Notation::*;
 
-        match s {
+        let lower = s.to_ascii_lowercase();
+        match lower.as_str() {
             "english" | "western" | "dutch" => Ok(English),
-            "german" => Ok(German),
+            "german" | "czech" => Ok(German),
             "nashville" => Ok(Nashville),
             "roman" => Ok(Roman),
             _ => Err(()),

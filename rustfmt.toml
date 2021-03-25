@@ -10,4 +10,4 @@ reorder_imports = false
 reorder_modules = false
 report_fixme = "Always"
 use_field_init_shorthand = true
-wrap_comments = true
+# wrap_comments = true  # screws up // to /* */, probably a bug in rustfmt

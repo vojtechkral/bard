@@ -1,3 +1,5 @@
+{{!-- Header with CSS --}}
+
 <!DOCTYPE html>
 <html>
 <head>
@@ -61,17 +63,31 @@
         margin: 1em 0;
       }
 
-      table.nospacing { border-collapse: collapse; }
+      table.nospacing {border-collapse: collapse; }
       table.nospacing tr, table.nospacing td {
+        margin: 0;
+        padding: 0;
+      }
+
+      table.chord {
+        display: inline-table;
+        border-collapse: collapse;
+        white-space: pre;
+        vertical-align: bottom;
+      }
+      table.chord tr, table.chord td {
         margin: 0;
         padding: 0;
       }
 
       tr.verse-spacing { height: .75em; }
 
+      tr.verse td {
+        vertical-align: bottom;
+      }
+
       td.verse-label {
         font-weight: bold;
-        vertical-align: bottom;
       }
 
       tr.chord {
@@ -93,117 +109,123 @@
       }
     </style>
 </head>
+
+{{!-- HB inlines: Block types --}}
+
+{{#*inline "verse-label"}}
+  {{~#if verse}}{{verse}}.{{/if~}}
+  {{~#if (contains this "chorus")}}{{@root.book.chorus_label}}{{chorus}}.{{/if~}}
+  {{~#if custom}}{{custom}}{{/if~}}
+{{/inline}}
+
+{{#*inline "b-verse"}}
+  {{#each paragraphs}}
+  <tr class="verse-spacing"><td></td><td></td></tr>
+    <tr class="verse">
+      <td class="verse-label">
+        {{~#if @first}}{{>verse-label ../label}}{{~/if}}
+      </td>
+      <td>{{#each this}}{{> (lookup this "type") }}{{/each}}</td>
+    </tr>
+    {{/each}}
+{{/inline}}
+
+{{#*inline "b-bullet-list"}}
+  <tr>
+    <td></td>
+    <td><ul>{{#each items}}<li>{{ this }}</li>{{/each}}</ul></td>
+  </tr>
+{{/inline}}
+
+{{#*inline "b-time-sign"}}
+  TODO: TimeSign
+  TODO: move to Song
+{{/inline}}
+
+{{#*inline "b-horizontal-line"}}
+  <tr><td colspan="2"><hr></td></tr>
+{{/inline}}
+
+{{#*inline "b-pre"}}
+  <tr>
+    <td></td>
+    <td><pre>{{ text }}</pre></td>
+  </tr>
+{{/inline}}
+
+
+{{!-- HB inlines: Inline types --}}
+{{!-- Warning: Inlines are sensitive about whitespace
+  It's recommended to not insert any whitespace between the inline start & end
+  tags and the content to prserve the right amount of whitespace --}}
+
+{{#*inline "i-text"}}{{ text }}{{/inline}}
+
+{{!-- FIXME: Comment --}}
+{{#*inline "i-chord"}}<table class="chord">
+  <tr class="chord"><td>{{ chord }}</td></tr>
+  {{#if alt_chord}}<tr class="chord chord-alt ws-pre"><td>{{ alt_chord }}</td></tr>{{/if}}
+  <tr><td>{{#each inlines}}{{> (lookup this "type") }}{{/each}}</td></tr>
+</table>{{/inline}}
+
+{{!-- Nb. the i-break element is a line separator, not terminator,
+  ie. no i-break after the last inline element.
+  That means we can break the current table cell/row and create a new one. --}}
+{{#*inline "i-break"}}</td></tr><tr class="verse"><td class="verse-label"></td><td>{{/inline}}
+{{#*inline "i-emph"}}<em>{{#each inlines}}{{> (lookup this "type") }}{{/each}}</em>{{/inline}}
+{{#*inline "i-strong"}}<strong>{{#each inlines}}{{> (lookup this "type") }}{{/each}}</strong>{{/inline}}
+{{#*inline "i-link"}}<a href="{{ url }}" title="{{ title }}">{{ text }}</a>{{/inline}}
+
+{{!-- TODO: i-image, i-chorus-ref --}}
+
+{{!-- Body - main structure --}}
+
 <body>
 <div id="content">
   <header class="pad">
     <h1>{{ book.title }}</h1>
-    {% if book.subtitle %}
+    {{#if book.subtitle }}
       <h3>{{ book.subtitle }}</h3>
-    {% endif %}
-    {% if book.title_note %}
+    {{/if }}
+    {{#if book.title_note }}
       <p class="note">{{ book.title_note }}</p>
-    {% endif %}
+    {{/if }}
   </header>
-
   <hr class="separator">
 
   <div id="index" class="pad">
     <h2>Contents</h2>
     <ol>
-    {% for song in songs -%}
-      <li><a href="#song-{{ loop.index }}">{{ song.title }}</a></li>
-    {% endfor -%}
+    {{#each songs}}
+      <li><a href="#song-{{ @index }}">{{ title }}</a></li>
+    {{/each}}
     </ol>
   </div>
 
   <hr class="separator">
-
-  {% for song in songs -%}
-    <section id="song-{{ loop.index }}" class="song pad">
+  {{#each songs}}
+    <section id="song-{{ @index }}" class="song pad">
       <div class="song-header">
-        <h2>{{ song.title }}</h2>
-        {% for subtitle in song.subtitles %}<h4>{{ subtitle }}</h4>{% endfor -%}
+        <h2>{{ title }}</h2>
+        {{#each subtitles}}<h4>{{ this }}</h4>{{/each}}
       </div>
       <table>
-      {% for item in song.content -%}
-
-        {# Verse #}
-        {%- if item.type == "verse" -%}
-          {% for line in item.lines -%}
-            {% if loop.first %}<tr class="verse-spacing"><td></td><td></td></tr>{% endif %}
-            <tr class="verse">
-              <td class="verse-label">
-                {% if loop.first %}
-                  {% if item.is_chorus %}<em>{{ item.label }}</em>{% else %}{{ item.label }}{% endif %}
-                {% endif %}
-              </td>
-              <td>
-                <table class="nospacing ws-pre">
-                  {% if line.chord_rows > 0 -%}
-                    <tr class="chord">{% for sp in line.spans -%}<td>{{ sp.chord }}</td>{% endfor -%}</tr>
-                  {% endif -%}
-                  {% if line.chord_rows == 2 -%}
-                    <tr class="chord chord-alt ws-pre">{% for sp in line.spans -%}<td>{{ sp.chord_alt }}</td>{% endfor -%}</tr>
-                  {% endif -%}
-                  <tr>{% for sp in line.spans -%}<td>{{ sp.lyrics }}</td>{% endfor -%}</tr>
-                </table>
-              </td>
-            </tr>
-          {% endfor -%}
-
-        {# List #}
-        {%- elif item.type == "list" -%}
-          <tr>
-            <td></td>
-            <td>
-              <ul>
-                {%- for item in item.items %}
-                  <li>{{ item }}</li>
-                {%- endfor -%}
-              </ul>
-            </td>
-          </tr>
-
-        {# Timesign #}
-        {%- elif item.type == "time" -%}
-          <tr>
-            <td></td>
-            <td>
-              <div class="timesign">{{ item.time[0] }} <span>&#8725;</span> {{ item.time[1] }}</div>
-            </td>
-          </tr>
-
-        {# Rule #}
-        {%- elif item.type == "rule" -%}
-          <tr><td colspan="2"><hr /></td></tr>
-
-        {# Pre #}
-        {%- elif item.type == "pre" -%}
-          <tr>
-            <td></td>
-            <td><pre>{{ item.text }}</pre></td>
-          </tr>
-
-        {% endif -%}
-      {% endfor -%}
+        {{#each blocks}}
+          {{> (lookup this "type") }}
+        {{/each}}
       </table>
     </section>
     <hr class="separator">
-  {% endfor -%}
+  {{/each}}
 
-  {% if "backmatter" in book -%}
+  {{#if book.backmatter}}
     <p class="pad">{{ book.backmatter }}</p>
     <hr class="separator">
-  {% endif %}
-
-  {% if "debug" in __tera_context -%}
-    <h3 class="pad">Debug info</h3>
-    <pre>{{ __tera_context }}</pre>
-    <hr class="separator">
-  {% endif %}
+  {{/if}}
 </div>
 <footer class="faint">
   Created with <strong><a href="{{ program.homepage }}">{{ program.name }}</a></strong> version {{ program.version }}.
 </footer>
 </body>
 </html>
+
