@@ -193,6 +193,19 @@ impl Output {
             })
             .unwrap_or(String::from("<builtin>"))
     }
+
+    pub fn dpi(&self) -> f64 {
+        const DEFAULT: f64 = 144.0;
+
+        self.metadata
+            .get("dpi")
+            .and_then(|value| match value {
+                Value::Integer(i) => Some(*i as f64),
+                Value::Float(f) => Some(*f),
+                _ => None,
+            })
+            .unwrap_or(DEFAULT)
+    }
 }
 
 #[derive(Deserialize, Debug)]
@@ -233,6 +246,10 @@ impl Settings {
         }
 
         Ok(settings)
+    }
+
+    pub fn dir_output(&self) -> &Path {
+        self.dir_output.as_ref()
     }
 
     fn default_chorus_label() -> String {
@@ -298,7 +315,7 @@ impl Project {
         cli::status("Loading", &format!("project at {}", project_dir.display()));
 
         let settings = Settings::from_file(&project_file, &project_dir)?;
-        let book = Book::new(settings.notation, &settings.chorus_label);
+        let book = Book::new(&settings);
 
         let mut project = Project {
             project_file,

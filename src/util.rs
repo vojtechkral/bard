@@ -28,6 +28,7 @@ impl ByteSliceExt for Vec<u8> {
 
 /// PathBuf extension
 pub trait PathBufExt {
+    /// If the path is relative, resolve it as absolute wrt. `base_dir`
     fn resolve(&mut self, base_dir: &Path);
     fn resolved(self, base_dir: &Path) -> Self;
     fn utf8_check(&self) -> Result<(), path::Display>;

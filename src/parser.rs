@@ -14,6 +14,8 @@ use crate::error::*;
 type AstRef<'a> = &'a AstNode<'a>;
 type Arena<'a> = comrak::Arena<AstNode<'a>>;
 
+const FALLBACK_TITLE: &str = "[Untitled]";
+
 lazy_static! {
     static ref EXTENSION: Regex = Regex::new(r"(^|\s)(!+)(\S+)").unwrap();
 }
@@ -146,6 +148,11 @@ trait NodeExt<'a> {
     fn is_link(&self) -> bool;
     fn is_item(&self) -> bool;
     fn is_bq(&self) -> bool;
+    fn is_img(&self) -> bool;
+
+    /// Elements that shouldn't go into chord child inlines,
+    /// ie. line break or and image
+    fn ends_chord(&self) -> bool;
 
     /// Recursively concatenate all text fields, ie. remove
     /// formatting and just return the text.
@@ -159,46 +166,44 @@ trait NodeExt<'a> {
 
     /// Preprocesses the AST, performing the following operations:
     /// - Link child nodes are converted to plaintext
-    /// - Inline `Code`, `LineBreak`s and `SoftBreak`s 'bubble up' to the top level
+    /// - Inline `Code`, `LineBreak`s, `SoftBreak`s and `Image`s 'bubble up' to the top level
     ///   of the current block element. That is, if a `Code` inline is nested
     ///   within another inline element, the element is split and the code is brought up.
     ///   This happens recursively. This is done so that inline code spans can be easily
     ///   collected into Chord spans with the content that follows until the next inline code
     ///   or linebreak.
     fn preprocess(&'a self, arena: &'a Arena<'a>);
-
-    /// Parse a text node. It may parse into a series of `Inline`s
-    /// since extension parsing is handled here.
-    fn parse_text(&self, target: &mut Vec<Inline>, xp: &mut Transposition);
-
-    /// Generate `Inline`s out of this inline node.
-    /// Also recursively applies to children when applicable.
-    fn make_inlines(&'a self, target: &mut Vec<Inline>, xp: &mut Transposition);
 }
 
 impl<'a> NodeExt<'a> for AstNode<'a> {
+    #[inline]
     fn is_block(&self) -> bool {
         self.data.borrow().value.block()
     }
 
+    #[inline]
     fn is_text(&self) -> bool {
         self.data.borrow().value.text().is_some()
     }
 
+    #[inline]
     fn is_h(&self, level: u32) -> bool {
         matches!(self.data.borrow().value,
             NodeValue::Heading(h) if h.level == level
         )
     }
 
+    #[inline]
     fn is_p(&self) -> bool {
         matches!(self.data.borrow().value, NodeValue::Paragraph)
     }
 
+    #[inline]
     fn is_code(&self) -> bool {
         matches!(self.data.borrow().value, NodeValue::Code(..))
     }
 
+    #[inline]
     fn is_break(&self) -> bool {
         matches!(
             self.data.borrow().value,
@@ -206,16 +211,29 @@ impl<'a> NodeExt<'a> for AstNode<'a> {
         )
     }
 
+    #[inline]
     fn is_link(&self) -> bool {
         matches!(self.data.borrow().value, NodeValue::Link(..))
     }
 
+    #[inline]
     fn is_item(&self) -> bool {
         matches!(self.data.borrow().value, NodeValue::Item(..))
     }
 
+    #[inline]
     fn is_bq(&self) -> bool {
         matches!(self.data.borrow().value, NodeValue::BlockQuote)
+    }
+
+    #[inline]
+    fn is_img(&self) -> bool {
+        matches!(self.data.borrow().value, NodeValue::Image(..))
+    }
+
+    #[inline]
+    fn ends_chord(&self) -> bool {
+        self.is_break() || self.is_img()
     }
 
     fn as_plaintext(&'a self) -> String {
@@ -290,7 +308,7 @@ impl<'a> NodeExt<'a> for AstNode<'a> {
             if let Some((i, child)) = node
                 .children()
                 .enumerate()
-                .find(|(_, c)| c.is_code() || c.is_break())
+                .find(|(_, c)| c.is_code() || c.is_break() || c.is_img())
             {
                 // We want to take this child and append as a sibling to self,
                 // but first self needs to be duplicated with the already-processed nodes
@@ -301,110 +319,6 @@ impl<'a> NodeExt<'a> for AstNode<'a> {
                 start_node = Some(node2);
             }
         }
-    }
-
-    fn parse_text(&self, target: &mut Vec<Inline>, xp: &mut Transposition) {
-        let data = self.data.borrow();
-        let text = match &data.value {
-            NodeValue::Text(text) => text,
-            other => unreachable!("Unexpected element: {:?}", other),
-        };
-
-        let text = String::from_utf8_lossy(&*text);
-        let mut pos = 0;
-
-        for caps in EXTENSION.captures_iter(&*text) {
-            let hit = caps.get(0).unwrap();
-
-            // Try parsing an extension
-            let ext = Extension::from(caps);
-            if let Some(inline) = ext.try_parse() {
-                // First see if there's regular text preceding the extension
-                let preceding = &text[pos..hit.start()];
-                if !preceding.is_empty() {
-                    let preceding = Inline::Text {
-                        text: preceding.into(),
-                    };
-                    target.push(preceding);
-                }
-
-                if inline.is_xpose() && !xp.disabled {
-                    // Update transposition state and throw the inline away,
-                    // we're normally not keeping them in the AST
-                    xp.update(inline.unwrap_xpose());
-
-                    // If the extension is first on the line (ie. no leading ws)
-                    // then we should consume the following whitespace char
-                    // (there must be either whitespace or EOL).
-                    if ext.prefix_space && hit.end() < text.len() {
-                        pos = hit.end() + 1;
-                        dbg!(pos);
-                    } else {
-                        pos = hit.end();
-                    }
-                } else {
-                    // inline not xpose or xp disabled
-                    target.push(inline);
-                    pos = hit.end();
-                }
-            }
-        }
-
-        // Also add text past the last extension (if any)
-        let rest = &text[pos..];
-        if !rest.is_empty() {
-            let rest = Inline::Text { text: rest.into() };
-            target.push(rest);
-        }
-    }
-
-    fn make_inlines(&'a self, target: &mut Vec<Inline>, xp: &mut Transposition) {
-        fn recurse<'a>(this: &'a AstNode<'a>, xp: &mut Transposition) -> Box<[Inline]> {
-            this.children()
-                .fold(vec![], |mut vec, node| {
-                    node.make_inlines(&mut vec, xp);
-                    vec
-                })
-                .into()
-        }
-
-        assert!(!self.is_block());
-
-        let single = match &self.data.borrow().value {
-            NodeValue::Text(..) => {
-                self.parse_text(target, xp);
-                return;
-            }
-            NodeValue::HtmlInline(..) => return,
-            NodeValue::Emph => Inline::Emph(Inlines::new(recurse(self, xp))),
-            NodeValue::Strong => Inline::Strong(Inlines::new(recurse(self, xp))),
-            NodeValue::Link(link) => {
-                let mut children = self.children();
-                let text = children.next().unwrap();
-                assert!(children.next().is_none());
-                assert!(text.is_text());
-                let text = text.as_plaintext().into();
-
-                let link = Link::new(link.url.into_bstr(), link.title.into_bstr(), text);
-                Inline::Link(link)
-            }
-            NodeValue::Image(link) => {
-                let img = Image::new(
-                    link.url.into_bstr(),
-                    self.as_plaintext().into(),
-                    link.title.into_bstr(),
-                );
-                Inline::Image(img)
-            }
-            NodeValue::FootnoteReference(..) => return,
-
-            // TODO: Ensure extensions are not enabled through a test
-            other => {
-                unreachable!("Unexpected element: {:?}", other);
-            }
-        };
-
-        target.push(single);
     }
 }
 
@@ -467,29 +381,143 @@ impl ChordBuilder {
 
 
 #[derive(Debug)]
-struct VerseBuilder {
+struct VerseBuilder<'a> {
     label: VerseLabel,
     paragraphs: Vec<Paragraph>,
     xp: Transposition,
+    config: &'a ParserConfig,
 }
 
-impl VerseBuilder {
-    fn new(label: VerseLabel, xp: Transposition) -> Self {
+impl<'a> VerseBuilder<'a> {
+    fn new(label: VerseLabel, xp: Transposition, config: &'a ParserConfig) -> Self {
         Self {
             label,
             paragraphs: vec![],
             xp,
+            config,
         }
     }
 
-    fn with_p_nodes<'a, I>(label: VerseLabel, xp: Transposition, mut nodes: I) -> Result<Self>
+    fn with_p_nodes<'n, I>(
+        label: VerseLabel, xp: Transposition, config: &'a ParserConfig, mut nodes: I,
+    ) -> Result<Self>
     where
         I: Iterator<Item = AstRef<'a>>,
     {
-        nodes.try_fold(Self::new(label, xp), |mut this, node| {
+        nodes.try_fold(Self::new(label, xp, config), |mut this, node| {
             this.add_p_node(node)?;
             Ok(this)
         })
+    }
+
+    /// Parse a text node. It may parse into a series of `Inline`s
+    /// since extension parsing is handled here.
+    fn parse_text(&mut self, node: AstRef, target: &mut Vec<Inline>) {
+        let data = node.data.borrow();
+        let text = match &data.value {
+            NodeValue::Text(text) => text,
+            other => unreachable!("Unexpected element: {:?}", other),
+        };
+
+        let text = String::from_utf8_lossy(&*text);
+        let mut pos = 0;
+
+        for caps in EXTENSION.captures_iter(&*text) {
+            let hit = caps.get(0).unwrap();
+
+            // Try parsing an extension
+            let ext = Extension::from(caps);
+            if let Some(inline) = ext.try_parse() {
+                // First see if there's regular text preceding the extension
+                let preceding = &text[pos..hit.start()];
+                if !preceding.is_empty() {
+                    let preceding = Inline::Text {
+                        text: preceding.into(),
+                    };
+                    target.push(preceding);
+                }
+
+                if inline.is_xpose() && !self.xp.disabled {
+                    // Update transposition state and throw the inline away,
+                    // we're normally not keeping them in the AST
+                    self.xp.update(inline.unwrap_xpose());
+
+                    // If the extension is first on the line (ie. no leading ws)
+                    // then we should consume the following whitespace char
+                    // (there must be either whitespace or EOL).
+                    if ext.prefix_space && hit.end() < text.len() {
+                        pos = hit.end() + 1;
+                        dbg!(pos);
+                    } else {
+                        pos = hit.end();
+                    }
+                } else {
+                    // inline not xpose or xp disabled
+                    target.push(inline);
+                    pos = hit.end();
+                }
+            }
+        }
+
+        // Also add text past the last extension (if any)
+        let rest = &text[pos..];
+        if !rest.is_empty() {
+            let rest = Inline::Text { text: rest.into() };
+            target.push(rest);
+        }
+    }
+
+    fn collect_inlines(&mut self, node: AstRef) -> Result<Box<[Inline]>> {
+        node.children()
+            .try_fold(vec![], |mut vec, node| {
+                self.make_inlines(node, &mut vec)?;
+                Ok(vec)
+            })
+            .map(Into::into)
+    }
+
+    /// Generate `Inline`s out of this inline node.
+    /// Also recursively applies to children when applicable.
+    fn make_inlines(&mut self, node: AstRef, target: &mut Vec<Inline>) -> Result<()> {
+        assert!(!node.is_block());
+
+        let single = match &node.data.borrow().value {
+            NodeValue::Text(..) => {
+                self.parse_text(node, target);
+                return Ok(());
+            }
+            NodeValue::SoftBreak | NodeValue::LineBreak => Inline::Break,
+            NodeValue::HtmlInline(..) => return Ok(()),
+            NodeValue::Emph => Inline::Emph(Inlines::new(self.collect_inlines(node)?)),
+            NodeValue::Strong => Inline::Strong(Inlines::new(self.collect_inlines(node)?)),
+            NodeValue::Link(link) => {
+                let mut children = node.children();
+                let text = children.next().unwrap();
+                assert!(children.next().is_none());
+                assert!(text.is_text());
+                let text = text.as_plaintext().into();
+
+                let link = Link::new(link.url.into_bstr(), link.title.into_bstr(), text);
+                Inline::Link(link)
+            }
+            NodeValue::Image(link) => {
+                let img = Image::new(
+                    link.url.into_bstr(),
+                    node.as_plaintext().into(),
+                    link.title.into_bstr(),
+                );
+                Inline::Image(img)
+            }
+            NodeValue::FootnoteReference(..) => return Ok(()),
+
+            // TODO: Ensure extensions are not enabled through a test
+            other => {
+                unreachable!("Unexpected element: {:?}", other);
+            }
+        };
+
+        target.push(single);
+        Ok(())
     }
 
     fn add_p_inner(&mut self, node: AstRef) -> Result<()> {
@@ -497,7 +525,6 @@ impl VerseBuilder {
 
         let mut para: Vec<Inline> = vec![];
         let mut cb = None::<ChordBuilder>;
-        let mut skip_break = false;
         for c in node.children() {
             let c_data = c.data.borrow();
             if let NodeValue::Code(code) = &c_data.value {
@@ -515,25 +542,21 @@ impl VerseBuilder {
                     })?;
                 }
                 cb = Some(new_cb);
-            } else if c.is_break() {
+            } else if c.ends_chord() {
                 if let Some(cb) = cb.take() {
                     cb.finalize(&mut para);
                 }
 
-                if !skip_break {
-                    para.push(Inline::Break);
-                } else {
-                    skip_break = false;
-                }
+                self.make_inlines(c, &mut para)?;
             } else {
                 // c must be another inline element.
                 // See if a chord is currently open
                 if let Some(cb) = cb.as_mut() {
                     // Add the inlines to the current chord
-                    c.make_inlines(cb.inlines_mut(), &mut self.xp);
+                    self.make_inlines(c, cb.inlines_mut())?;
                 } else {
                     // Otherwise just push as a standalone inline
-                    c.make_inlines(&mut para, &mut self.xp);
+                    self.make_inlines(c, &mut para)?;
                 }
             }
         }
@@ -576,17 +599,18 @@ struct SongBuilder<'a> {
     nodes: &'a [AstRef<'a>],
     title: String,
     subtitles: Vec<BStr>,
-    verse: Option<VerseBuilder>,
+    verse: Option<VerseBuilder<'a>>,
     blocks: Vec<Block>,
     xp: Transposition,
+    config: &'a ParserConfig,
 }
 
 impl<'a> SongBuilder<'a> {
-    fn new(nodes: &'a [AstRef<'a>], notation: Notation, fallback_title: &str) -> Self {
+    fn new(nodes: &'a [AstRef<'a>], config: &'a ParserConfig) -> Self {
         // Read song title or use fallback
         let (title, nodes) = match nodes.first() {
             Some(n) if n.is_h(1) => (n.as_plaintext().into(), &nodes[1..]),
-            _ => (fallback_title.into(), nodes),
+            _ => (config.fallback_title.clone(), nodes),
         };
 
         // Collect subtitles - H2s following the title (if any)
@@ -605,17 +629,18 @@ impl<'a> SongBuilder<'a> {
             subtitles,
             verse: None,
             blocks: vec![],
-            xp: Transposition::new(notation),
+            xp: Transposition::new(config.notation),
+            config,
         }
     }
 
-    fn set_xp_disabled(&mut self, disabled: bool) {
-        self.xp.disabled = disabled;
-    }
-
-    fn verse_mut<'s>(&'s mut self) -> &'s mut VerseBuilder {
+    fn verse_mut<'s>(&'s mut self) -> &'s mut VerseBuilder<'a> {
         if self.verse.is_none() {
-            self.verse = Some(VerseBuilder::new(VerseLabel::None {}, self.xp.clone()));
+            self.verse = Some(VerseBuilder::new(
+                VerseLabel::None {},
+                self.xp.clone(),
+                &self.config,
+            ));
         }
 
         self.verse.as_mut().unwrap()
@@ -646,7 +671,7 @@ impl<'a> SongBuilder<'a> {
 
                 if !self.verse.is_some() {
                     let label = VerseLabel::Chorus(Some(level));
-                    let verse = VerseBuilder::new(label, self.xp.clone());
+                    let verse = VerseBuilder::new(label, self.xp.clone(), &self.config);
                     self.verse = Some(verse);
                 }
 
@@ -672,8 +697,12 @@ impl<'a> SongBuilder<'a> {
                         self.verse_finalize();
 
                         let label = VerseLabel::Verse((list.start + i) as u32);
-                        let verse =
-                            VerseBuilder::with_p_nodes(label, self.xp.clone(), item.children())?;
+                        let verse = VerseBuilder::with_p_nodes(
+                            label,
+                            self.xp.clone(),
+                            &self.config,
+                            item.children(),
+                        )?;
                         self.verse = Some(verse);
                     }
                 }
@@ -693,7 +722,7 @@ impl<'a> SongBuilder<'a> {
 
                 NodeValue::Heading(h) if h.level >= 3 => {
                     let label = VerseLabel::Custom(node.as_plaintext().into());
-                    self.verse = Some(VerseBuilder::new(label, self.xp.clone()));
+                    self.verse = Some(VerseBuilder::new(label, self.xp.clone(), &self.config));
                 }
 
                 NodeValue::ThematicBreak => {
@@ -777,26 +806,46 @@ impl<'s, 'a> Iterator for SongsIter<'s, 'a> {
 }
 
 #[derive(Debug)]
+pub struct ParserConfig {
+    pub notation: Notation,
+    pub fallback_title: String,
+    pub xp_disabled: bool,
+}
+
+impl ParserConfig {
+    pub fn new(notation: Notation) -> Self {
+        Self {
+            notation,
+            fallback_title: FALLBACK_TITLE.into(),
+            xp_disabled: false,
+        }
+    }
+}
+
+impl Default for ParserConfig {
+    fn default() -> Self {
+        Self {
+            notation: Notation::default(),
+            fallback_title: FALLBACK_TITLE.into(),
+            xp_disabled: false,
+        }
+    }
+}
+
+#[derive(Debug)]
 pub struct Parser<'i> {
     input: &'i str,
-    notation: Notation,
-    fallback_title: BStr,
-    xp_disabled: bool,
+    config: ParserConfig,
 }
 
 impl<'i> Parser<'i> {
-    pub fn new(input: &'i str, notation: Notation, fallback_title: &str) -> Self {
-        Self {
-            input,
-            notation,
-            fallback_title: fallback_title.into(),
-            xp_disabled: false,
-        }
+    pub fn new(input: &'i str, config: ParserConfig) -> Self {
+        Self { input, config }
     }
 
     #[cfg(test)]
     fn set_xp_disabled(&mut self, disabled: bool) {
-        self.xp_disabled = disabled;
+        self.config.xp_disabled = disabled;
     }
 
     fn comrak_config() -> ComrakOptions {
@@ -856,8 +905,7 @@ impl<'i> Parser<'i> {
         for song_nodes in SongsIter::new(&root_elems) {
             song_nodes.iter().for_each(|node| node.preprocess(&arena));
 
-            let mut song = SongBuilder::new(song_nodes, self.notation, &self.fallback_title);
-            song.set_xp_disabled(self.xp_disabled);
+            let mut song = SongBuilder::new(song_nodes, &self.config);
             song.parse()?;
             songs.push(song.finalize());
         }
@@ -874,7 +922,7 @@ mod tests {
 
     fn parse(input: &str, disable_xpose: bool) -> Vec<Song> {
         let mut songs = vec![];
-        let mut parser = Parser::new(input, Notation::default(), "Fallback");
+        let mut parser = Parser::new(input, ParserConfig::default());
         parser.set_xp_disabled(disable_xpose);
         parser.parse(&mut songs).unwrap();
         songs
@@ -909,7 +957,7 @@ Lyrics lyrics...
         let songs = parse(&input, false);
 
         assert_eq!(songs.len(), 3);
-        assert_eq!(&*songs[0].title, "Fallback");
+        assert_eq!(&*songs[0].title, FALLBACK_TITLE);
         assert_eq!(&*songs[1].title, "Song 1");
         assert_eq!(&*songs[2].title, "Song 2");
     }

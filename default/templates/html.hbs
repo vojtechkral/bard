@@ -224,9 +224,8 @@
       </div>
 
       <ul class="blocks">
-        {{#each blocks}}
-          {{> (lookup this "type") }} {{!-- Dispatches to inlines prefixed b- , see above --}}
-        {{/each}}
+        {{!-- Dispatch to block HB inlines prefixed b- , see above --}}
+        {{#each blocks}}{{> (lookup this "type") }}{{/each}}
       </ul>
     </section>
     <hr class="separator">

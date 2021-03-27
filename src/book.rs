@@ -8,7 +8,8 @@ use serde::ser::Serialize;
 use crate::util::BStr;
 use crate::error::*;
 use crate::music::Notation;
-use crate::parser::Parser;
+use crate::parser::{Parser, ParserConfig};
+use crate::project::Settings;
 
 #[derive(Serialize, Debug)]
 #[serde(tag = "type")]
@@ -293,16 +294,17 @@ pub struct Book {
 }
 
 impl Book {
-    pub fn new(notation: Notation, chorus_label: &str) -> Book {
+    pub fn new(settings: &Settings) -> Book {
         Book {
             songs: vec![],
-            notation,
-            chorus_label: chorus_label.into(),
+            notation: settings.notation,
+            chorus_label: settings.chorus_label.as_str().into(),
         }
     }
 
     fn add_md<'s>(&mut self, input: &'s str, path: &Path) -> Result<()> {
-        let mut parser = Parser::new(input, self.notation, "[Untitled]");
+        let config = ParserConfig::new(self.notation);
+        let mut parser = Parser::new(input, config);
         parser
             .parse(&mut self.songs)
             .with_context(|| format!("Could not parse file `{}`", path.display()))?;

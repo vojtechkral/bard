@@ -10,7 +10,7 @@
 
 \documentclass[{{default output.fontsize "12"}}pt,a5paper,openany]{memoir}
 \setheadfoot{0pt}{0pt}
-\setlrmarginsandblock{1cm}{1cm}{*}
+\setlrmarginsandblock{2cm}{2cm}{*}
 \setulmarginsandblock{.75cm}{1cm}{*}
 \checkandfixthelayout
 \raggedbottom
@@ -23,6 +23,7 @@
 \usepackage[pdfusetitle,colorlinks=true]{hyperref}
 \usepackage{float}
 \usepackage{graphicx}
+\usepackage{wrapfig}
 
 %% Page style
 \makepagestyle{songs}
@@ -39,7 +40,7 @@
 %% Spacings
 \setlength{\parindent}{0pt}
 \setlength{\tabcolsep}{0pt}
-\setlength{\parskip}{0pt}
+\setlength{\parskip}{1mm}
 
 %% ToC style
 % Hide the title of the ToC:
@@ -76,10 +77,35 @@
   \emph{#1}
 }
 
-%% Chord layout command
+%% Verse and Chord layout commands
 \makeatletter
-\newcommand{\chord}{\@ifstar{\@chordalt}{\@chord}}
-\newcommand{\@chord}[2]{%
+% The verse & label layout code was written by Jonathan P. Spratte
+% under the Beerware license: As long as you retain this notice you
+% can do whatever you want with this stuff. If we meet some day, and you think
+% this stuff is worth it, you can buy me a beer in return. Jonathan P. Spratte
+\newlength\verse@indent
+\newlength\verse@labelsep
+\newlength\verse@vskip
+\AtBeginDocument{% setting AtBeginDocument since earlier we can't rely on em being correct
+  \verse@indent=3em
+  \verse@labelsep=1em
+  \verse@vskip=\smallskipamount
+}
+\newcommand\Verse[1]{%
+    \par
+    \vskip\verse@vskip
+    \noindent\kern-\verse@indent
+    \sbox0{\textbf{\small{#1}}}%
+    \ifdim\wd0>\dimexpr\verse@indent-\verse@labelsep\relax
+      \usebox0\kern\verse@labelsep
+    \else
+      \makebox[\verse@indent][l]{\usebox0}%
+    \fi
+    \ignorespaces
+}
+
+\newcommand{\Chord}{\@ifstar{\@Chordalt}{\@Chord}}
+\newcommand{\@Chord}[2]{%
   \begin{tabular}[b]{l}%
     \textbf{\textcolor{red}{#1}}\\%  % The chord
     #2\mbox{}\end{tabular}%          % The lyrics
@@ -92,11 +118,6 @@
 }
 \makeatother
 
-%% Time layout command
-\newcommand\timesign[2]{%
-  \begin{large}\( {#1} / {#2} \)\end{large}
-}
-
 {{!-- HB inlines: Block types --}}
 
 {{#*inline "verse-label"}}
@@ -107,21 +128,23 @@
 
 {{#*inline "b-verse"~}}
   {{#each paragraphs~}}
-    \item[{{#if @first}}{{>verse-label ../label}}{{/if}}] {{#each this}}{{> (lookup this "type") }}{{/each}}{{/each}}
+    {{#if @first}}\Verse{ {{~>verse-label ../label ~}} }{{/if}} {{#each this}}{{> (lookup this "type") }}{{/each}}
+    \vspace{\parskip}
+  {{/each}}
 {{/inline}}
 
 {{#*inline "b-bullet-list"~}}
-  \item[] \begin{itemize}[noitemsep]{{#each items}}\item {{ this }}
+  \begin{itemize}[noitemsep]{{#each items}}\item {{ this }}
 {{/each}}
   \end{itemize}
 {{/inline}}
 
 {{#*inline "b-horizontal-line"}}
-  \item[] \vphantom{}\hrule
+  \vphantom{}\hrule
 {{/inline}}
 
 {{#*inline "b-pre"}}
-  \item[] \begin{verbatim}{{{ text }}}\end{verbatim}
+  \begin{verbatim}{{{ text }}}\end{verbatim}
 {{/inline}}
 
 {{!-- HB inlines: Inline types --}}
@@ -129,10 +152,10 @@
 {{#*inline "i-text"}}{{{(pre text)}}}{{/inline}}
 
 {{#*inline "i-chord"}}
-  {{~#if alt_chord}}\chord*{ {{{~ (pre chord) ~}}} }{ {{{~ (pre alt_chord) ~}}} }{
+  {{~#if alt_chord}}\Chord*{ {{{~ (pre chord) ~}}} }{ {{{~ (pre alt_chord) ~}}} }{
     {{~#each inlines}}{{> (lookup this "type") }}{{/each~}}
   }{{/if~}}
-  {{~#unless alt_chord}}\chord{ {{{~ (pre chord) ~}}} }{
+  {{~#unless alt_chord}}\Chord{ {{{~ (pre chord) ~}}} }{
     {{~#each inlines}}{{> (lookup this "type") }}{{/each~}}
   }{{/unless~}}
 {{/inline}}
@@ -140,17 +163,30 @@
 {{!-- Nb. the i-break element is a line separator, not terminator,
   ie. no i-break after the last inline element.
   That means we can break the current table cell/row and create a new one. --}}
-{{#*inline "i-break"}}\\\
+{{#*inline "i-break"}}\\
 {{/inline}}
 {{#*inline "i-emph"}}\emph{ {{~#each inlines}}{{> (lookup this "type") }}{{/each~}} }{{/inline}}
 {{#*inline "i-strong"}}\textbf{ {{~#each inlines}}{{> (lookup this "type") }}{{/each~}} }{{/inline}}
 {{#*inline "i-link"}}\href{ {{~ url ~}} }{ {{{~ (pre text) ~}}} }{{/inline}}
-{{#*inline "i-chorus-ref"}}{{ prefix_space }}{{ @root.book.chorus_label }}{{ num }}.{{/inline}}
+{{#*inline "i-chorus-ref"}}{{ prefix_space }}\emph{ {{~ @root.book.chorus_label }}{{ num }}.}{{/inline}}
 
 {{#*inline "i-image"}}
-  {{~#if (eq class "center") }}\begin{figure}[H] \centering{{/if~}}
-  \includegraphics{ {{~ path ~}} }
-  {{~#if (eq class "center") }}\end{figure}{{/if~}}
+  {{~#if (eq class "center") }}
+
+    \begin{figure}[H]
+      \centering
+      \includegraphics[width={{ px2mm (img_w path) }}mm]{ {{~ path ~}} }
+    \end{figure}
+
+  {{/if~}}
+  {{~#if (eq class "right") }}
+    \hfill\hspace{0pt}\vspace{-1em}
+    \begin{wrapfigure}{r}{ {{~ px2mm (img_w path) }}mm}
+      \centering
+      \includegraphics[width={{ px2mm (img_w path) }}mm]{ {{~ path ~}} }
+    \end{wrapfigure}
+  {{/if~}}
+  {{~#unless class }}\includegraphics[width={{ px2mm (img_w path) }}mm]{ {{~ path ~}} }{{/unless~}}
 {{/inline}}
 
 {{!-- Main content --}}
@@ -169,10 +205,16 @@
       \Huge{\textbf{ {{~ book.title ~}} }} \\
       \vspace{0.5cm}
       \LARGE{ {{~ book.subtitle ~}} } \\
-      \vspace{10cm}
-      \small{ {{~ book.title_note ~}} }
+      {{~#if book.front_img}}
+        \vspace{1cm}
+        \includegraphics[{{ px2mm (img_w book.front_img) }}]{ {{~ book.front_img ~}} }
+      {{/if}}
     \end{center}
   \end{vplace}
+
+  \mbox{}
+  \vfill
+  \begin{center}\small{ {{~ book.title_note ~}} }\end{center}
 \end{titlingpage}
 
 %% Contents page
@@ -180,6 +222,7 @@
 
 %% Songs
 \mainmatter
+
 \pagestyle{songs}
 {{#each songs -}}
   %% song {{ @index }}
@@ -192,14 +235,8 @@
   {{/if}}
   {{#unless subtitles}}\vphantom{}{{/unless}}
 
-  \begin{description}[leftmargin=3em,style=nextline,itemsep=1ex]
-    {{#each blocks}}{{> (lookup this "type") }}{{/each}}
-    {{#unless blocks}}
-      {{!-- No song.blocks, we need to insert and empty item,
-        otherwise LaTeX fails on an empty description env. --}}
-      \item
-    {{/unless}}
-  \end{description}
+  {{!-- Dispatch to block HB inlines prefixed b- , see above --}}
+  {{#each blocks}}{{> (lookup this "type") }}{{/each}}
 {{/each}}
 
 \backmatter

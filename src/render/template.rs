@@ -1,13 +1,16 @@
 use std::fs;
 use std::collections::HashMap;
+use std::path::{Path, PathBuf};
 use std::sync::Mutex;
 
-use handlebars::{Handlebars, JsonValue, handlebars_helper};
+use handlebars::{self as hb, Handlebars, HelperDef, JsonValue, handlebars_helper};
 use regex::{Regex, Error as ReError};
+use image::image_dimensions;
 use lazy_static::lazy_static;
 
 use crate::book::Song;
 use crate::project::{Metadata, Output, Project};
+use crate::util::PathBufExt;
 use crate::{PROGRAM_META, ProgramMeta};
 use crate::error::*;
 use super::Render;
@@ -84,6 +87,99 @@ handlebars_helper!(hb_matches: |value: str, regex: str| {
     }
 });
 
+struct ImgHelper {
+    out_dir: PathBuf,
+    result_i: usize,
+    name: &'static str,
+}
+
+impl ImgHelper {
+    fn width(project: &Project) -> Box<Self> {
+        let out_dir = project.settings.dir_output().to_owned();
+        Box::new(Self {
+            out_dir,
+            result_i: 0,
+            name: "img_w",
+        })
+    }
+    fn height(project: &Project) -> Box<Self> {
+        let out_dir = project.settings.dir_output().to_owned();
+        Box::new(Self {
+            out_dir,
+            result_i: 1,
+            name: "img_h",
+        })
+    }
+}
+
+impl HelperDef for ImgHelper {
+    fn call_inner<'reg: 'rc, 'rc>(
+        &self, h: &hb::Helper<'reg, 'rc>, _: &'reg Handlebars<'reg>, _: &'rc hb::Context,
+        _: &mut hb::RenderContext<'reg, 'rc>,
+    ) -> Result<Option<hb::ScopedJson<'reg, 'rc>>, hb::RenderError> {
+        let path: &str = h
+            .param(0)
+            .map(|x| x.value())
+            .ok_or_else(|| hb::RenderError::new(format!("{}: Image path not supplied", self.name)))
+            .and_then(|x| {
+                x.as_str().ok_or_else(|| {
+                    hb::RenderError::new(&format!(
+                        "{}: Image path not a string, it's {:?} as JSON.",
+                        self.name, x,
+                    ))
+                })
+            })?;
+
+        let pathbuf = Path::new(&path).to_owned().resolved(&self.out_dir);
+        let (w, h) = image_dimensions(&pathbuf).map_err(|e| {
+            hb::RenderError::new(&format!(
+                "{}: Couldn't read image at `{}`: {}",
+                self.name,
+                pathbuf.display(),
+                e
+            ))
+        })?;
+
+        let res = [w, h][self.result_i];
+        Ok(Some(hb::ScopedJson::Derived(JsonValue::from(res))))
+    }
+}
+
+struct DpiHelper {
+    dpi: f64,
+}
+
+impl DpiHelper {
+    const INCH_MM: f64 = 25.4;
+
+    fn new(output: &Output) -> Box<Self> {
+        Box::new(Self { dpi: output.dpi() })
+    }
+}
+
+impl HelperDef for DpiHelper {
+    fn call_inner<'reg: 'rc, 'rc>(
+        &self, h: &hb::Helper<'reg, 'rc>, _: &'reg Handlebars<'reg>, _: &'rc hb::Context,
+        _: &mut hb::RenderContext<'reg, 'rc>,
+    ) -> Result<Option<hb::ScopedJson<'reg, 'rc>>, hb::RenderError> {
+        let value: f64 = h
+            .param(0)
+            .map(|x| x.value())
+            .ok_or_else(|| hb::RenderError::new("px2mm: Input value not supplied"))
+            .and_then(|x| {
+                x.as_f64().ok_or_else(|| {
+                    hb::RenderError::new(&format!(
+                        "px2mm: Input value not a number, it's {:?} as JSON.",
+                        x,
+                    ))
+                })
+            })?;
+
+        let res = (value / self.dpi) * Self::INCH_MM;
+        Ok(Some(hb::ScopedJson::Derived(JsonValue::from(res))))
+    }
+}
+
 #[derive(Serialize, Debug)]
 struct HbContext<'a> {
     book: &'a Metadata,
@@ -107,6 +203,9 @@ impl<'a> HbRender<'a> {
         hb.register_helper("contains", Box::new(hb_contains));
         hb.register_helper("default", Box::new(hb_default));
         hb.register_helper("matches", Box::new(hb_matches));
+        hb.register_helper("px2mm", DpiHelper::new(output));
+        hb.register_helper("img_w", ImgHelper::width(project));
+        hb.register_helper("img_h", ImgHelper::height(project));
 
         let tpl_name = if let Some(template) = output.template.as_ref() {
             // NB: unwrap() should be ok, UTF-8 validity is checked while parsing
