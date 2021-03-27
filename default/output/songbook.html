@@ -1,3 +1,5 @@
+
+
 <!DOCTYPE html>
 <html>
 <head>
@@ -61,17 +63,46 @@
         margin: 1em 0;
       }
 
-      table.nospacing { border-collapse: collapse; }
-      table.nospacing tr, table.nospacing td {
-        margin: 0;
-        padding: 0;
+      hr.separator {
+        border: none;
+        border-top: 3px solid #eaeaea;
       }
 
-      tr.verse-spacing { height: .75em; }
+      /* *** Song content styling *** */
 
-      td.verse-label {
+      /* Block structure, done with customized uls */
+
+      ul.blocks {
+        list-style-type: none;
+        padding-left: 1em;
+      }
+
+      ul.blocks li::before {
+        display: inline-block;
+        min-width: 0.5em;
+        content: attr(data-label);
         font-weight: bold;
+        font-size: 0.9em;
+        margin-right: 0.5em;
+      }
+
+      ul.blocks li {
+        padding-left: 1em;
+        text-indent: -1em;
+        margin: 1em 0;
+      }
+
+      /* Chords, done with inline tables */
+
+      table.chord {
+        display: inline-table;
+        border-collapse: collapse;
+        white-space: pre;
         vertical-align: bottom;
+      }
+      table.chord tr, table.chord td {
+        margin: 0;
+        padding: 0;
       }
 
       tr.chord {
@@ -81,18 +112,64 @@
 
       tr.chord-alt { color: blue; }
 
-      .timesign {
-        margin: .5em 0;
-        font-size: 1.125em;
-        font-family: serif;
+      /* Bulletlist */
+
+      ul.bullet-list li {
+        list-style-type: initial;
+        margin: 0.1em 0;
       }
 
-      hr.separator {
-        border: none;
-        border-top: 3px solid #eaeaea;
+      /* imgs */
+
+      .blocks img.center {
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
+      }
+
+      .blocks img.right {
+        float: right;
+      }
+
+      /* pre */
+
+      .blocks pre {
+        margin-left: 1em;
       }
     </style>
 </head>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 <body>
 <div id="content">
   <header class="pad">
@@ -104,60 +181,53 @@
       <p class="note">(And this note too...)</p>
     
   </header>
-
   <hr class="separator">
 
   <div id="index" class="pad">
     <h2>Contents</h2>
     <ol>
-    <li><a href="#song-1">Yippie Yeah</a></li>
+    
+      <li><a href="#song-0">Yippie Yeah</a></li>
+    
     </ol>
   </div>
 
   <hr class="separator">
-
-  <section id="song-1" class="song pad">
+  
+    <section id="song-0" class="song pad">
       <div class="song-header">
         <h2>Yippie Yeah</h2>
-        <h4>(You can edit this content!)</h4></div>
-      <table>
-      <tr class="verse-spacing"><td></td><td></td></tr>
-            <tr class="verse">
-              <td class="verse-label">
-                
-                  1.
-                
-              </td>
-              <td>
-                <table class="nospacing ws-pre">
-                  <tr class="chord"><td>Am</td><td>C</td></tr>
-                  <tr><td>Yippie yea </td><td>oh!</td></tr>
-                </table>
-              </td>
-            </tr>
+        <h4>(You can edit this content!)</h4>
+      </div>
+
+      <ul class="blocks">
+        
           
-            <tr class="verse">
-              <td class="verse-label">
-                
-              </td>
-              <td>
-                <table class="nospacing ws-pre">
-                  <tr class="chord"><td></td><td>Am</td></tr>
-                  <tr><td>Yippie yea </td><td>yay!</td></tr>
-                </table>
-              </td>
-            </tr>
-          </table>
+  <li data-label="1."><table class="chord">
+  <tr class="chord"><td>Am</td></tr>
+  
+  <tr><td>Yippie yea </td></tr>
+</table><table class="chord">
+  <tr class="chord"><td>C</td></tr>
+  
+  <tr><td>oh!</td></tr>
+</table><br>Yippie yea <table class="chord">
+  <tr class="chord"><td>Am</td></tr>
+  
+  <tr><td>yay!</td></tr>
+</table></li>
+ 
+        
+      </ul>
     </section>
-    <hr class="separator">
-  <p class="pad"></p>
     <hr class="separator">
   
 
   
 </div>
 <footer class="faint">
-  Created with <strong><a href="https:&#x2F;&#x2F;github.com&#x2F;vojtechkral&#x2F;bard">bard</a></strong> version 0.9.0-alpha.
+  Created with <strong><a href="https://github.com/vojtechkral/bard">bard</a></strong> version 0.9.0-alpha.
 </footer>
 </body>
 </html>
+

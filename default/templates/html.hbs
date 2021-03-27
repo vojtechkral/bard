@@ -63,11 +63,36 @@
         margin: 1em 0;
       }
 
-      table.nospacing {border-collapse: collapse; }
-      table.nospacing tr, table.nospacing td {
-        margin: 0;
-        padding: 0;
+      hr.separator {
+        border: none;
+        border-top: 3px solid #eaeaea;
       }
+
+      /* *** Song content styling *** */
+
+      /* Block structure, done with customized uls */
+
+      ul.blocks {
+        list-style-type: none;
+        padding-left: 1em;
+      }
+
+      ul.blocks li::before {
+        display: inline-block;
+        min-width: 0.5em;
+        content: attr(data-label);
+        font-weight: bold;
+        font-size: 0.9em;
+        margin-right: 0.5em;
+      }
+
+      ul.blocks li {
+        padding-left: 1em;
+        text-indent: -1em;
+        margin: 1em 0;
+      }
+
+      /* Chords, done with inline tables */
 
       table.chord {
         display: inline-table;
@@ -80,16 +105,6 @@
         padding: 0;
       }
 
-      tr.verse-spacing { height: .75em; }
-
-      tr.verse td {
-        vertical-align: bottom;
-      }
-
-      td.verse-label {
-        font-weight: bold;
-      }
-
       tr.chord {
         font-weight: bold;
         color: red;
@@ -97,21 +112,29 @@
 
       tr.chord-alt { color: blue; }
 
-      .timesign {
-        margin: .5em 0;
-        font-size: 1.125em;
-        font-family: serif;
+      /* Bulletlist */
+
+      ul.bullet-list li {
+        list-style-type: initial;
+        margin: 0.1em 0;
       }
 
-      hr.separator {
-        border: none;
-        border-top: 3px solid #eaeaea;
-      }
+      /* imgs */
 
-      .song img.center {
+      .blocks img.center {
         display: block;
         margin-left: auto;
         margin-right: auto;
+      }
+
+      .blocks img.right {
+        float: right;
+      }
+
+      /* pre */
+
+      .blocks pre {
+        margin-left: 1em;
       }
     </style>
 </head>
@@ -125,38 +148,24 @@
 {{/inline}}
 
 {{#*inline "b-verse"}}
-  {{#each paragraphs}}
-  <tr class="verse-spacing"><td></td><td></td></tr>
-    <tr class="verse">
-      <td class="verse-label">
-        {{~#if @first}}{{>verse-label ../label}}{{~/if}}
-      </td>
-      <td>{{#each this}}{{> (lookup this "type") }}{{/each}}</td>
-    </tr>
-    {{/each}}
+  <li data-label="{{>verse-label label}}">
+    {{~#each paragraphs~}}
+      {{#unless @first}}<br><br>{{/unless~}}
+      {{#each this}}{{> (lookup this "type") }}{{/each}}
+    {{~/each~}}
+  </li>
 {{/inline}}
 
 {{#*inline "b-bullet-list"}}
-  <tr>
-    <td></td>
-    <td><ul>{{#each items}}<li>{{ this }}</li>{{/each}}</ul></td>
-  </tr>
-{{/inline}}
-
-{{#*inline "b-time-sign"}}
-  TODO: TimeSign
-  TODO: move to Song
+  <ul class="bullet-list">{{#each items}}<li>{{ this }}</li>{{/each}}</ul>
 {{/inline}}
 
 {{#*inline "b-horizontal-line"}}
-  <tr><td colspan="2"><hr></td></tr>
+  <hr>
 {{/inline}}
 
 {{#*inline "b-pre"}}
-  <tr>
-    <td></td>
-    <td><pre>{{ text }}</pre></td>
-  </tr>
+  <pre>{{ text }}</pre>
 {{/inline}}
 
 
@@ -174,18 +183,13 @@
   <tr><td>{{#each inlines}}{{> (lookup this "type") }}{{/each}}</td></tr>
 </table>{{/inline}}
 
-{{!-- Nb. the i-break element is a line separator, not terminator,
-  ie. no i-break after the last inline element.
-  That means we can break the current table cell/row and create a new one. --}}
-{{#*inline "i-break"}}</td></tr><tr class="verse"><td class="verse-label"></td><td>{{/inline}}
+{{#*inline "i-break"}}<br>{{/inline}}
 {{#*inline "i-emph"}}<em>{{#each inlines}}{{> (lookup this "type") }}{{/each}}</em>{{/inline}}
 {{#*inline "i-strong"}}<strong>{{#each inlines}}{{> (lookup this "type") }}{{/each}}</strong>{{/inline}}
 {{#*inline "i-link"}}<a href="{{ url }}" title="{{ title }}">{{ text }}</a>{{/inline}}
-{{#*inline "i-chorus-ref"}}{{ prefix_space }}{{ @root.book.chorus_label }}{{ num }}.{{/inline}}
-
+{{#*inline "i-chorus-ref"}}<em>{{ prefix_space }}{{ @root.book.chorus_label }}{{ num }}.</em>{{/inline}}
 {{#*inline "i-image"}}<img class="{{ class }}" src="{{ path }}" title="{{ title }}" />{{/inline}}
 
-{{!-- TODO: i-image, i-chorus-ref --}}
 
 {{!-- Body - main structure --}}
 
@@ -218,11 +222,12 @@
         <h2>{{ title }}</h2>
         {{#each subtitles}}<h4>{{ this }}</h4>{{/each}}
       </div>
-      <table>
+
+      <ul class="blocks">
         {{#each blocks}}
-          {{> (lookup this "type") }}
+          {{> (lookup this "type") }} {{!-- Dispatches to inlines prefixed b- , see above --}}
         {{/each}}
-      </table>
+      </ul>
     </section>
     <hr class="separator">
   {{/each}}
