@@ -1,6 +1,10 @@
 use std::fs;
+use std::collections::HashMap;
+use std::sync::Mutex;
 
 use handlebars::{Handlebars, JsonValue, handlebars_helper};
+use regex::{Regex, Error as ReError};
+use lazy_static::lazy_static;
 
 use crate::book::Song;
 use crate::project::{Metadata, Output, Project};
@@ -8,6 +12,11 @@ use crate::{PROGRAM_META, ProgramMeta};
 use crate::error::*;
 use super::Render;
 
+type RegexCache = HashMap<String, Result<Regex, ReError>>;
+
+lazy_static! {
+    static ref REGEX_CACHE: Mutex<RegexCache> = Mutex::new(RegexCache::new());
+}
 
 pub trait DefaultTemaplate {
     const TPL_NAME: &'static str;
@@ -39,6 +48,10 @@ fn hb_latex_escape(input: &str) -> String {
     latex_escape(input, false)
 }
 
+handlebars_helper!(hb_eq: |v1: Json, v2: Json| {
+    v1 == v2
+});
+
 handlebars_helper!(hb_contains: |obj: object, key: str| {
     obj.contains_key(key)
 });
@@ -52,6 +65,23 @@ handlebars_helper!(hb_default: |value: Json, def: Json| {
 
 handlebars_helper!(hb_pre: |input: str| {
     latex_escape(input, true)
+});
+
+handlebars_helper!(hb_matches: |value: str, regex: str| {
+    let mut cache = REGEX_CACHE.lock().unwrap();
+
+    if !cache.contains_key(regex) {
+        let res = Regex::new(regex);
+        if res.is_err() {
+            eprintln!("Warning: `matches` helper: Invalid regular expression: `{}`", regex);
+        }
+        cache.insert(regex.into(), res);
+    }
+
+    match cache.get(regex) {
+        Some(Ok(re)) => re.is_match(value),
+        _ => false,
+    }
 });
 
 #[derive(Serialize, Debug)]
@@ -73,8 +103,10 @@ struct HbRender<'a> {
 impl<'a> HbRender<'a> {
     fn new<DT: DefaultTemaplate>(project: &'a Project, output: &'a Output) -> Result<Self> {
         let mut hb = Handlebars::new();
+        hb.register_helper("eq", Box::new(hb_eq));
         hb.register_helper("contains", Box::new(hb_contains));
         hb.register_helper("default", Box::new(hb_default));
+        hb.register_helper("matches", Box::new(hb_matches));
 
         let tpl_name = if let Some(template) = output.template.as_ref() {
             // NB: unwrap() should be ok, UTF-8 validity is checked while parsing
