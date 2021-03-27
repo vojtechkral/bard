@@ -25,7 +25,7 @@ lazy_static! {
 struct Extension {
     num_excls: u32,
     content: String,
-    /// Contains a space char if there was one in front of the ext,
+    /// `true` if there was a space char in front of the ext,
     /// used to preserve proper spacing when chord refs are mixed in text.
     prefix_space: bool,
 }
@@ -109,9 +109,10 @@ pub struct Transposition {
 }
 
 impl Transposition {
-    fn new(src_notation: Notation) -> Self {
+    fn new(src_notation: Notation, disabled: bool) -> Self {
         Self {
             src_notation,
+            disabled,
             ..Default::default()
         }
     }
@@ -445,9 +446,8 @@ impl<'a> VerseBuilder<'a> {
                     // If the extension is first on the line (ie. no leading ws)
                     // then we should consume the following whitespace char
                     // (there must be either whitespace or EOL).
-                    if ext.prefix_space && hit.end() < text.len() {
+                    if !ext.prefix_space && hit.end() < text.len() {
                         pos = hit.end() + 1;
-                        dbg!(pos);
                     } else {
                         pos = hit.end();
                     }
@@ -629,7 +629,7 @@ impl<'a> SongBuilder<'a> {
             subtitles,
             verse: None,
             blocks: vec![],
-            xp: Transposition::new(config.notation),
+            xp: Transposition::new(config.notation, config.xp_disabled),
             config,
         }
     }
@@ -1292,7 +1292,7 @@ Mixed !>> in text.
                     { "type": "i-break" },
                     { "type": "i-transpose", "t-transpose": 2 },
                     { "type": "i-text", "text": " More lyrics" },
-                    { "type": "i-chorus-ref", "num": null },
+                    { "type": "i-chorus-ref", "num": null, "prefix_space": " " },
                 ]
               ]
             }
@@ -1324,14 +1324,14 @@ Mixed !>> in text.
               "paragraphs": [
                 [
                     { "type": "i-text", "text": "Reference both:" },
-                    { "type": "i-chorus-ref", "num": 1 },
-                    { "type": "i-chorus-ref", "num": 2 },
+                    { "type": "i-chorus-ref", "num": 1, "prefix_space": " "},
+                    { "type": "i-chorus-ref", "num": 2, "prefix_space": " "},
                     { "type": "i-break" },
-                    { "type": "i-chorus-ref", "num": 1 },
+                    { "type": "i-chorus-ref", "num": 1, "prefix_space": ""},
                     { "type": "i-text", "text": " First on the line." },
                     { "type": "i-break" },
                     { "type": "i-text", "text": "Mixed" },
-                    { "type": "i-chorus-ref", "num": 2 },
+                    { "type": "i-chorus-ref", "num": 2, "prefix_space": " "},
                     { "type": "i-text", "text": " in text." },
                 ]
               ]
