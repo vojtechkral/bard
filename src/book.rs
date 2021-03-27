@@ -107,7 +107,7 @@ pub enum Inline {
     #[serde(rename = "i-link")]
     Link(Link),
     #[serde(rename = "i-image")]
-    Image { link: Link },
+    Image(Image),
     #[serde(rename = "i-chorus-ref")]
     ChorusRef(ChorusRef),
 
@@ -170,16 +170,22 @@ pub struct Link {
 }
 
 impl Link {
-    pub fn link(url: BStr, title: BStr, text: BStr) -> Self {
+    pub fn new(url: BStr, title: BStr, text: BStr) -> Self {
         Self { url, title, text }
     }
+}
 
-    pub fn img(url: BStr, title: BStr) -> Self {
-        Self {
-            url,
-            title,
-            text: "".into(),
-        }
+#[derive(Serialize, Debug)]
+pub struct Image {
+    // TODO: if local file, add to watches for bard watch?
+    pub path: BStr,
+    pub title: BStr,
+    pub class: BStr,
+}
+
+impl Image {
+    pub fn new(path: BStr, title: BStr, class: BStr) -> Self {
+        Self { path, title, class }
     }
 }
 

@@ -107,6 +107,12 @@
         border: none;
         border-top: 3px solid #eaeaea;
       }
+
+      .song img.center {
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
+      }
     </style>
 </head>
 
@@ -176,6 +182,8 @@
 {{#*inline "i-strong"}}<strong>{{#each inlines}}{{> (lookup this "type") }}{{/each}}</strong>{{/inline}}
 {{#*inline "i-link"}}<a href="{{ url }}" title="{{ title }}">{{ text }}</a>{{/inline}}
 {{#*inline "i-chorus-ref"}}{{ prefix_space }}{{ @root.book.chorus_label }}{{ num }}.{{/inline}}
+
+{{#*inline "i-image"}}<img class="{{ class }}" src="{{ path }}" title="{{ title }}" />{{/inline}}
 
 {{!-- TODO: i-image, i-chorus-ref --}}
 

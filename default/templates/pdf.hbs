@@ -21,6 +21,8 @@
 \usepackage{enumitem}
 \usepackage[defaultlines=5,all]{nowidow}
 \usepackage[pdfusetitle,colorlinks=true]{hyperref}
+\usepackage{float}
+\usepackage{graphicx}
 
 %% Page style
 \makepagestyle{songs}
@@ -145,7 +147,11 @@
 {{#*inline "i-link"}}\href{ {{~ url ~}} }{ {{{~ (pre text) ~}}} }{{/inline}}
 {{#*inline "i-chorus-ref"}}{{ prefix_space }}{{ @root.book.chorus_label }}{{ num }}.{{/inline}}
 
-{{!-- TODO: i-image --}}
+{{#*inline "i-image"}}
+  {{~#if (eq class "center") }}\begin{figure}[H] \centering{{/if~}}
+  \includegraphics{ {{~ path ~}} }
+  {{~#if (eq class "center") }}\end{figure}{{/if~}}
+{{/inline}}
 
 {{!-- Main content --}}
 

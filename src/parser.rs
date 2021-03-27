@@ -385,12 +385,17 @@ impl<'a> NodeExt<'a> for AstNode<'a> {
                 assert!(text.is_text());
                 let text = text.as_plaintext().into();
 
-                let link = Link::link(link.url.into_bstr(), link.title.into_bstr(), text);
+                let link = Link::new(link.url.into_bstr(), link.title.into_bstr(), text);
                 Inline::Link(link)
             }
-            NodeValue::Image(link) => Inline::Image {
-                link: Link::img(link.url.into_bstr(), link.title.into_bstr()),
-            },
+            NodeValue::Image(link) => {
+                let img = Image::new(
+                    link.url.into_bstr(),
+                    self.as_plaintext().into(),
+                    link.title.into_bstr(),
+                );
+                Inline::Image(img)
+            }
             NodeValue::FootnoteReference(..) => return,
 
             // TODO: Ensure extensions are not enabled through a test
