@@ -143,8 +143,9 @@
 {{#*inline "i-emph"}}\emph{ {{~#each inlines}}{{> (lookup this "type") }}{{/each~}} }{{/inline}}
 {{#*inline "i-strong"}}\textbf{ {{~#each inlines}}{{> (lookup this "type") }}{{/each~}} }{{/inline}}
 {{#*inline "i-link"}}\href{ {{~ url ~}} }{ {{{~ (pre text) ~}}} }{{/inline}}
+{{#*inline "i-chorus-ref"}}{{ prefix_space }}{{ @root.book.chorus_label }}{{ num }}.{{/inline}}
 
-{{!-- TODO: i-image, i-chorus-ref --}}
+{{!-- TODO: i-image --}}
 
 {{!-- Main content --}}
 

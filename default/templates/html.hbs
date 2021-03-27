@@ -175,6 +175,7 @@
 {{#*inline "i-emph"}}<em>{{#each inlines}}{{> (lookup this "type") }}{{/each}}</em>{{/inline}}
 {{#*inline "i-strong"}}<strong>{{#each inlines}}{{> (lookup this "type") }}{{/each}}</strong>{{/inline}}
 {{#*inline "i-link"}}<a href="{{ url }}" title="{{ title }}">{{ text }}</a>{{/inline}}
+{{#*inline "i-chorus-ref"}}{{ prefix_space }}{{ @root.book.chorus_label }}{{ num }}.{{/inline}}
 
 {{!-- TODO: i-image, i-chorus-ref --}}
 

@@ -120,7 +120,6 @@ pub struct RHtml;
 
 impl DefaultTemaplate for RHtml {
     const TPL_NAME: &'static str = "html.hbs";
-    // FIXME: Real file
     const TPL_CONTENT: &'static str = include_str!("../../default/templates/html.hbs");
 }
 
@@ -136,7 +135,6 @@ pub struct RTex;
 
 impl DefaultTemaplate for RTex {
     const TPL_NAME: &'static str = "pdf.hbs";
-    // FIXME: Real file
     const TPL_CONTENT: &'static str = include_str!("../../default/templates/pdf.hbs");
 }
 

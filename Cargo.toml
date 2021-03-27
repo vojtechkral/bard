@@ -6,7 +6,7 @@ description = "Creates PDF and HTML songbooks out of easy-to-write Markdown sour
 repository = "https://github.com/vojtechkral/bard"
 homepage = "https://github.com/vojtechkral/bard"
 license = "Apache-2.0"
-keywords = ["music"]
+keywords = ["music", "markdown"]
 edition = "2018"
 
 [lib]

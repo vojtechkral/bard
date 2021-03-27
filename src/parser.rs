@@ -25,12 +25,12 @@ struct Extension {
     content: String,
     /// Contains a space char if there was one in front of the ext,
     /// used to preserve proper spacing when chord refs are mixed in text.
-    prefix_space: Option<char>,
+    prefix_space: bool,
 }
 
 impl<'a> From<Captures<'a>> for Extension {
     fn from(caps: Captures<'a>) -> Self {
-        let prefix_space = caps.get(1).unwrap().as_str().chars().next();
+        let prefix_space = caps.get(1).unwrap().as_str().chars().next().is_some();
         let num_excls = caps.get(2).unwrap().as_str().len() as _;
         let content = caps.get(3).unwrap().as_str().to_owned();
         Self {
@@ -64,9 +64,10 @@ impl Extension {
         None
     }
 
-    fn try_parse_chorus_ref(&self) -> Option<u32> {
+    fn try_parse_chorus_ref(&self) -> Option<ChorusRef> {
         if self.num_excls == 1 && self.content.chars().all(|c| c == '>') {
-            Some(self.content.len() as _)
+            let num = self.content.len() as _;
+            Some(ChorusRef::new(Some(num), self.prefix_space))
         } else {
             None
         }
@@ -76,9 +77,9 @@ impl Extension {
         if let Some(xpose) = self.try_parse_xpose() {
             // Transposition extension recognized
             Some(Inline::Transpose(xpose))
-        } else if let num @ Some(_) = self.try_parse_chorus_ref() {
+        } else if let Some(chorus_ref) = self.try_parse_chorus_ref() {
             // Chorus reference extension recognized
-            Some(Inline::ChorusRef { num })
+            Some(Inline::ChorusRef(chorus_ref))
         } else {
             // No recognized extension, just push as regular text
             None
@@ -335,7 +336,7 @@ impl<'a> NodeExt<'a> for AstNode<'a> {
                     // If the extension is first on the line (ie. no leading ws)
                     // then we should consume the following whitespace char
                     // (there must be either whitespace or EOL).
-                    if ext.prefix_space.is_none() && hit.end() < text.len() {
+                    if ext.prefix_space && hit.end() < text.len() {
                         pos = hit.end() + 1;
                         dbg!(pos);
                     } else {

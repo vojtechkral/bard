@@ -109,7 +109,7 @@ pub enum Inline {
     #[serde(rename = "i-image")]
     Image { link: Link },
     #[serde(rename = "i-chorus-ref")]
-    ChorusRef { num: Option<u32> },
+    ChorusRef(ChorusRef),
 
     /// Only used internally by the parser to apply transposition
     #[serde(rename = "i-transpose")]
@@ -137,8 +137,7 @@ impl Inline {
             Inline::Chord(c) => c.remove_chorus_num(),
             Inline::Emph(e) => e.remove_chorus_num(),
             Inline::Strong(s) => s.remove_chorus_num(),
-            Inline::ChorusRef { num } => *num = None,
-
+            Inline::ChorusRef(cr) => cr.num = None,
             _ => {}
         }
     }
@@ -180,6 +179,21 @@ impl Link {
             url,
             title,
             text: "".into(),
+        }
+    }
+}
+
+#[derive(Serialize, Debug)]
+pub struct ChorusRef {
+    pub num: Option<u32>,
+    pub prefix_space: BStr,
+}
+
+impl ChorusRef {
+    pub fn new(num: Option<u32>, prefix_space: bool) -> Self {
+        Self {
+            num,
+            prefix_space: if prefix_space { " ".into() } else { "".into() },
         }
     }
 }
