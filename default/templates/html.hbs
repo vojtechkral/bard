@@ -200,6 +200,9 @@
     {{#if book.subtitle }}
       <h3>{{ book.subtitle }}</h3>
     {{/if }}
+    {{~#if book.front_img}}
+        <img src="{{ book.front_img ~}}">
+      {{/if}}
     {{#if book.title_note }}
       <p class="note">{{ book.title_note }}</p>
     {{/if }}
