@@ -1,6 +1,6 @@
 [package]
 name = "bard"
-version = "0.9.0-alpha"
+version = "0.10.0-alpha"
 authors = ["Vojtech Kral <vojtech@kral.hk>"]
 description = "Creates PDF and HTML songbooks out of easy-to-write Markdown sources."
 repository = "https://github.com/vojtechkral/bard"
