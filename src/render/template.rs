@@ -280,3 +280,18 @@ impl Render for RTex {
         render.render()
     }
 }
+
+
+pub struct RHovorka;
+
+impl DefaultTemaplate for RHovorka {
+    const TPL_NAME: &'static str = "hovorka.hbs";
+    const TPL_CONTENT: &'static str = include_str!("../../example/templates/hovorka.hbs");
+}
+
+impl Render for RHovorka {
+    fn render<'a>(project: &'a Project, output: &'a Output) -> Result<&'a Output> {
+        let render = HbRender::new::<Self>(project, output)?;
+        render.render()
+    }
+}

@@ -12,7 +12,7 @@ use handlebars::Handlebars;
 use crate::default_project::DEFAULT_PROJECT;
 use crate::book::{Book, Song};
 use crate::music::Notation;
-use crate::render::{Render, RHtml, RTex, RJson};
+use crate::render::{Render, RHtml, RHovorka, RTex, RJson};
 use crate::cli;
 use crate::util::*;
 use crate::error::*;
@@ -89,7 +89,8 @@ impl CmdSpec {
 pub enum Format {
     #[serde(alias = "xhtml")]
     Html,
-    Latex,
+    Tex,
+    Hovorka,
     Json,
     Auto,
 }
@@ -152,7 +153,8 @@ impl Output {
 
         self.format = match ext.as_ref().map(String::as_str) {
             Some("html") | Some("xhtml") | Some("htm") | Some("xht") => Format::Html,
-            Some("tex") => Format::Latex,
+            Some("tex") => Format::Tex,
+            Some("xml") => Format::Hovorka,
             Some("json") => Format::Json,
             _ => bail!(
                 "Unknown or unsupported format of output file: {}\nHint: Specify format with  \
@@ -177,7 +179,7 @@ impl Output {
 
     fn template_path(&self) -> Option<&Path> {
         match self.format {
-            Format::Html | Format::Latex => self.template.as_ref().map(PathBuf::as_path),
+            Format::Html | Format::Tex | Format::Hovorka => self.template.as_ref().map(PathBuf::as_path),
             Format::Json => None,
             Format::Auto => Format::no_auto(),
         }
@@ -458,7 +460,8 @@ impl Project {
 
             match output.format {
                 Html => RHtml::render(self, &output),
-                Latex => RTex::render(self, &output),
+                Tex => RTex::render(self, &output),
+                Hovorka => RHovorka::render(self, &output),
                 Json => RJson::render(self, &output),
                 Auto => Format::no_auto(),
             }
