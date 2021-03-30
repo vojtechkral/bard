@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<InetSongDb xmlns="http://zpevnik.net/InetSongDb.xsd">
+
+
+{{!-- HB inlines: Block types --}}
+
+{{#*inline "verse-label"}}
+  {{~#if verse}}{{verse}}.{{/if}}
+  {{~#if (contains this "chorus")}}R{{chorus}}:{{/if}}
+  {{~#if custom}}{{custom}}{{/if}}
+{{/inline}}
+
+{{#*inline "b-verse"}}
+    {{~>verse-label label}}
+    {{~#each paragraphs~}}
+      {{#unless @first}}
+
+{{/unless~}}
+      {{#each this}}{{> (lookup this "type") }}{{/each}}
+    {{~/each}}
+
+{{/inline}}
+
+{{#*inline "b-bullet-list"}}{{/inline}}
+{{#*inline "b-horizontal-line"}}{{/inline}}
+{{#*inline "b-pre"}}{{/inline}}
+
+
+{{!-- HB inlines: Inline types --}}
+
+{{#*inline "i-text"}}{{ text }}{{/inline}}
+
+{{#*inline "i-chord"}}[{{ chord }}]{{#each inlines}}{{> (lookup this "type") }}{{/each}}{{/inline}}
+
+{{#*inline "i-break"}}
+{{/inline}}
+{{#*inline "i-emph"}}{{#each inlines}}{{> (lookup this "type") }}{{/each}}{{/inline}}
+{{#*inline "i-strong"}}{{#each inlines}}{{> (lookup this "type") }}{{/each}}{{/inline}}
+{{#*inline "i-link"}}{{ text }}{{/inline}}
+{{#*inline "i-chorus-ref"}}
+R{{ num }}:{{/inline}}
+{{#*inline "i-image"}}{{/inline}}
+
+
+{{#each songs}}
+<song>
+  <ID><![CDATA[song-{{ @index }}]]></ID>
+  <title><![CDATA[{{ title }}]]></title>
+  <author><![CDATA[{{ @root.book.title }}]]></author>
+  {{!-- <authorId><![CDATA[{{ book.title | slugify }}]]></authorId> --}}
+  <groupname><![CDATA[[local]]]></groupname>
+  <songtext><![CDATA[
+{{#each blocks}}{{> (lookup this "type") }}{{/each}}
+]]></songtext>
+</song>
+
+{{/each}}
+
+</InetSongDb>

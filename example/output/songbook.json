@@ -1,0 +1,1741 @@
+{
+  "book": {
+    "front_img": "guitar.jpg",
+    "title_note": "A set of a few non-copyrighted songs.",
+    "chorus_label": "Ch",
+    "title": "Bard Songbook",
+    "subtitle": "An example project"
+  },
+  "songs": [
+    {
+      "title": "Danny Boy",
+      "subtitles": [
+        "English ballad"
+      ],
+      "blocks": [
+        {
+          "type": "b-verse",
+          "label": {
+            "verse": 1
+          },
+          "paragraphs": [
+            [
+              {
+                "type": "i-chord",
+                "chord": "G7",
+                "alt_chord": null,
+                "inlines": [
+                  {
+                    "type": "i-text",
+                    "text": "Oh Danny "
+                  }
+                ]
+              },
+              {
+                "type": "i-chord",
+                "chord": "C",
+                "alt_chord": null,
+                "inlines": [
+                  {
+                    "type": "i-text",
+                    "text": "Boy, the pipes, the "
+                  }
+                ]
+              },
+              {
+                "type": "i-chord",
+                "chord": "C7",
+                "alt_chord": null,
+                "inlines": [
+                  {
+                    "type": "i-text",
+                    "text": "pipes are "
+                  }
+                ]
+              },
+              {
+                "type": "i-chord",
+                "chord": "F",
+                "alt_chord": null,
+                "inlines": [
+                  {
+                    "type": "i-text",
+                    "text": "calling"
+                  }
+                ]
+              },
+              {
+                "type": "i-break"
+              },
+              {
+                "type": "i-text",
+                "text": "From glen to "
+              },
+              {
+                "type": "i-chord",
+                "chord": "C",
+                "alt_chord": null,
+                "inlines": [
+                  {
+                    "type": "i-text",
+                    "text": "glen, and "
+                  }
+                ]
+              },
+              {
+                "type": "i-chord",
+                "chord": "Em",
+                "alt_chord": null,
+                "inlines": [
+                  {
+                    "type": "i-text",
+                    "text": "down the "
+                  }
+                ]
+              },
+              {
+                "type": "i-chord",
+                "chord": "F",
+                "alt_chord": null,
+                "inlines": [
+                  {
+                    "type": "i-text",
+                    "text": "mountain "
+                  }
+                ]
+              },
+              {
+                "type": "i-chord",
+                "chord": "G7",
+                "alt_chord": null,
+                "inlines": [
+                  {
+                    "type": "i-text",
+                    "text": "side"
+                  }
+                ]
+              },
+              {
+                "type": "i-break"
+              },
+              {
+                "type": "i-text",
+                "text": "The summer’s "
+              },
+              {
+                "type": "i-chord",
+                "chord": "C",
+                "alt_chord": null,
+                "inlines": [
+                  {
+                    "type": "i-text",
+                    "text": "gone, and all the "
+                  }
+                ]
+              },
+              {
+                "type": "i-chord",
+                "chord": "C7",
+                "alt_chord": null,
+                "inlines": [
+                  {
+                    "type": "i-text",
+                    "text": "flowers are "
+                  }
+                ]
+              },
+              {
+                "type": "i-chord",
+                "chord": "F",
+                "alt_chord": null,
+                "inlines": [
+                  {
+                    "type": "i-text",
+                    "text": "dying"
+                  }
+                ]
+              },
+              {
+                "type": "i-break"
+              },
+              {
+                "type": "i-text",
+                "text": "‘Tis you, ’tis "
+              },
+              {
+                "type": "i-chord",
+                "chord": "C",
+                "alt_chord": null,
+                "inlines": [
+                  {
+                    "type": "i-text",
+                    "text": "you must "
+                  }
+                ]
+              },
+              {
+                "type": "i-chord",
+                "chord": "Dm",
+                "alt_chord": null,
+                "inlines": [
+                  {
+                    "type": "i-text",
+                    "text": "go and "
+                  }
+                ]
+              },
+              {
+                "type": "i-chord",
+                "chord": "G7",
+                "alt_chord": null,
+                "inlines": [
+                  {
+                    "type": "i-text",
+                    "text": "I must "
+                  }
+                ]
+              },
+              {
+                "type": "i-chord",
+                "chord": "C",
+                "alt_chord": null,
+                "inlines": [
+                  {
+                    "type": "i-text",
+                    "text": "bide."
+                  }
+                ]
+              }
+            ]
+          ]
+        },
+        {
+          "type": "b-verse",
+          "label": {
+            "chorus": 1
+          },
+          "paragraphs": [
+            [
+              {
+                "type": "i-chord",
+                "chord": "G7",
+                "alt_chord": null,
+                "inlines": [
+                  {
+                    "type": "i-text",
+                    "text": "But come ye "
+                  }
+                ]
+              },
+              {
+                "type": "i-chord",
+                "chord": "Am",
+                "alt_chord": null,
+                "inlines": [
+                  {
+                    "type": "i-text",
+                    "text": "back when "
+                  }
+                ]
+              },
+              {
+                "type": "i-chord",
+                "chord": "F",
+                "alt_chord": null,
+                "inlines": [
+                  {
+                    "type": "i-text",
+                    "text": "summer’s "
+                  }
+                ]
+              },
+              {
+                "type": "i-chord",
+                "chord": "G7",
+                "alt_chord": null,
+                "inlines": [
+                  {
+                    "type": "i-text",
+                    "text": "in the "
+                  }
+                ]
+              },
+              {
+                "type": "i-chord",
+                "chord": "C",
+                "alt_chord": null,
+                "inlines": [
+                  {
+                    "type": "i-text",
+                    "text": "meadow"
+                  }
+                ]
+              },
+              {
+                "type": "i-break"
+              },
+              {
+                "type": "i-text",
+                "text": "Or when the "
+              },
+              {
+                "type": "i-chord",
+                "chord": "Am",
+                "alt_chord": null,
+                "inlines": [
+                  {
+                    "type": "i-text",
+                    "text": "valley’s "
+                  }
+                ]
+              },
+              {
+                "type": "i-chord",
+                "chord": "F",
+                "alt_chord": null,
+                "inlines": [
+                  {
+                    "type": "i-text",
+                    "text": "hushed and "
+                  }
+                ]
+              },
+              {
+                "type": "i-chord",
+                "chord": "Em",
+                "alt_chord": null,
+                "inlines": [
+                  {
+                    "type": "i-text",
+                    "text": "white with "
+                  }
+                ]
+              },
+              {
+                "type": "i-chord",
+                "chord": "D7",
+                "alt_chord": null,
+                "inlines": [
+                  {
+                    "type": "i-text",
+                    "text": "snow "
+                  }
+                ]
+              },
+              {
+                "type": "i-chord",
+                "chord": "G7",
+                "alt_chord": null,
+                "inlines": []
+              },
+              {
+                "type": "i-break"
+              },
+              {
+                "type": "i-text",
+                "text": "‘Tis I’ll be "
+              },
+              {
+                "type": "i-chord",
+                "chord": "C",
+                "alt_chord": null,
+                "inlines": [
+                  {
+                    "type": "i-text",
+                    "text": "here in "
+                  }
+                ]
+              },
+              {
+                "type": "i-chord",
+                "chord": "F",
+                "alt_chord": null,
+                "inlines": [
+                  {
+                    "type": "i-text",
+                    "text": "sunshine or in "
+                  }
+                ]
+              },
+              {
+                "type": "i-chord",
+                "chord": "C",
+                "alt_chord": null,
+                "inlines": [
+                  {
+                    "type": "i-text",
+                    "text": "sha"
+                  }
+                ]
+              },
+              {
+                "type": "i-chord",
+                "chord": "Am",
+                "alt_chord": null,
+                "inlines": [
+                  {
+                    "type": "i-text",
+                    "text": "dow."
+                  }
+                ]
+              },
+              {
+                "type": "i-break"
+              },
+              {
+                "type": "i-text",
+                "text": "Oh Danny "
+              },
+              {
+                "type": "i-chord",
+                "chord": "C",
+                "alt_chord": null,
+                "inlines": [
+                  {
+                    "type": "i-text",
+                    "text": "Boy, oh Danny "
+                  }
+                ]
+              },
+              {
+                "type": "i-chord",
+                "chord": "F",
+                "alt_chord": null,
+                "inlines": [
+                  {
+                    "type": "i-text",
+                    "text": "Boy, I "
+                  }
+                ]
+              },
+              {
+                "type": "i-chord",
+                "chord": "G7",
+                "alt_chord": null,
+                "inlines": [
+                  {
+                    "type": "i-text",
+                    "text": "love you "
+                  }
+                ]
+              },
+              {
+                "type": "i-chord",
+                "chord": "C",
+                "alt_chord": null,
+                "inlines": [
+                  {
+                    "type": "i-text",
+                    "text": "so."
+                  }
+                ]
+              }
+            ]
+          ]
+        },
+        {
+          "type": "b-verse",
+          "label": {
+            "verse": 2
+          },
+          "paragraphs": [
+            [
+              {
+                "type": "i-text",
+                "text": "And if you come, when all the flowers are dying"
+              },
+              {
+                "type": "i-break"
+              },
+              {
+                "type": "i-text",
+                "text": "And I am dead, as dead I well may be"
+              },
+              {
+                "type": "i-break"
+              },
+              {
+                "type": "i-text",
+                "text": "You’ll come and find the place where I am lying"
+              },
+              {
+                "type": "i-break"
+              },
+              {
+                "type": "i-text",
+                "text": "And kneel and say an ”Ave”  there for me."
+              }
+            ]
+          ]
+        },
+        {
+          "type": "b-verse",
+          "label": {
+            "chorus": 2
+          },
+          "paragraphs": [
+            [
+              {
+                "type": "i-text",
+                "text": "And I shall hear, though soft you tread above me"
+              },
+              {
+                "type": "i-break"
+              },
+              {
+                "type": "i-text",
+                "text": "And all my dreams will warm and sweeter be"
+              },
+              {
+                "type": "i-break"
+              },
+              {
+                "type": "i-text",
+                "text": "If you’ll not fail to tell me that you love me"
+              },
+              {
+                "type": "i-break"
+              },
+              {
+                "type": "i-text",
+                "text": "I’ll sleep in peace until you come to me."
+              }
+            ],
+            [
+              {
+                "type": "i-image",
+                "path": "hills.jpg",
+                "title": "hills",
+                "class": "center"
+              }
+            ]
+          ]
+        }
+      ],
+      "notation": "english"
+    },
+    {
+      "title": "Handsome Molly",
+      "subtitles": [
+        "U.S. Old-time"
+      ],
+      "blocks": [
+        {
+          "type": "b-verse",
+          "label": {
+            "verse": 1
+          },
+          "paragraphs": [
+            [
+              {
+                "type": "i-chord",
+                "chord": "G",
+                "alt_chord": null,
+                "inlines": [
+                  {
+                    "type": "i-text",
+                    "text": "I wish I was in London"
+                  }
+                ]
+              },
+              {
+                "type": "i-break"
+              },
+              {
+                "type": "i-text",
+                "text": "Or some other seaport "
+              },
+              {
+                "type": "i-chord",
+                "chord": "D",
+                "alt_chord": null,
+                "inlines": [
+                  {
+                    "type": "i-text",
+                    "text": "town"
+                  }
+                ]
+              },
+              {
+                "type": "i-break"
+              },
+              {
+                "type": "i-chord",
+                "chord": "D",
+                "alt_chord": null,
+                "inlines": [
+                  {
+                    "type": "i-text",
+                    "text": "I'd step my foot on a steamboat"
+                  }
+                ]
+              },
+              {
+                "type": "i-break"
+              },
+              {
+                "type": "i-text",
+                "text": "And sail the ocean "
+              },
+              {
+                "type": "i-chord",
+                "chord": "G",
+                "alt_chord": null,
+                "inlines": [
+                  {
+                    "type": "i-text",
+                    "text": "round"
+                  }
+                ]
+              }
+            ]
+          ]
+        },
+        {
+          "type": "b-verse",
+          "label": {
+            "verse": 2
+          },
+          "paragraphs": [
+            [
+              {
+                "type": "i-text",
+                "text": "While sailing round the ocean"
+              },
+              {
+                "type": "i-break"
+              },
+              {
+                "type": "i-text",
+                "text": "While sailing round the sea"
+              },
+              {
+                "type": "i-break"
+              },
+              {
+                "type": "i-text",
+                "text": "I’d think of Handsome Molly"
+              },
+              {
+                "type": "i-break"
+              },
+              {
+                "type": "i-text",
+                "text": "Wherever she may be"
+              }
+            ]
+          ]
+        },
+        {
+          "type": "b-verse",
+          "label": {
+            "verse": 3
+          },
+          "paragraphs": [
+            [
+              {
+                "type": "i-text",
+                "text": "I went to church last Sunday"
+              },
+              {
+                "type": "i-break"
+              },
+              {
+                "type": "i-text",
+                "text": "She passed me on by"
+              },
+              {
+                "type": "i-break"
+              },
+              {
+                "type": "i-text",
+                "text": "I knew her mind was changing"
+              },
+              {
+                "type": "i-break"
+              },
+              {
+                "type": "i-text",
+                "text": "By the roving of her eye"
+              }
+            ]
+          ]
+        },
+        {
+          "type": "b-verse",
+          "label": {
+            "verse": 4
+          },
+          "paragraphs": [
+            [
+              {
+                "type": "i-text",
+                "text": "Her hair as black as a Raven’s"
+              },
+              {
+                "type": "i-break"
+              },
+              {
+                "type": "i-text",
+                "text": "Her eyes were black as coal"
+              },
+              {
+                "type": "i-break"
+              },
+              {
+                "type": "i-text",
+                "text": "Her teeth just like lilies"
+              },
+              {
+                "type": "i-break"
+              },
+              {
+                "type": "i-text",
+                "text": "Out in the morning cold"
+              }
+            ]
+          ]
+        },
+        {
+          "type": "b-verse",
+          "label": {
+            "verse": 5
+          },
+          "paragraphs": [
+            [
+              {
+                "type": "i-text",
+                "text": "Now do you remember Molly"
+              },
+              {
+                "type": "i-break"
+              },
+              {
+                "type": "i-text",
+                "text": "When you gave me your right hand"
+              },
+              {
+                "type": "i-break"
+              },
+              {
+                "type": "i-text",
+                "text": "Said if you ever married"
+              },
+              {
+                "type": "i-break"
+              },
+              {
+                "type": "i-text",
+                "text": "Then I’d be the man"
+              }
+            ]
+          ]
+        },
+        {
+          "type": "b-verse",
+          "label": {
+            "verse": 6
+          },
+          "paragraphs": [
+            [
+              {
+                "type": "i-text",
+                "text": "Now you’ve broke your promise"
+              },
+              {
+                "type": "i-break"
+              },
+              {
+                "type": "i-text",
+                "text": "Go marry whom you please"
+              },
+              {
+                "type": "i-break"
+              },
+              {
+                "type": "i-text",
+                "text": "My heart is broken"
+              },
+              {
+                "type": "i-break"
+              },
+              {
+                "type": "i-text",
+                "text": "‘Til I get some ease"
+              }
+            ]
+          ]
+        }
+      ],
+      "notation": "english"
+    },
+    {
+      "title": "Whiskey in the Jar",
+      "subtitles": [
+        "Irish traditional"
+      ],
+      "blocks": [
+        {
+          "type": "b-verse",
+          "label": {
+            "verse": 1
+          },
+          "paragraphs": [
+            [
+              {
+                "type": "i-text",
+                "text": "As "
+              },
+              {
+                "type": "i-chord",
+                "chord": "C",
+                "alt_chord": null,
+                "inlines": [
+                  {
+                    "type": "i-text",
+                    "text": "I was a goin' over"
+                  }
+                ]
+              },
+              {
+                "type": "i-break"
+              },
+              {
+                "type": "i-text",
+                "text": "The "
+              },
+              {
+                "type": "i-chord",
+                "chord": "Am",
+                "alt_chord": null,
+                "inlines": [
+                  {
+                    "type": "i-text",
+                    "text": "far famed Kerry mountains"
+                  }
+                ]
+              },
+              {
+                "type": "i-break"
+              },
+              {
+                "type": "i-text",
+                "text": "I "
+              },
+              {
+                "type": "i-chord",
+                "chord": "F",
+                "alt_chord": null,
+                "inlines": [
+                  {
+                    "type": "i-text",
+                    "text": "met with Captain Farrell and his"
+                  }
+                ]
+              },
+              {
+                "type": "i-break"
+              },
+              {
+                "type": "i-chord",
+                "chord": "C",
+                "alt_chord": null,
+                "inlines": [
+                  {
+                    "type": "i-text",
+                    "text": "Money he was counting"
+                  }
+                ]
+              },
+              {
+                "type": "i-break"
+              },
+              {
+                "type": "i-chord",
+                "chord": "C",
+                "alt_chord": null,
+                "inlines": [
+                  {
+                    "type": "i-text",
+                    "text": "I first produced my pistol"
+                  }
+                ]
+              },
+              {
+                "type": "i-break"
+              },
+              {
+                "type": "i-text",
+                "text": "And I "
+              },
+              {
+                "type": "i-chord",
+                "chord": "Am",
+                "alt_chord": null,
+                "inlines": [
+                  {
+                    "type": "i-text",
+                    "text": " then produced my rapier"
+                  }
+                ]
+              },
+              {
+                "type": "i-break"
+              },
+              {
+                "type": "i-text",
+                "text": "Saying "
+              },
+              {
+                "type": "i-chord",
+                "chord": "F",
+                "alt_chord": null,
+                "inlines": [
+                  {
+                    "type": "i-text",
+                    "text": " \"Stand and deliver,"
+                  }
+                ]
+              },
+              {
+                "type": "i-break"
+              },
+              {
+                "type": "i-text",
+                "text": "For "
+              },
+              {
+                "type": "i-chord",
+                "chord": "C",
+                "alt_chord": null,
+                "inlines": [
+                  {
+                    "type": "i-text",
+                    "text": "you are a bold deceiver!\""
+                  }
+                ]
+              }
+            ]
+          ]
+        },
+        {
+          "type": "b-verse",
+          "label": {
+            "chorus": null
+          },
+          "paragraphs": [
+            [
+              {
+                "type": "i-text",
+                "text": "Mush-a "
+              },
+              {
+                "type": "i-chord",
+                "chord": "G",
+                "alt_chord": null,
+                "inlines": [
+                  {
+                    "type": "i-text",
+                    "text": "ring dum-a do dum-a da"
+                  }
+                ]
+              },
+              {
+                "type": "i-break"
+              },
+              {
+                "type": "i-chord",
+                "chord": "C",
+                "alt_chord": null,
+                "inlines": [
+                  {
+                    "type": "i-text",
+                    "text": "Whack for me daddy-o"
+                  }
+                ]
+              },
+              {
+                "type": "i-break"
+              },
+              {
+                "type": "i-chord",
+                "chord": "F",
+                "alt_chord": null,
+                "inlines": [
+                  {
+                    "type": "i-text",
+                    "text": "Whack for me daddy-o"
+                  }
+                ]
+              },
+              {
+                "type": "i-break"
+              },
+              {
+                "type": "i-text",
+                "text": "There's "
+              },
+              {
+                "type": "i-chord",
+                "chord": "C",
+                "alt_chord": null,
+                "inlines": [
+                  {
+                    "type": "i-text",
+                    "text": "whiskey "
+                  }
+                ]
+              },
+              {
+                "type": "i-chord",
+                "chord": "G",
+                "alt_chord": null,
+                "inlines": [
+                  {
+                    "type": "i-text",
+                    "text": "in the "
+                  }
+                ]
+              },
+              {
+                "type": "i-chord",
+                "chord": "C",
+                "alt_chord": null,
+                "inlines": [
+                  {
+                    "type": "i-text",
+                    "text": "jar"
+                  }
+                ]
+              }
+            ]
+          ]
+        },
+        {
+          "type": "b-verse",
+          "label": {
+            "verse": 2
+          },
+          "paragraphs": [
+            [
+              {
+                "type": "i-text",
+                "text": "I counted out his money"
+              },
+              {
+                "type": "i-break"
+              },
+              {
+                "type": "i-text",
+                "text": "And it made a pretty penny"
+              },
+              {
+                "type": "i-break"
+              },
+              {
+                "type": "i-text",
+                "text": "I put it in me pocket"
+              },
+              {
+                "type": "i-break"
+              },
+              {
+                "type": "i-text",
+                "text": "And I took it home to Jenny"
+              },
+              {
+                "type": "i-break"
+              },
+              {
+                "type": "i-text",
+                "text": "She sighed and she swore"
+              },
+              {
+                "type": "i-break"
+              },
+              {
+                "type": "i-text",
+                "text": "That she never would deceive me"
+              },
+              {
+                "type": "i-break"
+              },
+              {
+                "type": "i-text",
+                "text": "But the devil take the women"
+              },
+              {
+                "type": "i-break"
+              },
+              {
+                "type": "i-text",
+                "text": "For they never can be easy"
+              },
+              {
+                "type": "i-break"
+              },
+              {
+                "type": "i-chorus-ref",
+                "num": null,
+                "prefix_space": ""
+              }
+            ]
+          ]
+        },
+        {
+          "type": "b-verse",
+          "label": {
+            "verse": 3
+          },
+          "paragraphs": [
+            [
+              {
+                "type": "i-text",
+                "text": "I went up to my chamber"
+              },
+              {
+                "type": "i-break"
+              },
+              {
+                "type": "i-text",
+                "text": "All for to take a slumber"
+              },
+              {
+                "type": "i-break"
+              },
+              {
+                "type": "i-text",
+                "text": "I dreamt of gold and jewels"
+              },
+              {
+                "type": "i-break"
+              },
+              {
+                "type": "i-text",
+                "text": "And for sure 't was no wonder"
+              },
+              {
+                "type": "i-break"
+              },
+              {
+                "type": "i-text",
+                "text": "But Jenny drew me charges"
+              },
+              {
+                "type": "i-break"
+              },
+              {
+                "type": "i-text",
+                "text": "And she filled them up with water"
+              },
+              {
+                "type": "i-break"
+              },
+              {
+                "type": "i-text",
+                "text": "Then sent for captain Farrell"
+              },
+              {
+                "type": "i-break"
+              },
+              {
+                "type": "i-text",
+                "text": "To be ready for the slaughter"
+              },
+              {
+                "type": "i-break"
+              },
+              {
+                "type": "i-chorus-ref",
+                "num": null,
+                "prefix_space": ""
+              }
+            ]
+          ]
+        },
+        {
+          "type": "b-verse",
+          "label": {
+            "verse": 4
+          },
+          "paragraphs": [
+            [
+              {
+                "type": "i-text",
+                "text": "'Twas early in the morning"
+              },
+              {
+                "type": "i-break"
+              },
+              {
+                "type": "i-text",
+                "text": "Just before I rose to travel"
+              },
+              {
+                "type": "i-break"
+              },
+              {
+                "type": "i-text",
+                "text": "Up comes a band of footmen"
+              },
+              {
+                "type": "i-break"
+              },
+              {
+                "type": "i-text",
+                "text": "And likewise captain Farrell"
+              },
+              {
+                "type": "i-break"
+              },
+              {
+                "type": "i-text",
+                "text": "I first produced me pistol"
+              },
+              {
+                "type": "i-break"
+              },
+              {
+                "type": "i-text",
+                "text": "For she stole away me rapier"
+              },
+              {
+                "type": "i-break"
+              },
+              {
+                "type": "i-text",
+                "text": "I couldn't shoot the water"
+              },
+              {
+                "type": "i-break"
+              },
+              {
+                "type": "i-text",
+                "text": "So a prisoner I was taken"
+              },
+              {
+                "type": "i-break"
+              },
+              {
+                "type": "i-chorus-ref",
+                "num": null,
+                "prefix_space": ""
+              }
+            ],
+            [
+              {
+                "type": "i-image",
+                "path": "chest.jpg",
+                "title": "chest",
+                "class": "center"
+              }
+            ]
+          ]
+        }
+      ],
+      "notation": "english"
+    },
+    {
+      "title": "Wild Mountain Thyme",
+      "subtitles": [
+        "Irish & Scottish traditional"
+      ],
+      "blocks": [
+        {
+          "type": "b-verse",
+          "label": {
+            "verse": 1
+          },
+          "paragraphs": [
+            [
+              {
+                "type": "i-text",
+                "text": "O' the "
+              },
+              {
+                "type": "i-chord",
+                "chord": "G",
+                "alt_chord": null,
+                "inlines": [
+                  {
+                    "type": "i-text",
+                    "text": "summer "
+                  }
+                ]
+              },
+              {
+                "type": "i-chord",
+                "chord": "C",
+                "alt_chord": null,
+                "inlines": [
+                  {
+                    "type": "i-text",
+                    "text": "time "
+                  }
+                ]
+              },
+              {
+                "type": "i-chord",
+                "chord": "G",
+                "alt_chord": null,
+                "inlines": [
+                  {
+                    "type": "i-text",
+                    "text": "has come"
+                  }
+                ]
+              },
+              {
+                "type": "i-break"
+              },
+              {
+                "type": "i-text",
+                "text": "And the "
+              },
+              {
+                "type": "i-chord",
+                "chord": "C",
+                "alt_chord": null,
+                "inlines": [
+                  {
+                    "type": "i-text",
+                    "text": "trees are sweetly "
+                  }
+                ]
+              },
+              {
+                "type": "i-chord",
+                "chord": "G",
+                "alt_chord": null,
+                "inlines": [
+                  {
+                    "type": "i-text",
+                    "text": "bloomin'"
+                  }
+                ]
+              },
+              {
+                "type": "i-break"
+              },
+              {
+                "type": "i-text",
+                "text": "And the "
+              },
+              {
+                "type": "i-chord",
+                "chord": "C",
+                "alt_chord": null,
+                "inlines": [
+                  {
+                    "type": "i-text",
+                    "text": "wild "
+                  }
+                ]
+              },
+              {
+                "type": "i-chord",
+                "chord": "G",
+                "alt_chord": null,
+                "inlines": [
+                  {
+                    "type": "i-text",
+                    "text": "mountain "
+                  }
+                ]
+              },
+              {
+                "type": "i-chord",
+                "chord": "Em",
+                "alt_chord": null,
+                "inlines": [
+                  {
+                    "type": "i-text",
+                    "text": "thyme"
+                  }
+                ]
+              },
+              {
+                "type": "i-break"
+              },
+              {
+                "type": "i-text",
+                "text": "Grows "
+              },
+              {
+                "type": "i-chord",
+                "chord": "C",
+                "alt_chord": null,
+                "inlines": [
+                  {
+                    "type": "i-text",
+                    "text": "around the "
+                  }
+                ]
+              },
+              {
+                "type": "i-chord",
+                "chord": "Am",
+                "alt_chord": null,
+                "inlines": [
+                  {
+                    "type": "i-text",
+                    "text": "bloomin' "
+                  }
+                ]
+              },
+              {
+                "type": "i-chord",
+                "chord": "C",
+                "alt_chord": null,
+                "inlines": [
+                  {
+                    "type": "i-text",
+                    "text": "heather"
+                  }
+                ]
+              },
+              {
+                "type": "i-break"
+              },
+              {
+                "type": "i-text",
+                "text": "Will ye "
+              },
+              {
+                "type": "i-chord",
+                "chord": "G",
+                "alt_chord": null,
+                "inlines": [
+                  {
+                    "type": "i-text",
+                    "text": "go "
+                  }
+                ]
+              },
+              {
+                "type": "i-chord",
+                "chord": "C",
+                "alt_chord": null,
+                "inlines": [
+                  {
+                    "type": "i-text",
+                    "text": "lassie "
+                  }
+                ]
+              },
+              {
+                "type": "i-chord",
+                "chord": "G",
+                "alt_chord": null,
+                "inlines": [
+                  {
+                    "type": "i-text",
+                    "text": "go?"
+                  }
+                ]
+              }
+            ]
+          ]
+        },
+        {
+          "type": "b-verse",
+          "label": {
+            "chorus": null
+          },
+          "paragraphs": [
+            [
+              {
+                "type": "i-text",
+                "text": "And we'll "
+              },
+              {
+                "type": "i-chord",
+                "chord": "C",
+                "alt_chord": null,
+                "inlines": [
+                  {
+                    "type": "i-text",
+                    "text": "all go "
+                  }
+                ]
+              },
+              {
+                "type": "i-chord",
+                "chord": "G",
+                "alt_chord": null,
+                "inlines": [
+                  {
+                    "type": "i-text",
+                    "text": "together to pull "
+                  }
+                ]
+              },
+              {
+                "type": "i-chord",
+                "chord": "C",
+                "alt_chord": null,
+                "inlines": [
+                  {
+                    "type": "i-text",
+                    "text": "wild "
+                  }
+                ]
+              },
+              {
+                "type": "i-chord",
+                "chord": "G",
+                "alt_chord": null,
+                "inlines": [
+                  {
+                    "type": "i-text",
+                    "text": "mountain "
+                  }
+                ]
+              },
+              {
+                "type": "i-chord",
+                "chord": "Em",
+                "alt_chord": null,
+                "inlines": [
+                  {
+                    "type": "i-text",
+                    "text": "thyme"
+                  }
+                ]
+              },
+              {
+                "type": "i-break"
+              },
+              {
+                "type": "i-text",
+                "text": "All "
+              },
+              {
+                "type": "i-chord",
+                "chord": "C",
+                "alt_chord": null,
+                "inlines": [
+                  {
+                    "type": "i-text",
+                    "text": "around the "
+                  }
+                ]
+              },
+              {
+                "type": "i-chord",
+                "chord": "Am",
+                "alt_chord": null,
+                "inlines": [
+                  {
+                    "type": "i-text",
+                    "text": "bloomin' "
+                  }
+                ]
+              },
+              {
+                "type": "i-chord",
+                "chord": "C",
+                "alt_chord": null,
+                "inlines": [
+                  {
+                    "type": "i-text",
+                    "text": "heather, will ye "
+                  }
+                ]
+              },
+              {
+                "type": "i-chord",
+                "chord": "G",
+                "alt_chord": null,
+                "inlines": [
+                  {
+                    "type": "i-text",
+                    "text": "go "
+                  }
+                ]
+              },
+              {
+                "type": "i-chord",
+                "chord": "C",
+                "alt_chord": null,
+                "inlines": [
+                  {
+                    "type": "i-text",
+                    "text": "lassie "
+                  }
+                ]
+              },
+              {
+                "type": "i-chord",
+                "chord": "G",
+                "alt_chord": null,
+                "inlines": [
+                  {
+                    "type": "i-text",
+                    "text": "go?"
+                  }
+                ]
+              }
+            ]
+          ]
+        },
+        {
+          "type": "b-verse",
+          "label": {
+            "verse": 2
+          },
+          "paragraphs": [
+            [
+              {
+                "type": "i-text",
+                "text": "I will build my love a bower"
+              },
+              {
+                "type": "i-break"
+              },
+              {
+                "type": "i-text",
+                "text": "By yon cool crystal fountain "
+              },
+              {
+                "type": "i-image",
+                "path": "thyme.png",
+                "title": "thyme",
+                "class": "right"
+              },
+              {
+                "type": "i-break"
+              },
+              {
+                "type": "i-text",
+                "text": "And round it I will pile"
+              },
+              {
+                "type": "i-break"
+              },
+              {
+                "type": "i-text",
+                "text": "All the wild flowers o' the mountain."
+              },
+              {
+                "type": "i-break"
+              },
+              {
+                "type": "i-text",
+                "text": "Will ye go lassie go?"
+              },
+              {
+                "type": "i-chorus-ref",
+                "num": null,
+                "prefix_space": " "
+              }
+            ]
+          ]
+        },
+        {
+          "type": "b-verse",
+          "label": {
+            "verse": 3
+          },
+          "paragraphs": [
+            [
+              {
+                "type": "i-text",
+                "text": "I will range through the wilds"
+              },
+              {
+                "type": "i-break"
+              },
+              {
+                "type": "i-text",
+                "text": "And the deep glen sae dreamy"
+              },
+              {
+                "type": "i-break"
+              },
+              {
+                "type": "i-text",
+                "text": "And return wi' their spoils"
+              },
+              {
+                "type": "i-break"
+              },
+              {
+                "type": "i-text",
+                "text": "Tae the bower o' my dearie."
+              },
+              {
+                "type": "i-break"
+              },
+              {
+                "type": "i-text",
+                "text": "Will ye go lassie go?"
+              },
+              {
+                "type": "i-chorus-ref",
+                "num": null,
+                "prefix_space": " "
+              }
+            ]
+          ]
+        },
+        {
+          "type": "b-verse",
+          "label": {
+            "verse": 4
+          },
+          "paragraphs": [
+            [
+              {
+                "type": "i-text",
+                "text": "If my true love she'll not come"
+              },
+              {
+                "type": "i-break"
+              },
+              {
+                "type": "i-text",
+                "text": "Then I'll surely find another"
+              },
+              {
+                "type": "i-break"
+              },
+              {
+                "type": "i-text",
+                "text": "To pull wild mountain thyme"
+              },
+              {
+                "type": "i-break"
+              },
+              {
+                "type": "i-text",
+                "text": "All around the bloomin' heather."
+              },
+              {
+                "type": "i-break"
+              },
+              {
+                "type": "i-text",
+                "text": "Will ye go lassie go?"
+              },
+              {
+                "type": "i-chorus-ref",
+                "num": null,
+                "prefix_space": " "
+              }
+            ]
+          ]
+        }
+      ],
+      "notation": "english"
+    }
+  ],
+  "output": {},
+  "program": {
+    "name": "bard",
+    "version": "0.9.0-alpha",
+    "description": "Creates PDF and HTML songbooks out of easy-to-write Markdown sources.",
+    "homepage": "https://github.com/vojtechkral/bard",
+    "authors": "Vojtech Kral <vojtech@kral.hk>"
+  }
+}

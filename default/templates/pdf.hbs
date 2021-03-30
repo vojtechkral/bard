@@ -87,15 +87,15 @@
 \newlength\verse@labelsep
 \newlength\verse@vskip
 \AtBeginDocument{% setting AtBeginDocument since earlier we can't rely on em being correct
-  \verse@indent=3em
-  \verse@labelsep=1em
+  \verse@indent=12mm
+  \verse@labelsep=2mm
   \verse@vskip=\smallskipamount
 }
 \newcommand\Verse[1]{%
     \par
     \vskip\verse@vskip
     \noindent\kern-\verse@indent
-    \sbox0{\textbf{\small{#1}}}%
+    \sbox0{\textbf{\footnotesize{#1}}}%
     \ifdim\wd0>\dimexpr\verse@indent-\verse@labelsep\relax
       \usebox0\kern\verse@labelsep
     \else
@@ -110,7 +110,7 @@
     \textbf{\textcolor{red}{#1}}\\%  % The chord
     #2\mbox{}\end{tabular}%          % The lyrics
 }
-\newcommand{\@chordalt}[3]{%
+\newcommand{\@Chordalt}[3]{%
   \begin{tabular}[b]{l}%
     \textbf{\textcolor{red}{#1}}\\%  % The chord
     \textbf{\textcolor{blue}{#2}}\\% % The alt chord
@@ -161,8 +161,7 @@
 {{/inline}}
 
 {{!-- Nb. the i-break element is a line separator, not terminator,
-  ie. no i-break after the last inline element.
-  That means we can break the current table cell/row and create a new one. --}}
+  ie. no i-break after the last inline element. --}}
 {{#*inline "i-break"}}\\
 {{/inline}}
 {{#*inline "i-emph"}}\emph{ {{~#each inlines}}{{> (lookup this "type") }}{{/each~}} }{{/inline}}

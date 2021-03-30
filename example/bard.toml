@@ -13,6 +13,7 @@ chorus_label = "Ch."
 file = "songbook.tex"
 template = "pdf.hbs"
 font = "DejaVu Sans"
+dpi = 144
 process = "tectonic {{file}}"
 
 [[output]]
@@ -20,12 +21,14 @@ file = "songbook.html"
 template = "html.hbs"
 
 [[output]]
-file = "songbook.txt"
+file = "songbook.hovorka.xml"
+format = "hovorka"
 
 [[output]]
 file = "songbook.json"
 
 [book]
 title = "Bard Songbook"
-subtitle = "Example project"
-title_note = "A few non-copyrighted folk songs."
+subtitle = "An example project"
+front_img = "guitar.jpg"
+title_note = "A set of a few non-copyrighted songs."

@@ -1,3 +1,5 @@
+
+
 <!DOCTYPE html>
 <html>
 <head>
@@ -61,17 +63,46 @@
         margin: 1em 0;
       }
 
-      table.nospacing { border-collapse: collapse; }
-      table.nospacing tr, table.nospacing td {
-        margin: 0;
-        padding: 0;
+      hr.separator {
+        border: none;
+        border-top: 3px solid #eaeaea;
       }
 
-      tr.verse-spacing { height: .75em; }
+      /* *** Song content styling *** */
 
-      td.verse-label {
+      /* Block structure, done with customized uls */
+
+      ul.blocks {
+        list-style-type: none;
+        padding-left: 1em;
+      }
+
+      ul.blocks li::before {
+        display: inline-block;
+        min-width: 0.5em;
+        content: attr(data-label);
         font-weight: bold;
+        font-size: 0.9em;
+        margin-right: 0.5em;
+      }
+
+      ul.blocks li {
+        padding-left: 1em;
+        text-indent: -1em;
+        margin: 1em 0;
+      }
+
+      /* Chords, done with inline tables */
+
+      table.chord {
+        display: inline-table;
+        border-collapse: collapse;
+        white-space: pre;
         vertical-align: bottom;
+      }
+      table.chord tr, table.chord td {
+        margin: 0;
+        padding: 0;
       }
 
       tr.chord {
@@ -81,1190 +112,488 @@
 
       tr.chord-alt { color: blue; }
 
-      .timesign {
-        margin: .5em 0;
-        font-size: 1.125em;
-        font-family: serif;
+      /* Bulletlist */
+
+      ul.bullet-list li {
+        list-style-type: initial;
+        margin: 0.1em 0;
       }
 
-      hr.separator {
-        border: none;
-        border-top: 3px solid #eaeaea;
+      /* imgs */
+
+      .blocks img.center {
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
+      }
+
+      .blocks img.right {
+        float: right;
+      }
+
+      /* pre */
+
+      .blocks pre {
+        margin-left: 1em;
       }
     </style>
 </head>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 <body>
 <div id="content">
   <header class="pad">
     <h1>Bard Songbook</h1>
     
-      <h3>Example project</h3>
+      <h3>An example project</h3>
     
+        <img src="guitar.jpg">
+      
     
-      <p class="note">A few non-copyrighted folk songs.</p>
+      <p class="note">A set of a few non-copyrighted songs.</p>
     
   </header>
-
   <hr class="separator">
 
   <div id="index" class="pad">
     <h2>Contents</h2>
     <ol>
-    <li><a href="#song-1">Danny Boy</a></li>
-    <li><a href="#song-2">Handsome Molly</a></li>
-    <li><a href="#song-3">Whiskey in the Jar</a></li>
-    <li><a href="#song-4">Wild Mountain Thyme</a></li>
+    
+      <li><a href="#song-0">Danny Boy</a></li>
+    
+      <li><a href="#song-1">Handsome Molly</a></li>
+    
+      <li><a href="#song-2">Whiskey in the Jar</a></li>
+    
+      <li><a href="#song-3">Wild Mountain Thyme</a></li>
+    
     </ol>
   </div>
 
   <hr class="separator">
-
-  <section id="song-1" class="song pad">
+  
+    <section id="song-0" class="song pad">
       <div class="song-header">
         <h2>Danny Boy</h2>
-        <h4>English ballad</h4></div>
-      <table>
-      <tr class="verse-spacing"><td></td><td></td></tr>
-            <tr class="verse">
-              <td class="verse-label">
-                
-                  1.
-                
-              </td>
-              <td>
-                <table class="nospacing ws-pre">
-                  <tr class="chord"><td>G7</td><td>C</td><td>C7</td><td>F</td></tr>
-                  <tr><td>Oh Danny </td><td>Boy, the pipes, the </td><td>pipes are </td><td>calling</td></tr>
-                </table>
-              </td>
-            </tr>
-          
-            <tr class="verse">
-              <td class="verse-label">
-                
-              </td>
-              <td>
-                <table class="nospacing ws-pre">
-                  <tr class="chord"><td></td><td>C</td><td>Em</td><td>F</td><td>G7</td></tr>
-                  <tr><td>From glen to </td><td>glen, and </td><td>down the </td><td>mountain </td><td>side</td></tr>
-                </table>
-              </td>
-            </tr>
-          
-            <tr class="verse">
-              <td class="verse-label">
-                
-              </td>
-              <td>
-                <table class="nospacing ws-pre">
-                  <tr class="chord"><td></td><td>C</td><td>C7</td><td>F</td></tr>
-                  <tr><td>The summer’s </td><td>gone, and all the </td><td> flowers are </td><td>dying</td></tr>
-                </table>
-              </td>
-            </tr>
-          
-            <tr class="verse">
-              <td class="verse-label">
-                
-              </td>
-              <td>
-                <table class="nospacing ws-pre">
-                  <tr class="chord"><td></td><td>C</td><td>Dm</td><td>G7</td><td>C</td></tr>
-                  <tr><td>‘Tis you, ’tis </td><td>you must </td><td>go and </td><td>I must </td><td>bide.</td></tr>
-                </table>
-              </td>
-            </tr>
-          <tr class="verse-spacing"><td></td><td></td></tr>
-            <tr class="verse">
-              <td class="verse-label">
-                
-                  <em>Ch. 1.</em>
-                
-              </td>
-              <td>
-                <table class="nospacing ws-pre">
-                  <tr class="chord"><td>G7</td><td>Am</td><td>F</td><td>G7</td><td>C</td></tr>
-                  <tr><td>But come ye </td><td>back when </td><td>summer’s </td><td>in the </td><td>meadow</td></tr>
-                </table>
-              </td>
-            </tr>
-          
-            <tr class="verse">
-              <td class="verse-label">
-                
-              </td>
-              <td>
-                <table class="nospacing ws-pre">
-                  <tr class="chord"><td></td><td>Am</td><td>F</td><td>Em</td><td>D7</td><td>G7</td></tr>
-                  <tr><td>Or when the </td><td>valley’s </td><td>hushed and </td><td>white with </td><td>snow </td><td></td></tr>
-                </table>
-              </td>
-            </tr>
-          
-            <tr class="verse">
-              <td class="verse-label">
-                
-              </td>
-              <td>
-                <table class="nospacing ws-pre">
-                  <tr class="chord"><td></td><td>C</td><td>F</td><td>C</td><td>Am</td></tr>
-                  <tr><td>‘Tis I’ll be </td><td>here in </td><td>sunshine or in </td><td>sha</td><td>dow.</td></tr>
-                </table>
-              </td>
-            </tr>
-          
-            <tr class="verse">
-              <td class="verse-label">
-                
-              </td>
-              <td>
-                <table class="nospacing ws-pre">
-                  <tr class="chord"><td></td><td>C</td><td>F</td><td>G7</td><td>C</td></tr>
-                  <tr><td>Oh Danny </td><td>Boy, oh Danny </td><td>Boy, I </td><td>love you </td><td>so.</td></tr>
-                </table>
-              </td>
-            </tr>
-          <tr class="verse-spacing"><td></td><td></td></tr>
-            <tr class="verse">
-              <td class="verse-label">
-                
-                  2.
-                
-              </td>
-              <td>
-                <table class="nospacing ws-pre">
-                  <tr><td>And if you come, when all the flowers are dying</td></tr>
-                </table>
-              </td>
-            </tr>
-          
-            <tr class="verse">
-              <td class="verse-label">
-                
-              </td>
-              <td>
-                <table class="nospacing ws-pre">
-                  <tr><td>And I am dead, as dead I well may be</td></tr>
-                </table>
-              </td>
-            </tr>
-          
-            <tr class="verse">
-              <td class="verse-label">
-                
-              </td>
-              <td>
-                <table class="nospacing ws-pre">
-                  <tr><td>You’ll come and find the place where I am lying</td></tr>
-                </table>
-              </td>
-            </tr>
-          
-            <tr class="verse">
-              <td class="verse-label">
-                
-              </td>
-              <td>
-                <table class="nospacing ws-pre">
-                  <tr><td>And kneel and say an ”Ave”  there for me.</td></tr>
-                </table>
-              </td>
-            </tr>
-          <tr class="verse-spacing"><td></td><td></td></tr>
-            <tr class="verse">
-              <td class="verse-label">
-                
-                  <em>Ch. 2.</em>
-                
-              </td>
-              <td>
-                <table class="nospacing ws-pre">
-                  <tr><td>And I shall hear, though soft you tread above me</td></tr>
-                </table>
-              </td>
-            </tr>
-          
-            <tr class="verse">
-              <td class="verse-label">
-                
-              </td>
-              <td>
-                <table class="nospacing ws-pre">
-                  <tr><td>And all my dreams will warm and sweeter be </td></tr>
-                </table>
-              </td>
-            </tr>
-          
-            <tr class="verse">
-              <td class="verse-label">
-                
-              </td>
-              <td>
-                <table class="nospacing ws-pre">
-                  <tr><td>If you’ll not fail to tell me that you love me</td></tr>
-                </table>
-              </td>
-            </tr>
-          
-            <tr class="verse">
-              <td class="verse-label">
-                
-              </td>
-              <td>
-                <table class="nospacing ws-pre">
-                  <tr><td>I’ll sleep in peace until you come to me.</td></tr>
-                </table>
-              </td>
-            </tr>
-          </table>
+        <h4>English ballad</h4>
+      </div>
+
+      <ul class="blocks">
+        
+        
+  <li data-label="1."><table class="chord">
+  <tr class="chord"><td>G7</td></tr>
+  
+  <tr><td>Oh Danny </td></tr>
+</table><table class="chord">
+  <tr class="chord"><td>C</td></tr>
+  
+  <tr><td>Boy, the pipes, the </td></tr>
+</table><table class="chord">
+  <tr class="chord"><td>C7</td></tr>
+  
+  <tr><td>pipes are </td></tr>
+</table><table class="chord">
+  <tr class="chord"><td>F</td></tr>
+  
+  <tr><td>calling</td></tr>
+</table><br>From glen to <table class="chord">
+  <tr class="chord"><td>C</td></tr>
+  
+  <tr><td>glen, and </td></tr>
+</table><table class="chord">
+  <tr class="chord"><td>Em</td></tr>
+  
+  <tr><td>down the </td></tr>
+</table><table class="chord">
+  <tr class="chord"><td>F</td></tr>
+  
+  <tr><td>mountain </td></tr>
+</table><table class="chord">
+  <tr class="chord"><td>G7</td></tr>
+  
+  <tr><td>side</td></tr>
+</table><br>The summer’s <table class="chord">
+  <tr class="chord"><td>C</td></tr>
+  
+  <tr><td>gone, and all the </td></tr>
+</table><table class="chord">
+  <tr class="chord"><td>C7</td></tr>
+  
+  <tr><td>flowers are </td></tr>
+</table><table class="chord">
+  <tr class="chord"><td>F</td></tr>
+  
+  <tr><td>dying</td></tr>
+</table><br>‘Tis you, ’tis <table class="chord">
+  <tr class="chord"><td>C</td></tr>
+  
+  <tr><td>you must </td></tr>
+</table><table class="chord">
+  <tr class="chord"><td>Dm</td></tr>
+  
+  <tr><td>go and </td></tr>
+</table><table class="chord">
+  <tr class="chord"><td>G7</td></tr>
+  
+  <tr><td>I must </td></tr>
+</table><table class="chord">
+  <tr class="chord"><td>C</td></tr>
+  
+  <tr><td>bide.</td></tr>
+</table></li>
+
+  <li data-label="Ch1."><table class="chord">
+  <tr class="chord"><td>G7</td></tr>
+  
+  <tr><td>But come ye </td></tr>
+</table><table class="chord">
+  <tr class="chord"><td>Am</td></tr>
+  
+  <tr><td>back when </td></tr>
+</table><table class="chord">
+  <tr class="chord"><td>F</td></tr>
+  
+  <tr><td>summer’s </td></tr>
+</table><table class="chord">
+  <tr class="chord"><td>G7</td></tr>
+  
+  <tr><td>in the </td></tr>
+</table><table class="chord">
+  <tr class="chord"><td>C</td></tr>
+  
+  <tr><td>meadow</td></tr>
+</table><br>Or when the <table class="chord">
+  <tr class="chord"><td>Am</td></tr>
+  
+  <tr><td>valley’s </td></tr>
+</table><table class="chord">
+  <tr class="chord"><td>F</td></tr>
+  
+  <tr><td>hushed and </td></tr>
+</table><table class="chord">
+  <tr class="chord"><td>Em</td></tr>
+  
+  <tr><td>white with </td></tr>
+</table><table class="chord">
+  <tr class="chord"><td>D7</td></tr>
+  
+  <tr><td>snow </td></tr>
+</table><table class="chord">
+  <tr class="chord"><td>G7</td></tr>
+  
+  <tr><td></td></tr>
+</table><br>‘Tis I’ll be <table class="chord">
+  <tr class="chord"><td>C</td></tr>
+  
+  <tr><td>here in </td></tr>
+</table><table class="chord">
+  <tr class="chord"><td>F</td></tr>
+  
+  <tr><td>sunshine or in </td></tr>
+</table><table class="chord">
+  <tr class="chord"><td>C</td></tr>
+  
+  <tr><td>sha</td></tr>
+</table><table class="chord">
+  <tr class="chord"><td>Am</td></tr>
+  
+  <tr><td>dow.</td></tr>
+</table><br>Oh Danny <table class="chord">
+  <tr class="chord"><td>C</td></tr>
+  
+  <tr><td>Boy, oh Danny </td></tr>
+</table><table class="chord">
+  <tr class="chord"><td>F</td></tr>
+  
+  <tr><td>Boy, I </td></tr>
+</table><table class="chord">
+  <tr class="chord"><td>G7</td></tr>
+  
+  <tr><td>love you </td></tr>
+</table><table class="chord">
+  <tr class="chord"><td>C</td></tr>
+  
+  <tr><td>so.</td></tr>
+</table></li>
+
+  <li data-label="2.">And if you come, when all the flowers are dying<br>And I am dead, as dead I well may be<br>You’ll come and find the place where I am lying<br>And kneel and say an ”Ave”  there for me.</li>
+
+  <li data-label="Ch2.">And I shall hear, though soft you tread above me<br>And all my dreams will warm and sweeter be<br>If you’ll not fail to tell me that you love me<br>I’ll sleep in peace until you come to me.<br><br><img class="center" src="hills.jpg" title="hills" /></li>
+
+      </ul>
     </section>
     <hr class="separator">
-  <section id="song-2" class="song pad">
+  
+    <section id="song-1" class="song pad">
       <div class="song-header">
         <h2>Handsome Molly</h2>
-        <h4>U.S. Old-time</h4></div>
-      <table>
-      <tr class="verse-spacing"><td></td><td></td></tr>
-            <tr class="verse">
-              <td class="verse-label">
-                
-                  1.
-                
-              </td>
-              <td>
-                <table class="nospacing ws-pre">
-                  <tr class="chord"><td>G</td></tr>
-                  <tr><td>I wish was in London</td></tr>
-                </table>
-              </td>
-            </tr>
-          
-            <tr class="verse">
-              <td class="verse-label">
-                
-              </td>
-              <td>
-                <table class="nospacing ws-pre">
-                  <tr class="chord"><td></td><td>D</td></tr>
-                  <tr><td>Or some other seaport </td><td>town</td></tr>
-                </table>
-              </td>
-            </tr>
-          
-            <tr class="verse">
-              <td class="verse-label">
-                
-              </td>
-              <td>
-                <table class="nospacing ws-pre">
-                  <tr class="chord"><td>D</td></tr>
-                  <tr><td>Step my foot in a steamboat</td></tr>
-                </table>
-              </td>
-            </tr>
-          
-            <tr class="verse">
-              <td class="verse-label">
-                
-              </td>
-              <td>
-                <table class="nospacing ws-pre">
-                  <tr class="chord"><td></td><td>G</td></tr>
-                  <tr><td>And sail the ocean </td><td>round</td></tr>
-                </table>
-              </td>
-            </tr>
-          <tr class="verse-spacing"><td></td><td></td></tr>
-            <tr class="verse">
-              <td class="verse-label">
-                
-                  2.
-                
-              </td>
-              <td>
-                <table class="nospacing ws-pre">
-                  <tr><td>Sailing round the ocean</td></tr>
-                </table>
-              </td>
-            </tr>
-          
-            <tr class="verse">
-              <td class="verse-label">
-                
-              </td>
-              <td>
-                <table class="nospacing ws-pre">
-                  <tr><td>Sailing round the sea</td></tr>
-                </table>
-              </td>
-            </tr>
-          
-            <tr class="verse">
-              <td class="verse-label">
-                
-              </td>
-              <td>
-                <table class="nospacing ws-pre">
-                  <tr><td>I’d think of Handsome Molly</td></tr>
-                </table>
-              </td>
-            </tr>
-          
-            <tr class="verse">
-              <td class="verse-label">
-                
-              </td>
-              <td>
-                <table class="nospacing ws-pre">
-                  <tr><td>Wherever she may be</td></tr>
-                </table>
-              </td>
-            </tr>
-          <tr class="verse-spacing"><td></td><td></td></tr>
-            <tr class="verse">
-              <td class="verse-label">
-                
-                  3.
-                
-              </td>
-              <td>
-                <table class="nospacing ws-pre">
-                  <tr><td>I saw her at church last Sunday</td></tr>
-                </table>
-              </td>
-            </tr>
-          
-            <tr class="verse">
-              <td class="verse-label">
-                
-              </td>
-              <td>
-                <table class="nospacing ws-pre">
-                  <tr><td>She passed me on by</td></tr>
-                </table>
-              </td>
-            </tr>
-          
-            <tr class="verse">
-              <td class="verse-label">
-                
-              </td>
-              <td>
-                <table class="nospacing ws-pre">
-                  <tr><td>I knew her mind was changing</td></tr>
-                </table>
-              </td>
-            </tr>
-          
-            <tr class="verse">
-              <td class="verse-label">
-                
-              </td>
-              <td>
-                <table class="nospacing ws-pre">
-                  <tr><td>By the roving of her eye</td></tr>
-                </table>
-              </td>
-            </tr>
-          <tr class="verse-spacing"><td></td><td></td></tr>
-            <tr class="verse">
-              <td class="verse-label">
-                
-                  4.
-                
-              </td>
-              <td>
-                <table class="nospacing ws-pre">
-                  <tr><td>Her hair as black as a Raven’s</td></tr>
-                </table>
-              </td>
-            </tr>
-          
-            <tr class="verse">
-              <td class="verse-label">
-                
-              </td>
-              <td>
-                <table class="nospacing ws-pre">
-                  <tr><td>Her eyes were black as coal</td></tr>
-                </table>
-              </td>
-            </tr>
-          
-            <tr class="verse">
-              <td class="verse-label">
-                
-              </td>
-              <td>
-                <table class="nospacing ws-pre">
-                  <tr><td>Her teeth shown like lilies</td></tr>
-                </table>
-              </td>
-            </tr>
-          
-            <tr class="verse">
-              <td class="verse-label">
-                
-              </td>
-              <td>
-                <table class="nospacing ws-pre">
-                  <tr><td>Out in the morning cold</td></tr>
-                </table>
-              </td>
-            </tr>
-          <tr class="verse-spacing"><td></td><td></td></tr>
-            <tr class="verse">
-              <td class="verse-label">
-                
-                  5.
-                
-              </td>
-              <td>
-                <table class="nospacing ws-pre">
-                  <tr><td>Now do you remember Molly</td></tr>
-                </table>
-              </td>
-            </tr>
-          
-            <tr class="verse">
-              <td class="verse-label">
-                
-              </td>
-              <td>
-                <table class="nospacing ws-pre">
-                  <tr><td>When you give me your right hand</td></tr>
-                </table>
-              </td>
-            </tr>
-          
-            <tr class="verse">
-              <td class="verse-label">
-                
-              </td>
-              <td>
-                <table class="nospacing ws-pre">
-                  <tr><td>Said if you ever married</td></tr>
-                </table>
-              </td>
-            </tr>
-          
-            <tr class="verse">
-              <td class="verse-label">
-                
-              </td>
-              <td>
-                <table class="nospacing ws-pre">
-                  <tr><td>I’d be your man</td></tr>
-                </table>
-              </td>
-            </tr>
-          <tr class="verse-spacing"><td></td><td></td></tr>
-            <tr class="verse">
-              <td class="verse-label">
-                
-                  6.
-                
-              </td>
-              <td>
-                <table class="nospacing ws-pre">
-                  <tr><td>Now you’ve broke your promise</td></tr>
-                </table>
-              </td>
-            </tr>
-          
-            <tr class="verse">
-              <td class="verse-label">
-                
-              </td>
-              <td>
-                <table class="nospacing ws-pre">
-                  <tr><td>Go marry whom you please</td></tr>
-                </table>
-              </td>
-            </tr>
-          
-            <tr class="verse">
-              <td class="verse-label">
-                
-              </td>
-              <td>
-                <table class="nospacing ws-pre">
-                  <tr><td>My heart is broken</td></tr>
-                </table>
-              </td>
-            </tr>
-          
-            <tr class="verse">
-              <td class="verse-label">
-                
-              </td>
-              <td>
-                <table class="nospacing ws-pre">
-                  <tr><td>‘Til I get some ease</td></tr>
-                </table>
-              </td>
-            </tr>
-          </table>
+        <h4>U.S. Old-time</h4>
+      </div>
+
+      <ul class="blocks">
+        
+        
+  <li data-label="1."><table class="chord">
+  <tr class="chord"><td>G</td></tr>
+  
+  <tr><td>I wish I was in London</td></tr>
+</table><br>Or some other seaport <table class="chord">
+  <tr class="chord"><td>D</td></tr>
+  
+  <tr><td>town</td></tr>
+</table><br><table class="chord">
+  <tr class="chord"><td>D</td></tr>
+  
+  <tr><td>I&#x27;d step my foot on a steamboat</td></tr>
+</table><br>And sail the ocean <table class="chord">
+  <tr class="chord"><td>G</td></tr>
+  
+  <tr><td>round</td></tr>
+</table></li>
+
+  <li data-label="2.">While sailing round the ocean<br>While sailing round the sea<br>I’d think of Handsome Molly<br>Wherever she may be</li>
+
+  <li data-label="3.">I went to church last Sunday<br>She passed me on by<br>I knew her mind was changing<br>By the roving of her eye</li>
+
+  <li data-label="4.">Her hair as black as a Raven’s<br>Her eyes were black as coal<br>Her teeth just like lilies<br>Out in the morning cold</li>
+
+  <li data-label="5.">Now do you remember Molly<br>When you gave me your right hand<br>Said if you ever married<br>Then I’d be the man</li>
+
+  <li data-label="6.">Now you’ve broke your promise<br>Go marry whom you please<br>My heart is broken<br>‘Til I get some ease</li>
+
+      </ul>
     </section>
     <hr class="separator">
-  <section id="song-3" class="song pad">
+  
+    <section id="song-2" class="song pad">
       <div class="song-header">
         <h2>Whiskey in the Jar</h2>
-        <h4>Irish traditional</h4></div>
-      <table>
-      <tr class="verse-spacing"><td></td><td></td></tr>
-            <tr class="verse">
-              <td class="verse-label">
-                
-                  1.
-                
-              </td>
-              <td>
-                <table class="nospacing ws-pre">
-                  <tr class="chord"><td></td><td>C</td><td>Am</td></tr>
-                  <tr><td>As </td><td> I was a goin&#x27; over the </td><td> far famed Kerry mountains</td></tr>
-                </table>
-              </td>
-            </tr>
-          
-            <tr class="verse">
-              <td class="verse-label">
-                
-              </td>
-              <td>
-                <table class="nospacing ws-pre">
-                  <tr class="chord"><td></td><td>F</td><td>C</td></tr>
-                  <tr><td>I </td><td> met with Captain Farrell and his </td><td> money he was counting</td></tr>
-                </table>
-              </td>
-            </tr>
-          
-            <tr class="verse">
-              <td class="verse-label">
-                
-              </td>
-              <td>
-                <table class="nospacing ws-pre">
-                  <tr class="chord"><td></td><td>Am</td></tr>
-                  <tr><td>I first produced my pistol and I </td><td> then produced my rapier</td></tr>
-                </table>
-              </td>
-            </tr>
-          
-            <tr class="verse">
-              <td class="verse-label">
-                
-              </td>
-              <td>
-                <table class="nospacing ws-pre">
-                  <tr class="chord"><td></td><td>F</td></tr>
-                  <tr><td>Saying </td><td> &quot;Stand and deliver, for you are a bold deceiver!&quot;</td></tr>
-                </table>
-              </td>
-            </tr>
-          <tr class="verse-spacing"><td></td><td></td></tr>
-            <tr class="verse">
-              <td class="verse-label">
-                
-                  <em>Ch.</em>
-                
-              </td>
-              <td>
-                <table class="nospacing ws-pre">
-                  <tr class="chord"><td></td><td>G</td></tr>
-                  <tr><td>Mush-a </td><td> ring dum-a do dum-a da</td></tr>
-                </table>
-              </td>
-            </tr>
-          
-            <tr class="verse">
-              <td class="verse-label">
-                
-              </td>
-              <td>
-                <table class="nospacing ws-pre">
-                  <tr class="chord"><td>C</td></tr>
-                  <tr><td> Whack for me daddy-o</td></tr>
-                </table>
-              </td>
-            </tr>
-          
-            <tr class="verse">
-              <td class="verse-label">
-                
-              </td>
-              <td>
-                <table class="nospacing ws-pre">
-                  <tr class="chord"><td>F</td></tr>
-                  <tr><td> Whack for me daddy-o</td></tr>
-                </table>
-              </td>
-            </tr>
-          
-            <tr class="verse">
-              <td class="verse-label">
-                
-              </td>
-              <td>
-                <table class="nospacing ws-pre">
-                  <tr class="chord"><td></td><td>C</td><td>G</td><td>C</td></tr>
-                  <tr><td>There&#x27;s </td><td> whiskey </td><td> in the </td><td> jar</td></tr>
-                </table>
-              </td>
-            </tr>
-          <tr class="verse-spacing"><td></td><td></td></tr>
-            <tr class="verse">
-              <td class="verse-label">
-                
-                  2.
-                
-              </td>
-              <td>
-                <table class="nospacing ws-pre">
-                  <tr><td>I counted out his money and it made a pretty penny</td></tr>
-                </table>
-              </td>
-            </tr>
-          
-            <tr class="verse">
-              <td class="verse-label">
-                
-              </td>
-              <td>
-                <table class="nospacing ws-pre">
-                  <tr><td>I put it in me pocket and I took it home to Jenny</td></tr>
-                </table>
-              </td>
-            </tr>
-          
-            <tr class="verse">
-              <td class="verse-label">
-                
-              </td>
-              <td>
-                <table class="nospacing ws-pre">
-                  <tr><td>She sighed and she swore that she never would deceive me</td></tr>
-                </table>
-              </td>
-            </tr>
-          
-            <tr class="verse">
-              <td class="verse-label">
-                
-              </td>
-              <td>
-                <table class="nospacing ws-pre">
-                  <tr><td>But the devil take the women for they never can be easy</td></tr>
-                </table>
-              </td>
-            </tr>
-          
-            <tr class="verse">
-              <td class="verse-label">
-                
-              </td>
-              <td>
-                <table class="nospacing ws-pre">
-                  <tr><td>Mush-a ring dum-a do dum-a da (...)</td></tr>
-                </table>
-              </td>
-            </tr>
-          <tr class="verse-spacing"><td></td><td></td></tr>
-            <tr class="verse">
-              <td class="verse-label">
-                
-                  3.
-                
-              </td>
-              <td>
-                <table class="nospacing ws-pre">
-                  <tr><td>I went up to my chamber, all for to take a slumber</td></tr>
-                </table>
-              </td>
-            </tr>
-          
-            <tr class="verse">
-              <td class="verse-label">
-                
-              </td>
-              <td>
-                <table class="nospacing ws-pre">
-                  <tr><td>I dreamt of gold and jewels and for sure &#x27;t was no wonder</td></tr>
-                </table>
-              </td>
-            </tr>
-          
-            <tr class="verse">
-              <td class="verse-label">
-                
-              </td>
-              <td>
-                <table class="nospacing ws-pre">
-                  <tr><td>But Jenny drew me charges and she filled them up with water</td></tr>
-                </table>
-              </td>
-            </tr>
-          
-            <tr class="verse">
-              <td class="verse-label">
-                
-              </td>
-              <td>
-                <table class="nospacing ws-pre">
-                  <tr><td>Then sent for captain Farrell to be ready for the slaughter</td></tr>
-                </table>
-              </td>
-            </tr>
-          
-            <tr class="verse">
-              <td class="verse-label">
-                
-              </td>
-              <td>
-                <table class="nospacing ws-pre">
-                  <tr><td>Mush-a ring dum-a do dum-a da (...)</td></tr>
-                </table>
-              </td>
-            </tr>
-          <tr class="verse-spacing"><td></td><td></td></tr>
-            <tr class="verse">
-              <td class="verse-label">
-                
-                  4.
-                
-              </td>
-              <td>
-                <table class="nospacing ws-pre">
-                  <tr><td>&#x27;Twas was early in the morning, just before I rose to travel</td></tr>
-                </table>
-              </td>
-            </tr>
-          
-            <tr class="verse">
-              <td class="verse-label">
-                
-              </td>
-              <td>
-                <table class="nospacing ws-pre">
-                  <tr><td>Up comes a band of footmen and likewise captain Farrell</td></tr>
-                </table>
-              </td>
-            </tr>
-          
-            <tr class="verse">
-              <td class="verse-label">
-                
-              </td>
-              <td>
-                <table class="nospacing ws-pre">
-                  <tr><td>I first produced me pistol for she stole away me rapier</td></tr>
-                </table>
-              </td>
-            </tr>
-          
-            <tr class="verse">
-              <td class="verse-label">
-                
-              </td>
-              <td>
-                <table class="nospacing ws-pre">
-                  <tr><td>I couldn&#x27;t shoot the water, so a prisoner I was taken</td></tr>
-                </table>
-              </td>
-            </tr>
-          
-            <tr class="verse">
-              <td class="verse-label">
-                
-              </td>
-              <td>
-                <table class="nospacing ws-pre">
-                  <tr><td>Mush-a ring dum-a do dum-a da (...)</td></tr>
-                </table>
-              </td>
-            </tr>
-          <tr class="verse-spacing"><td></td><td></td></tr>
-            <tr class="verse">
-              <td class="verse-label">
-                
-                  5.
-                
-              </td>
-              <td>
-                <table class="nospacing ws-pre">
-                  <tr><td>Now there&#x27;s some take delight in the carriages a-rollin&#x27;</td></tr>
-                </table>
-              </td>
-            </tr>
-          
-            <tr class="verse">
-              <td class="verse-label">
-                
-              </td>
-              <td>
-                <table class="nospacing ws-pre">
-                  <tr><td>And others take delight in the hurling and the bowling</td></tr>
-                </table>
-              </td>
-            </tr>
-          
-            <tr class="verse">
-              <td class="verse-label">
-                
-              </td>
-              <td>
-                <table class="nospacing ws-pre">
-                  <tr><td>But I take delight in the juice of the barley</td></tr>
-                </table>
-              </td>
-            </tr>
-          
-            <tr class="verse">
-              <td class="verse-label">
-                
-              </td>
-              <td>
-                <table class="nospacing ws-pre">
-                  <tr><td>And courting pretty fair maids in the morning bright and early</td></tr>
-                </table>
-              </td>
-            </tr>
-          
-            <tr class="verse">
-              <td class="verse-label">
-                
-              </td>
-              <td>
-                <table class="nospacing ws-pre">
-                  <tr><td>Mush-a ring dum-a do dum-a da (...)</td></tr>
-                </table>
-              </td>
-            </tr>
-          <tr class="verse-spacing"><td></td><td></td></tr>
-            <tr class="verse">
-              <td class="verse-label">
-                
-                  6.
-                
-              </td>
-              <td>
-                <table class="nospacing ws-pre">
-                  <tr><td>If anyone can aid me &#x27;t is my brother in the army</td></tr>
-                </table>
-              </td>
-            </tr>
-          
-            <tr class="verse">
-              <td class="verse-label">
-                
-              </td>
-              <td>
-                <table class="nospacing ws-pre">
-                  <tr><td>If I can find his station in Cork or in Killarney</td></tr>
-                </table>
-              </td>
-            </tr>
-          
-            <tr class="verse">
-              <td class="verse-label">
-                
-              </td>
-              <td>
-                <table class="nospacing ws-pre">
-                  <tr><td>If he&#x27;ll go with me, we&#x27;ll go rovin&#x27; through Killkenny</td></tr>
-                </table>
-              </td>
-            </tr>
-          
-            <tr class="verse">
-              <td class="verse-label">
-                
-              </td>
-              <td>
-                <table class="nospacing ws-pre">
-                  <tr><td>I&#x27;m sure he&#x27;ll treat me better than my own a-sporting Jenny</td></tr>
-                </table>
-              </td>
-            </tr>
-          
-            <tr class="verse">
-              <td class="verse-label">
-                
-              </td>
-              <td>
-                <table class="nospacing ws-pre">
-                  <tr><td>Mush-a ring dum-a do dum-a da (...)</td></tr>
-                </table>
-              </td>
-            </tr>
-          </table>
+        <h4>Irish traditional</h4>
+      </div>
+
+      <ul class="blocks">
+        
+        
+  <li data-label="1.">As <table class="chord">
+  <tr class="chord"><td>C</td></tr>
+  
+  <tr><td>I was a goin&#x27; over</td></tr>
+</table><br>The <table class="chord">
+  <tr class="chord"><td>Am</td></tr>
+  
+  <tr><td>far famed Kerry mountains</td></tr>
+</table><br>I <table class="chord">
+  <tr class="chord"><td>F</td></tr>
+  
+  <tr><td>met with Captain Farrell and his</td></tr>
+</table><br><table class="chord">
+  <tr class="chord"><td>C</td></tr>
+  
+  <tr><td>Money he was counting</td></tr>
+</table><br><table class="chord">
+  <tr class="chord"><td>C</td></tr>
+  
+  <tr><td>I first produced my pistol</td></tr>
+</table><br>And I <table class="chord">
+  <tr class="chord"><td>Am</td></tr>
+  
+  <tr><td> then produced my rapier</td></tr>
+</table><br>Saying <table class="chord">
+  <tr class="chord"><td>F</td></tr>
+  
+  <tr><td> &quot;Stand and deliver,</td></tr>
+</table><br>For <table class="chord">
+  <tr class="chord"><td>C</td></tr>
+  
+  <tr><td>you are a bold deceiver!&quot;</td></tr>
+</table></li>
+
+  <li data-label="Ch.">Mush-a <table class="chord">
+  <tr class="chord"><td>G</td></tr>
+  
+  <tr><td>ring dum-a do dum-a da</td></tr>
+</table><br><table class="chord">
+  <tr class="chord"><td>C</td></tr>
+  
+  <tr><td>Whack for me daddy-o</td></tr>
+</table><br><table class="chord">
+  <tr class="chord"><td>F</td></tr>
+  
+  <tr><td>Whack for me daddy-o</td></tr>
+</table><br>There&#x27;s <table class="chord">
+  <tr class="chord"><td>C</td></tr>
+  
+  <tr><td>whiskey </td></tr>
+</table><table class="chord">
+  <tr class="chord"><td>G</td></tr>
+  
+  <tr><td>in the </td></tr>
+</table><table class="chord">
+  <tr class="chord"><td>C</td></tr>
+  
+  <tr><td>jar</td></tr>
+</table></li>
+
+  <li data-label="2.">I counted out his money<br>And it made a pretty penny<br>I put it in me pocket<br>And I took it home to Jenny<br>She sighed and she swore<br>That she never would deceive me<br>But the devil take the women<br>For they never can be easy<br><em>Ch.</em></li>
+
+  <li data-label="3.">I went up to my chamber<br>All for to take a slumber<br>I dreamt of gold and jewels<br>And for sure &#x27;t was no wonder<br>But Jenny drew me charges<br>And she filled them up with water<br>Then sent for captain Farrell<br>To be ready for the slaughter<br><em>Ch.</em></li>
+
+  <li data-label="4.">&#x27;Twas early in the morning<br>Just before I rose to travel<br>Up comes a band of footmen<br>And likewise captain Farrell<br>I first produced me pistol<br>For she stole away me rapier<br>I couldn&#x27;t shoot the water<br>So a prisoner I was taken<br><em>Ch.</em><br><br><img class="center" src="chest.jpg" title="chest" /></li>
+
+      </ul>
     </section>
     <hr class="separator">
-  <section id="song-4" class="song pad">
+  
+    <section id="song-3" class="song pad">
       <div class="song-header">
         <h2>Wild Mountain Thyme</h2>
-        <h4>Irish &amp; Scottish traditional</h4></div>
-      <table>
-      <tr class="verse-spacing"><td></td><td></td></tr>
-            <tr class="verse">
-              <td class="verse-label">
-                
-                  1.
-                
-              </td>
-              <td>
-                <table class="nospacing ws-pre">
-                  <tr class="chord"><td></td><td>G</td><td>C</td><td>G</td></tr>
-                  <tr><td>O&#x27; the </td><td>summer </td><td>time </td><td>has come</td></tr>
-                </table>
-              </td>
-            </tr>
-          
-            <tr class="verse">
-              <td class="verse-label">
-                
-              </td>
-              <td>
-                <table class="nospacing ws-pre">
-                  <tr class="chord"><td></td><td>C</td><td>G</td></tr>
-                  <tr><td>And the </td><td>trees are sweetly </td><td>bloomin&#x27;</td></tr>
-                </table>
-              </td>
-            </tr>
-          
-            <tr class="verse">
-              <td class="verse-label">
-                
-              </td>
-              <td>
-                <table class="nospacing ws-pre">
-                  <tr class="chord"><td></td><td>C</td><td>G</td><td>Em</td></tr>
-                  <tr><td>And the </td><td>wild </td><td>mountain </td><td>thyme</td></tr>
-                </table>
-              </td>
-            </tr>
-          
-            <tr class="verse">
-              <td class="verse-label">
-                
-              </td>
-              <td>
-                <table class="nospacing ws-pre">
-                  <tr class="chord"><td></td><td>C</td><td>Am</td><td>C</td></tr>
-                  <tr><td>Grows </td><td>around the </td><td>bloomin&#x27; </td><td>heather</td></tr>
-                </table>
-              </td>
-            </tr>
-          
-            <tr class="verse">
-              <td class="verse-label">
-                
-              </td>
-              <td>
-                <table class="nospacing ws-pre">
-                  <tr class="chord"><td></td><td>G</td><td>C</td><td>G</td></tr>
-                  <tr><td>Will ye </td><td>go </td><td>lassie </td><td>go?</td></tr>
-                </table>
-              </td>
-            </tr>
-          <tr class="verse-spacing"><td></td><td></td></tr>
-            <tr class="verse">
-              <td class="verse-label">
-                
-                  <em>Ch.</em>
-                
-              </td>
-              <td>
-                <table class="nospacing ws-pre">
-                  <tr class="chord"><td></td><td>C</td><td>G</td><td>C</td><td>G</td><td>Em</td></tr>
-                  <tr><td>And we&#x27;ll </td><td>all go </td><td>together to pull </td><td>wild </td><td>mountain </td><td>thyme</td></tr>
-                </table>
-              </td>
-            </tr>
-          
-            <tr class="verse">
-              <td class="verse-label">
-                
-              </td>
-              <td>
-                <table class="nospacing ws-pre">
-                  <tr class="chord"><td></td><td>C</td><td>Am</td><td>C</td><td>G</td><td>C</td><td>G</td></tr>
-                  <tr><td>All </td><td>around the </td><td>bloomin&#x27; </td><td>heather, will ye </td><td>go </td><td>lassie </td><td>go?</td></tr>
-                </table>
-              </td>
-            </tr>
-          <tr class="verse-spacing"><td></td><td></td></tr>
-            <tr class="verse">
-              <td class="verse-label">
-                
-                  2.
-                
-              </td>
-              <td>
-                <table class="nospacing ws-pre">
-                  <tr><td>I will build my love a bower</td></tr>
-                </table>
-              </td>
-            </tr>
-          
-            <tr class="verse">
-              <td class="verse-label">
-                
-              </td>
-              <td>
-                <table class="nospacing ws-pre">
-                  <tr><td>By yon cool crystal fountain</td></tr>
-                </table>
-              </td>
-            </tr>
-          
-            <tr class="verse">
-              <td class="verse-label">
-                
-              </td>
-              <td>
-                <table class="nospacing ws-pre">
-                  <tr><td>And round it I will pile</td></tr>
-                </table>
-              </td>
-            </tr>
-          
-            <tr class="verse">
-              <td class="verse-label">
-                
-              </td>
-              <td>
-                <table class="nospacing ws-pre">
-                  <tr><td>All the wild flowers o&#x27; the mountain.</td></tr>
-                </table>
-              </td>
-            </tr>
-          
-            <tr class="verse">
-              <td class="verse-label">
-                
-              </td>
-              <td>
-                <table class="nospacing ws-pre">
-                  <tr><td>Will ye go lassie go? (...)</td></tr>
-                </table>
-              </td>
-            </tr>
-          <tr class="verse-spacing"><td></td><td></td></tr>
-            <tr class="verse">
-              <td class="verse-label">
-                
-                  3.
-                
-              </td>
-              <td>
-                <table class="nospacing ws-pre">
-                  <tr><td>I will range through the wilds</td></tr>
-                </table>
-              </td>
-            </tr>
-          
-            <tr class="verse">
-              <td class="verse-label">
-                
-              </td>
-              <td>
-                <table class="nospacing ws-pre">
-                  <tr><td>And the deep glen sae dreamy</td></tr>
-                </table>
-              </td>
-            </tr>
-          
-            <tr class="verse">
-              <td class="verse-label">
-                
-              </td>
-              <td>
-                <table class="nospacing ws-pre">
-                  <tr><td>And return wi&#x27; their spoils</td></tr>
-                </table>
-              </td>
-            </tr>
-          
-            <tr class="verse">
-              <td class="verse-label">
-                
-              </td>
-              <td>
-                <table class="nospacing ws-pre">
-                  <tr><td>Tae the bower o&#x27; my dearie.</td></tr>
-                </table>
-              </td>
-            </tr>
-          
-            <tr class="verse">
-              <td class="verse-label">
-                
-              </td>
-              <td>
-                <table class="nospacing ws-pre">
-                  <tr><td>Will ye go lassie go? (...)</td></tr>
-                </table>
-              </td>
-            </tr>
-          <tr class="verse-spacing"><td></td><td></td></tr>
-            <tr class="verse">
-              <td class="verse-label">
-                
-                  4.
-                
-              </td>
-              <td>
-                <table class="nospacing ws-pre">
-                  <tr><td>If my true love she&#x27;ll not come</td></tr>
-                </table>
-              </td>
-            </tr>
-          
-            <tr class="verse">
-              <td class="verse-label">
-                
-              </td>
-              <td>
-                <table class="nospacing ws-pre">
-                  <tr><td>Then I&#x27;ll surely find another</td></tr>
-                </table>
-              </td>
-            </tr>
-          
-            <tr class="verse">
-              <td class="verse-label">
-                
-              </td>
-              <td>
-                <table class="nospacing ws-pre">
-                  <tr><td>To pull wild mountain thyme</td></tr>
-                </table>
-              </td>
-            </tr>
-          
-            <tr class="verse">
-              <td class="verse-label">
-                
-              </td>
-              <td>
-                <table class="nospacing ws-pre">
-                  <tr><td>All around the bloomin&#x27; heather.</td></tr>
-                </table>
-              </td>
-            </tr>
-          
-            <tr class="verse">
-              <td class="verse-label">
-                
-              </td>
-              <td>
-                <table class="nospacing ws-pre">
-                  <tr><td>Will ye go lassie go? (...)</td></tr>
-                </table>
-              </td>
-            </tr>
-          </table>
+        <h4>Irish &amp; Scottish traditional</h4>
+      </div>
+
+      <ul class="blocks">
+        
+        
+  <li data-label="1.">O&#x27; the <table class="chord">
+  <tr class="chord"><td>G</td></tr>
+  
+  <tr><td>summer </td></tr>
+</table><table class="chord">
+  <tr class="chord"><td>C</td></tr>
+  
+  <tr><td>time </td></tr>
+</table><table class="chord">
+  <tr class="chord"><td>G</td></tr>
+  
+  <tr><td>has come</td></tr>
+</table><br>And the <table class="chord">
+  <tr class="chord"><td>C</td></tr>
+  
+  <tr><td>trees are sweetly </td></tr>
+</table><table class="chord">
+  <tr class="chord"><td>G</td></tr>
+  
+  <tr><td>bloomin&#x27;</td></tr>
+</table><br>And the <table class="chord">
+  <tr class="chord"><td>C</td></tr>
+  
+  <tr><td>wild </td></tr>
+</table><table class="chord">
+  <tr class="chord"><td>G</td></tr>
+  
+  <tr><td>mountain </td></tr>
+</table><table class="chord">
+  <tr class="chord"><td>Em</td></tr>
+  
+  <tr><td>thyme</td></tr>
+</table><br>Grows <table class="chord">
+  <tr class="chord"><td>C</td></tr>
+  
+  <tr><td>around the </td></tr>
+</table><table class="chord">
+  <tr class="chord"><td>Am</td></tr>
+  
+  <tr><td>bloomin&#x27; </td></tr>
+</table><table class="chord">
+  <tr class="chord"><td>C</td></tr>
+  
+  <tr><td>heather</td></tr>
+</table><br>Will ye <table class="chord">
+  <tr class="chord"><td>G</td></tr>
+  
+  <tr><td>go </td></tr>
+</table><table class="chord">
+  <tr class="chord"><td>C</td></tr>
+  
+  <tr><td>lassie </td></tr>
+</table><table class="chord">
+  <tr class="chord"><td>G</td></tr>
+  
+  <tr><td>go?</td></tr>
+</table></li>
+
+  <li data-label="Ch.">And we&#x27;ll <table class="chord">
+  <tr class="chord"><td>C</td></tr>
+  
+  <tr><td>all go </td></tr>
+</table><table class="chord">
+  <tr class="chord"><td>G</td></tr>
+  
+  <tr><td>together to pull </td></tr>
+</table><table class="chord">
+  <tr class="chord"><td>C</td></tr>
+  
+  <tr><td>wild </td></tr>
+</table><table class="chord">
+  <tr class="chord"><td>G</td></tr>
+  
+  <tr><td>mountain </td></tr>
+</table><table class="chord">
+  <tr class="chord"><td>Em</td></tr>
+  
+  <tr><td>thyme</td></tr>
+</table><br>All <table class="chord">
+  <tr class="chord"><td>C</td></tr>
+  
+  <tr><td>around the </td></tr>
+</table><table class="chord">
+  <tr class="chord"><td>Am</td></tr>
+  
+  <tr><td>bloomin&#x27; </td></tr>
+</table><table class="chord">
+  <tr class="chord"><td>C</td></tr>
+  
+  <tr><td>heather, will ye </td></tr>
+</table><table class="chord">
+  <tr class="chord"><td>G</td></tr>
+  
+  <tr><td>go </td></tr>
+</table><table class="chord">
+  <tr class="chord"><td>C</td></tr>
+  
+  <tr><td>lassie </td></tr>
+</table><table class="chord">
+  <tr class="chord"><td>G</td></tr>
+  
+  <tr><td>go?</td></tr>
+</table></li>
+
+  <li data-label="2.">I will build my love a bower<br>By yon cool crystal fountain <img class="right" src="thyme.png" title="thyme" /><br>And round it I will pile<br>All the wild flowers o&#x27; the mountain.<br>Will ye go lassie go?<em> Ch.</em></li>
+
+  <li data-label="3.">I will range through the wilds<br>And the deep glen sae dreamy<br>And return wi&#x27; their spoils<br>Tae the bower o&#x27; my dearie.<br>Will ye go lassie go?<em> Ch.</em></li>
+
+  <li data-label="4.">If my true love she&#x27;ll not come<br>Then I&#x27;ll surely find another<br>To pull wild mountain thyme<br>All around the bloomin&#x27; heather.<br>Will ye go lassie go?<em> Ch.</em></li>
+
+      </ul>
     </section>
     <hr class="separator">
   
@@ -1272,7 +601,8 @@
   
 </div>
 <footer class="faint">
-  Created with <strong><a href="https:&#x2F;&#x2F;github.com&#x2F;vojtechkral&#x2F;bard">bard</a></strong> version 0.9.0-alpha.
+  Created with <strong><a href="https://github.com/vojtechkral/bard">bard</a></strong> version 0.9.0-alpha.
 </footer>
 </body>
 </html>
+
