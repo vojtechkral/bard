@@ -8,6 +8,7 @@ use std::process::Command;
 
 use toml;
 use handlebars::Handlebars;
+use serde::{Deserialize, Serialize};
 
 use crate::default_project::DEFAULT_PROJECT;
 use crate::book::{Book, Song};
@@ -179,7 +180,9 @@ impl Output {
 
     fn template_path(&self) -> Option<&Path> {
         match self.format {
-            Format::Html | Format::Tex | Format::Hovorka => self.template.as_ref().map(PathBuf::as_path),
+            Format::Html | Format::Tex | Format::Hovorka => {
+                self.template.as_ref().map(PathBuf::as_path)
+            }
             Format::Json => None,
             Format::Auto => Format::no_auto(),
         }

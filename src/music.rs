@@ -2,6 +2,7 @@ use std::ops;
 use std::str::FromStr;
 use std::fmt;
 
+use serde::{Deserialize, Serialize};
 
 pub type Time = (u32, u32);
 

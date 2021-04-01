@@ -1,11 +1,9 @@
-#[macro_use]
-extern crate serde_derive;
-
 use std::env;
 use std::ffi::OsString;
 use std::path::{Path, PathBuf};
 
 use clap::{App, SubCommand, AppSettings};
+use serde::Serialize;
 
 pub mod project;
 pub mod default_project;

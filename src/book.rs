@@ -3,7 +3,7 @@
 use std::fs;
 use std::path::Path;
 
-use serde::ser::Serialize;
+use serde::Serialize;
 
 use crate::util::BStr;
 use crate::error::*;

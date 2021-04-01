@@ -733,7 +733,6 @@ impl<'a> SongBuilder<'a> {
                     text: cb.literal.into_bstr(),
                 }),
 
-                // FIXME: is this ok?
                 _ => {}
             }
         }

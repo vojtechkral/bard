@@ -7,6 +7,7 @@ use handlebars::{self as hb, Handlebars, HelperDef, JsonValue, handlebars_helper
 use regex::{Regex, Error as ReError};
 use image::image_dimensions;
 use lazy_static::lazy_static;
+use serde::Serialize;
 
 use crate::book::Song;
 use crate::project::{Metadata, Output, Project};
