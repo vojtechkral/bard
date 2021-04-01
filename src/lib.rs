@@ -55,7 +55,7 @@ pub fn bard_init() -> Result<()> {
     Ok(())
 }
 
-fn bard_make_inner(path: &Path) -> Result<Project> {
+pub fn bard_make_at(path: &Path) -> Result<Project> {
     Project::new(path)
         .and_then(|project| {
             project.render()?;
@@ -67,7 +67,7 @@ fn bard_make_inner(path: &Path) -> Result<Project> {
 pub fn bard_make() -> Result<Project> {
     let cwd = get_cwd()?;
 
-    let project = bard_make_inner(&cwd)?;
+    let project = bard_make_at(&cwd)?;
     cli::success("Done!");
     Ok(project)
 }
@@ -81,7 +81,7 @@ pub fn bard_watch() -> Result<()> {
     });
 
     loop {
-        let project = bard_make_inner(&cwd)?;
+        let project = bard_make_at(&cwd)?;
 
         eprintln!("");
         cli::status("Watching", "for changes in the project ...");
