@@ -424,6 +424,8 @@ impl Project {
 
         cmd.current_dir(&self.settings.dir_output);
 
+        cli::status("Postprocess", &cmd_src);
+
         let status = cmd
             .status()
             .with_context(|| format!("Failed to run processing command '{}'", cmd_src))?;
