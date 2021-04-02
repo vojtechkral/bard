@@ -49,7 +49,7 @@ There are no packages yet. For now, you'll probably have to compile from sources
 
     cargo install -f bard
 
-Windows executables are [available](https://github.com/vojtechkral/bard/tags), but they were not tested yet.
+Windows executables are [available](https://github.com/vojtechkral/bard/releases), but they were not tested yet.
 
 To generate PDFs a TeX engine is needed. On Linux it is recommended to use either `xelatex` provided by your distro or install [Tectonic](https://tectonic-typesetting.github.io/en-US/). On Windows [MiKTeX](https://miktex.org/) could hopefully work.
 
