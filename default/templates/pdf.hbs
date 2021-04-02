@@ -129,7 +129,9 @@
 {{#*inline "b-verse"~}}
   {{#each paragraphs~}}
     {{#if @first}}\Verse{ {{~>verse-label ../label ~}} }{{/if}} {{#each this}}{{> (lookup this "type") }}{{/each}}
+
     \vspace{\parskip}
+
   {{/each}}
 {{/inline}}
 
