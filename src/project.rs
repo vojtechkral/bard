@@ -227,8 +227,6 @@ pub struct Settings {
 
     #[serde(default)]
     pub notation: Notation,
-    #[serde(default = "Settings::default_chorus_label")]
-    pub chorus_label: String,
 
     #[serde(rename = "book")]
     pub metadata: Metadata,
@@ -255,10 +253,6 @@ impl Settings {
 
     pub fn dir_output(&self) -> &Path {
         self.dir_output.as_ref()
-    }
-
-    fn default_chorus_label() -> String {
-        String::from("Ch.")
     }
 
     fn resolve(&mut self, project_dir: &Path) -> Result<()> {

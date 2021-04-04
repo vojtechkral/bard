@@ -290,7 +290,6 @@ impl Song {
 pub struct Book {
     pub songs: Vec<Song>,
     pub notation: Notation,
-    pub chorus_label: BStr,
 }
 
 impl Book {
@@ -298,7 +297,6 @@ impl Book {
         Book {
             songs: vec![],
             notation: settings.notation,
-            chorus_label: settings.chorus_label.as_str().into(),
         }
     }
 

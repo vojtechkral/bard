@@ -3,7 +3,6 @@ songs = [
 ]
 
 notation = "english"
-chorus_label = "Ch."
 
 [[output]]
 file = "songbook.tex"
@@ -18,5 +17,6 @@ template = "html.hbs"
 [book]
 title = "My Songbook"
 subtitle = "(You can edit that title!)"
+chorus_label = "Ch."
 title_note = "(And this note too...)"
 backmatter = ""  # if not empty, creates a backmatter page

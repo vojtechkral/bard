@@ -35,11 +35,9 @@ songs = [
 
 There may also be multiple songs in one Markdown file.
 
-Additionally the top-level section may also specify a few settings:
-- `notation`: The [musical notation](https://en.wikipedia.org/wiki/Musical_note#12-tone_chromatic_scale) the source files use.
-  - Default is `"english"`, other choices are `"german"`, `"nashville"`, and `"roman"`.
-    Refer to the [Transposition doc](./transposition.md) for more information.
-- `chorus_label`: A string prefix used for choruses, by default this is `Ch`.
+Additionally the top-level section may also specify the `notation` field.
+This is the [musical notation](https://en.wikipedia.org/wiki/Musical_note#12-tone_chromatic_scale) the source files use.
+Default is `"english"`, other choices are `"german"`, `"nashville"`, and `"roman"`. Refer to the [Transposition doc](./transposition.md) for more information.
 
 ### Outputs
 
@@ -71,9 +69,11 @@ The ones used by the default templates are:
 ```toml
 [book]
 title = "My Songbook"
-front_img = "some-image.jpg"
 subtitle = "Collection of songs I like to play"
+chorus_label = "Ch."
+front_img = "some-image.jpg"
 title_note = "John Smith, 2020"
+backmatter = "Backmatter page..."
 ```
 
 ... of these only the `title` is mandatory, the rest is optional.

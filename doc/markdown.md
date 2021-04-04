@@ -67,9 +67,9 @@ Bridge lyrics...
 3. Final verse lyrics...
 ```
 
-For choruses, the label from the `chorus_label` field in `bard.toml` is used, to which
+For choruses, the label from the `chorus_label` field in `bard.toml`/`book` is used, to which
 chorus number and a dot is appended. By default chorus label is `"Ch"`.
-If there is only one chorus in a song, no number is added and simply `"Ch."` is used.
+If there is only one chorus in a song, no number is added and simply `"Ch."` is used (or whatever is set in `chorus_label`).
 Choruses may be referenced from verse text, see below.
 
 Note: Nested list as well as blockqutes nested within lists or vice versa are not supported.

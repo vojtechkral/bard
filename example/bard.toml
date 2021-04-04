@@ -7,7 +7,6 @@ songs = [
 ]
 
 notation = "english"
-chorus_label = "Ch."
 
 [[output]]
 file = "songbook.tex"
@@ -30,5 +29,6 @@ file = "songbook.json"
 [book]
 title = "Bard Songbook"
 subtitle = "An example project"
+chorus_label = "Ch."
 front_img = "guitar.jpg"
 title_note = "A set of a few non-copyrighted songs."
