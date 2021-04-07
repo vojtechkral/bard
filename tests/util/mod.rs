@@ -27,9 +27,13 @@ impl Builder {
         fs::create_dir_all(&test_dir)
             .with_context(|| format!("Couldn't create test work dir: `{}`", test_dir.display()))?;
 
-        let mut copy_opts = CopyOptions::new();
-        copy_opts.overwrite = true;
-        dir_copy(src_path, &test_dir, &copy_opts)
+        let prev_run = test_dir.join(name);
+        if prev_run.exists() {
+            fs::remove_dir_all(&prev_run)
+                .with_context(|| format!("Couldn't remove previous test run data: `{}`", prev_run.display()))?;
+        }
+
+        dir_copy(src_path, &test_dir, &CopyOptions::new())
             .with_context(|| format!("Couldn't copy test project `{}` into test work dir: `{}`", name, test_dir.display()))?;
 
         test_dir.push(name);

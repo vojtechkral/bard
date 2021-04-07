@@ -1,0 +1,19 @@
+songs = [
+    "yippie.md"
+]
+
+[[output]]
+file = "songbook.tex"
+template = "pdf.hbs"
+
+[[output]]
+file = "songbook.html"
+template = "html.hbs"
+
+[[output]]
+file = "songbook.xml"
+template = "hovorka.hbs"
+
+[book]
+title = "My Songbook"
+subtitle = "(You can edit that title!)"

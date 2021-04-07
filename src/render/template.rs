@@ -213,8 +213,20 @@ impl<'a> HbRender<'a> {
             // project settings TOML:
             let tpl_name = template.to_str().unwrap().to_string();
 
-            hb.register_template_file(&tpl_name, &template)
-                .with_context(|| format!("Error in template file `{}`", template.display()))?;
+            if template.exists() {
+                hb.register_template_file(&tpl_name, &template)
+                    .with_context(|| format!("Error in template file `{}`", template.display()))?;
+            } else {
+                fs::write(&template, DT::TPL_CONTENT.as_bytes()).with_context(|| {
+                    format!(
+                        "Error writing default template to file: `{}`",
+                        template.display()
+                    )
+                })?;
+
+                hb.register_template_string(&tpl_name, DT::TPL_CONTENT)
+                    .expect("Internal error: Could not load default template");
+            }
 
             tpl_name
         } else {
@@ -241,8 +253,12 @@ impl<'a> HbRender<'a> {
 
         let html = self.hb.render(&self.tpl_name, &context)?;
 
-        fs::write(&self.output.file, html.as_bytes())
-            .map_err(|err| ErrorWritingFile(self.output.file.to_owned(), err))?;
+        fs::write(&self.output.file, html.as_bytes()).with_context(|| {
+            format!(
+                "Error writing output file: `{}`",
+                self.output.file.display()
+            )
+        })?;
 
         Ok(self.output)
     }

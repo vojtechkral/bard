@@ -1,0 +1,16 @@
+songs = [
+    "yippie.md"
+]
+
+[[output]]
+file = "songbook.tex"
+
+[[output]]
+file = "songbook.html"
+
+[[output]]
+file = "songbook.xml"
+
+[book]
+title = "My Songbook"
+subtitle = "(You can edit that title!)"

@@ -18,10 +18,10 @@ impl Render for RJson {
 
         let path = &output.file;
 
-        let mut file = File::create(&path).map_err(|err| ErrorWritingFile(path.to_owned(), err))?;
-
-        serde_json::to_writer_pretty(&mut file, &context)
-            .map_err(|err| ErrorWritingFile(path.to_owned(), err.into()))?;
+        File::create(&path)
+            .map_err(Error::from)
+            .and_then(|mut f| serde_json::to_writer_pretty(&mut f, &context).map_err(Error::from))
+            .with_context(|| format!("Error writing output file: `{}`", path.display()))?;
 
         Ok(output)
     }
