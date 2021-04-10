@@ -470,6 +470,14 @@ impl Project {
         })
     }
 
+    pub fn input_paths(&self) -> &Vec<PathBuf> {
+        &self.input_paths
+    }
+
+    pub fn output_paths(&self) -> impl Iterator<Item = &Path> {
+        self.settings.output.iter().map(|o| o.file.as_path())
+    }
+
     pub fn watch_paths(&self) -> impl Iterator<Item = &Path> {
         let in_iter = self.input_paths.iter().map(PathBuf::as_path);
 

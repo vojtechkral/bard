@@ -46,17 +46,22 @@ fn get_cwd() -> Result<PathBuf> {
     Ok(cwd)
 }
 
-pub fn bard_init() -> Result<()> {
-    let cwd = get_cwd()?;
+pub fn bard_init_at<P: AsRef<Path>>(path: P) -> Result<()> {
+    let path = path.as_ref();
 
-    cli::status("Initialize", &format!("new project at {}", cwd.display()));
-    Project::init(&cwd).context("Could not initialize a new project")?;
+    cli::status("Initialize", &format!("new project at {}", path.display()));
+    Project::init(&path).context("Could not initialize a new project")?;
     cli::success("Done!");
     Ok(())
 }
 
-pub fn bard_make_at(path: &Path) -> Result<Project> {
-    Project::new(path)
+pub fn bard_init() -> Result<()> {
+    let cwd = get_cwd()?;
+    bard_init_at(&cwd)
+}
+
+pub fn bard_make_at<P: AsRef<Path>>(path: P) -> Result<Project> {
+    Project::new(path.as_ref())
         .and_then(|project| {
             project.render()?;
             Ok(project)
@@ -72,16 +77,9 @@ pub fn bard_make() -> Result<Project> {
     Ok(project)
 }
 
-pub fn bard_watch() -> Result<()> {
-    let cwd = get_cwd()?;
-    let (mut watch, cancellation) = Watch::new()?;
-
-    let _ = ctrlc::set_handler(move || {
-        cancellation.cancel();
-    });
-
+pub fn bard_watch_at<P: AsRef<Path>>(path: P, mut watch: Watch) -> Result<()> {
     loop {
-        let project = bard_make_at(&cwd)?;
+        let project = bard_make_at(&path)?;
 
         eprintln!("");
         cli::status("Watching", "for changes in the project ...");
@@ -98,6 +96,17 @@ pub fn bard_watch() -> Result<()> {
     }
 
     Ok(())
+}
+
+pub fn bard_watch() -> Result<()> {
+    let cwd = get_cwd()?;
+    let (watch, cancellation) = Watch::new()?;
+
+    let _ = ctrlc::set_handler(move || {
+        cancellation.cancel();
+    });
+
+    bard_watch_at(&cwd, watch)
 }
 
 pub fn bard(args: &[OsString]) -> Result<()> {
