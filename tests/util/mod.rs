@@ -20,7 +20,7 @@ impl Builder {
         let src_path = format!("{}/tests/projects/{}", root, name);
         let src_path = PathBuf::from(src_path);
 
-        // FIXME: `target` may be located else where, this is brittle,
+        // FIXME: `target` may be located elsewhere, this is brittle,
         // write a patch to cargo to pass `CARGO_TARGET_DIR` to tests/bins.
         let test_dir = format!("{}/target/tests-workdir", root);
         let mut test_dir = PathBuf::from(test_dir);

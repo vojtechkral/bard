@@ -29,6 +29,6 @@ file = "songbook.json"
 [book]
 title = "Bard Songbook"
 subtitle = "An example project"
-chorus_label = "Ch."
+chorus_label = "Ch"
 front_img = "guitar.jpg"
 title_note = "A set of a few non-copyrighted songs."
