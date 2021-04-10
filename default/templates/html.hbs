@@ -173,7 +173,10 @@
 
 {{#*inline "i-text"}}{{ text }}{{/inline}}
 
-{{!-- FIXME: Comment --}}
+{{!-- A chord is layed out as a small table to ensure that the total width
+  will be max(width of chord, width of lyrics/inlines).
+  There's no danger that chords might become nested in each other as bard
+  ensures that chords are always on top nesting level. --}}
 {{#*inline "i-chord"}}<table class="chord">
   <tr class="chord"><td>{{ chord }}</td></tr>
   {{#if alt_chord}}<tr class="chord chord-alt ws-pre"><td>{{ alt_chord }}</td></tr>{{/if}}

@@ -242,7 +242,6 @@ impl Chromatic {
     }
 
     fn to_string_western(&self, german: bool, uppercase: bool) -> String {
-        // TODO: option to use unicode sharps & flats? (Ditto other notations)
         let res = match self.0 {
             0 => "C",
             1 => "C#",
