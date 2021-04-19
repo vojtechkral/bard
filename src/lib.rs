@@ -111,9 +111,9 @@ pub fn bard_watch() -> Result<()> {
 
 pub fn bard(args: &[OsString]) -> Result<()> {
     let args = App::new("bard")
-        .version("0.3")
+        .version(env!("CARGO_PKG_VERSION"))
         .author("Vojtech Kral <vojtech@kral.hk>")
-        .about("bard: Songbook compiler")
+        .about("bard: A Markdown-based songbook compiler")
         .setting(AppSettings::VersionlessSubcommands)
         .setting(AppSettings::ArgRequiredElseHelp)
         .subcommand(
