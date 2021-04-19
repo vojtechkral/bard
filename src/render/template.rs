@@ -217,12 +217,15 @@ impl<'a> HbRender<'a> {
                 hb.register_template_file(&tpl_name, &template)
                     .with_context(|| format!("Error in template file `{}`", template.display()))?;
             } else {
-                fs::write(&template, DT::TPL_CONTENT.as_bytes()).with_context(|| {
-                    format!(
-                        "Error writing default template to file: `{}`",
-                        template.display()
-                    )
-                })?;
+                let parent = template.parent().unwrap(); // The temaplate should've been resolved as absolute in Project
+                fs::create_dir_all(parent)
+                    .and_then(|_| fs::write(&template, DT::TPL_CONTENT.as_bytes()))
+                    .with_context(|| {
+                        format!(
+                            "Error writing default template to file: `{}`",
+                            template.display()
+                        )
+                    })?;
 
                 hb.register_template_string(&tpl_name, DT::TPL_CONTENT)
                     .expect("Internal error: Could not load default template");
