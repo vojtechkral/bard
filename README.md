@@ -94,5 +94,5 @@ over someone's shoulder way too many times to tolerate small fonts and mostly em
 
 #### Was this software developed with <3 ?
 
-As a matter of fact, yes, this tool was made by less than three
-developers. It's really just me so far.
+As a matter of fact, yes, this tool was made by less than three developers.
+Check out the [Contributors](https://github.com/vojtechkral/bard/graphs/contributors) page for details.
