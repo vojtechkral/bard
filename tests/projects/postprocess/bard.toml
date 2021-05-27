@@ -1,0 +1,21 @@
+songs = [
+    "yippie.md"
+]
+
+[[output]]
+file = "basic.html"
+process = "{{project_dir}}/process.sh {{file_name}} {{file_stem}} {{file}} process-basic.json"
+process_win = "{{project_dir}}\\process.bat {{file_name}} {{file_stem}} {{file}} process-basic.json"
+
+[[output]]
+file = "extended.html"
+process = [
+    ["{{project_dir}}/process.sh", "{{file_name}}", "{{file_stem}}", "{{file}}", "process-extended.json"],
+]
+process_win = [
+    ["{{project_dir}}\\process.bat", "{{file_name}}", "{{file_stem}}", "{{file}}", "process-extended.json"],
+]
+
+[book]
+title = "My Songbook"
+subtitle = "(You can edit that title!)"

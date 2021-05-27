@@ -38,7 +38,7 @@ pub const PROGRAM_META: ProgramMeta = ProgramMeta {
     authors: env!("CARGO_PKG_AUTHORS"),
 };
 
-#[derive(StructOpt, Debug, Clone)]
+#[derive(StructOpt, Clone, Default, Debug)]
 pub struct MakeOpts {
     #[structopt(short = "p", long)]
     pub no_postprocess: bool,
