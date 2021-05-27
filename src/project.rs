@@ -397,25 +397,28 @@ impl Project {
             None => return Ok(()), // No command does nothing
         };
 
-        let mut cmd = Command::new(arg0);
-        let mut cmd_src = arg0.to_string();
+        let hb = Handlebars::new();
+        let arg0_r = hb.render_template(arg0, context).with_context(|| {
+            format!("Could not substitute command: '{}'", arg0)
+        })?;
+
+        let mut cmd = Command::new(arg0_r.clone());
+        let mut cmd_src = arg0_r;
 
         for arg in iter {
             // Accumulate args here for error reporting:
             cmd_src.push(' ');
             cmd_src.push_str(arg);
 
-            let hb = Handlebars::new();
-            let arg_interp = hb.render_template(arg, context).with_context(|| {
+            let arg_r = hb.render_template(arg, context).with_context(|| {
                 format!("Could not substitute command arguments: '{}'", cmd_src)
             })?;
 
-            // Replace the arg with the interpolated content after succesful Tera
-            // interpolation: (the space stays)
+            // Replace the arg with the interpolated content after succesful render
             cmd_src.truncate(cmd_src.len() - arg.len());
-            cmd_src.push_str(&arg_interp);
+            cmd_src.push_str(&arg_r);
 
-            cmd.arg(&arg_interp);
+            cmd.arg(&arg_r);
         }
 
         cmd.current_dir(&self.settings.dir_output);
