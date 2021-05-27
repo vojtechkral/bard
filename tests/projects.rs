@@ -6,7 +6,7 @@ use bard::render::{RHtml, RTex, RHovorka, DefaultTemaplate};
 use bard::watch::Watch;
 
 mod util;
-use util::{Builder, assert_file_contains};
+use util::{Builder, assert_file_contains, OPTS_NO_PS};
 
 #[test]
 fn init_and_build() {
@@ -54,7 +54,7 @@ fn watch() {
     let dir2 = build.dir.clone();
     let (watch, cancellation) = Watch::new().unwrap();
     let watch_thread = thread::spawn(move || {
-        bard::bard_watch_at(&dir2, watch)
+        bard::bard_watch_at(&OPTS_NO_PS, &dir2, watch)
     });
 
     thread::sleep(DELAY);

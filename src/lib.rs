@@ -2,8 +2,9 @@ use std::env;
 use std::ffi::OsString;
 use std::path::{Path, PathBuf};
 
-use clap::{App, SubCommand, AppSettings};
 use serde::Serialize;
+use structopt::StructOpt;
+use structopt::clap::AppSettings;
 
 pub mod project;
 pub mod default_project;
@@ -37,6 +38,41 @@ pub const PROGRAM_META: ProgramMeta = ProgramMeta {
     authors: env!("CARGO_PKG_AUTHORS"),
 };
 
+#[derive(StructOpt, Debug, Clone)]
+pub struct MakeOpts {
+    #[structopt(short = "p", long)]
+    pub no_postprocess: bool,
+}
+
+#[derive(StructOpt)]
+#[structopt(
+    version = env!("CARGO_PKG_VERSION"),
+    about = "bard: A Markdown-based songbook compiler",
+)]
+enum Bard {
+    Init,
+    Make {
+        #[structopt(flatten)]
+        opts: MakeOpts,
+    },
+    Watch {
+        #[structopt(flatten)]
+        opts: MakeOpts,
+    },
+}
+
+impl Bard {
+    fn run(self) -> Result<()> {
+        use Bard::*;
+
+        match self {
+            Init => bard_init(),
+            Make { opts } => bard_make(&opts),
+            Watch { opts } => bard_watch(&opts),
+        }
+    }
+}
+
 fn get_cwd() -> Result<PathBuf> {
     let cwd = env::current_dir().context("Could not read current directory")?;
     ensure!(
@@ -60,26 +96,27 @@ pub fn bard_init() -> Result<()> {
     bard_init_at(&cwd)
 }
 
-pub fn bard_make_at<P: AsRef<Path>>(path: P) -> Result<Project> {
+pub fn bard_make_at<P: AsRef<Path>>(opts: &MakeOpts, path: P) -> Result<Project> {
     Project::new(path.as_ref())
-        .and_then(|project| {
+        .and_then(|mut project| {
+            project.enable_postprocess(!opts.no_postprocess);
             project.render()?;
             Ok(project)
         })
         .context("Could not make project")
 }
 
-pub fn bard_make() -> Result<Project> {
+pub fn bard_make(opts: &MakeOpts) -> Result<()> {
     let cwd = get_cwd()?;
 
-    let project = bard_make_at(&cwd)?;
+    bard_make_at(opts, &cwd)?;
     cli::success("Done!");
-    Ok(project)
+    Ok(())
 }
 
-pub fn bard_watch_at<P: AsRef<Path>>(path: P, mut watch: Watch) -> Result<()> {
+pub fn bard_watch_at<P: AsRef<Path>>(opts: &MakeOpts, path: P, mut watch: Watch) -> Result<()> {
     loop {
-        let project = bard_make_at(&path)?;
+        let project = bard_make_at(opts, &path)?;
 
         eprintln!("");
         cli::status("Watching", "for changes in the project ...");
@@ -98,7 +135,7 @@ pub fn bard_watch_at<P: AsRef<Path>>(path: P, mut watch: Watch) -> Result<()> {
     Ok(())
 }
 
-pub fn bard_watch() -> Result<()> {
+pub fn bard_watch(opts: &MakeOpts) -> Result<()> {
     let cwd = get_cwd()?;
     let (watch, cancellation) = Watch::new()?;
 
@@ -106,37 +143,15 @@ pub fn bard_watch() -> Result<()> {
         cancellation.cancel();
     });
 
-    bard_watch_at(&cwd, watch)
+    bard_watch_at(opts, &cwd, watch)
 }
 
 pub fn bard(args: &[OsString]) -> Result<()> {
-    let args = App::new("bard")
-        .version(env!("CARGO_PKG_VERSION"))
-        .author("Vojtech Kral <vojtech@kral.hk>")
-        .about("bard: A Markdown-based songbook compiler")
-        .setting(AppSettings::VersionlessSubcommands)
-        .setting(AppSettings::ArgRequiredElseHelp)
-        .subcommand(
-            SubCommand::with_name("init")
-                .about("Initialize and empty project with default settings"),
-        )
-        .subcommand(
-            SubCommand::with_name("make")
-                .about("Process the current project and generate output files"),
-        )
-        .subcommand(SubCommand::with_name("watch").about(
-            "Watch the current project and its input files for changes, and re-make the project \
-             each time there's a change",
-        ))
-        .get_matches_from(args.iter());
-
-    if let Some(_args) = args.subcommand_matches("init") {
-        bard_init()?;
-    } else if let Some(_args) = args.subcommand_matches("make") {
-        bard_make()?;
-    } else if let Some(_args) = args.subcommand_matches("watch") {
-        bard_watch()?;
-    }
-
-    Ok(())
+    Bard::from_clap(
+        &Bard::clap()
+            .setting(AppSettings::VersionlessSubcommands)
+            .setting(AppSettings::ArgRequiredElseHelp)
+            .get_matches_from(args.iter()),
+    )
+    .run()
 }

@@ -300,6 +300,7 @@ pub struct Project {
 
     project_file: PathBuf,
     input_paths: Vec<PathBuf>,
+    post_process: bool,
 }
 
 impl Project {
@@ -322,6 +323,7 @@ impl Project {
             settings,
             input_paths: vec![],
             book,
+            post_process: true,
         };
 
         project.input_paths = project.collect_input_paths()?;
@@ -466,7 +468,11 @@ impl Project {
             }
             .with_context(|| format!("Could render output file '{}'", output.file.display()))?;
 
-            self.post_process(&output)
+            if self.post_process {
+                self.post_process(&output)?;
+            }
+
+            Ok(())
         })
     }
 
@@ -490,5 +496,9 @@ impl Project {
         iter::once(self.project_file.as_path())
             .chain(in_iter)
             .chain(out_iter)
+    }
+
+    pub fn enable_postprocess(&mut self, enable: bool) {
+        self.post_process = enable;
     }
 }

@@ -5,10 +5,15 @@ use std::fs;
 use anyhow::{Result, Context};
 use fs_extra::dir::{self, CopyOptions};
 
+use bard::MakeOpts;
 use bard::cli;
 use bard::project::Project;
 
 const INT_DIR: &str = "int-test-workdirs";
+
+pub const OPTS_NO_PS: MakeOpts = MakeOpts {
+    no_postprocess: true,
+};
 
 pub fn assert_file_contains<P: AsRef<Path>>(path: P, what: &str) {
     let content = fs::read_to_string(&path).unwrap();
@@ -68,7 +73,7 @@ impl Builder {
         let work_dir = Self::work_dir(name, true)?;
 
         Self::dir_copy(src_path, &work_dir)?;
-        let project = bard::bard_make_at(&work_dir)?;
+        let project = bard::bard_make_at(&OPTS_NO_PS, &work_dir)?;
 
         Ok(Self {
             project,
@@ -83,7 +88,7 @@ impl Builder {
         fs::create_dir_all(&work_dir).with_context(|| format!("Could create directory: `{}`", work_dir.display()))?;
 
         bard::bard_init_at(&work_dir).context("Failed to initialize")?;
-        let project = bard::bard_make_at(&work_dir)?;
+        let project = bard::bard_make_at(&OPTS_NO_PS, &work_dir)?;
 
         Ok(Self {
             project,

@@ -54,7 +54,7 @@ The `file` field is optional. Other possible fields understood are:
   - `format` - Output format, can be any of "html", "tex", "hovorka", "json", "auto". If missing, the format is
     guessed from the output file extension.
   - `post_process` - A command that _bard_ executes once the output file is generated.
-    By default this is used to run TeX engine, but may be used for arbitrary purposes. See the [Post-processing](#post_processing) section
+    By default this is used to run TeX engine, but may be used for arbitrary purposes. See the [Post-processing](#post-processing) section
   - `dpi` - See [Images](./markdown.md#images).
 
 There may be any number of additional fields unrecognized explicitly by _bard_, they will be all passed
@@ -108,3 +108,7 @@ process = [
     ["zip", "-9", "{{file_stem}}.zip", "{{file_name}}"],
 ]
 ```
+
+##### Skipping post-processing
+
+To skip the post-processing step, pass `-p` or `--no-postprocess` to `bard make` or `bard watch`
