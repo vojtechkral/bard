@@ -2,7 +2,12 @@ language: rust
 
 jobs:
   include:
-    - os: windows
+    - name: Ubuntu Xenial
+      os: linux
+      dist: xenial
+      env: EXE=bard
+    - name: MS Windows
+      os: windows
       env: EXE=bard.exe
 
 script:
