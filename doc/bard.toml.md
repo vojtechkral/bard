@@ -53,7 +53,7 @@ The `file` field is optional. Other possible fields understood are:
     under the `templates` folder. This field is not applicable to JSON output.
   - `format` - Output format, can be any of "html", "tex", "hovorka", "json", "auto". If missing, the format is
     guessed from the output file extension.
-  - `post_process` - A command that _bard_ executes once the output file is generated.
+  - `process` (and `process_win`) - A command that _bard_ executes once the output file is generated.
     By default this is used to run TeX engine, but may be used for arbitrary purposes. See the [Post-processing](#post-processing) section
   - `dpi` - See [Images](./markdown.md#images).
 
@@ -108,6 +108,11 @@ process = [
     ["zip", "-9", "{{file_stem}}.zip", "{{file_name}}"],
 ]
 ```
+
+##### Special-casing MS Windows
+
+You may also add the `process_win` field. The format is exactly the same as `process`.
+This field will be used on MS Windows instead of `process`, which allows to customize the post-processing command for this OS.
 
 ##### Skipping post-processing
 

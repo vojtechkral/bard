@@ -118,6 +118,8 @@ pub struct Output {
 
     #[serde(rename = "process")]
     pub post_process: Option<CmdSpec>,
+    #[serde(rename = "process_win")]
+    pub post_process_win: Option<CmdSpec>,
 
     #[serde(flatten)]
     pub metadata: Metadata,
@@ -186,6 +188,16 @@ impl Output {
             Format::Json => None,
             Format::Auto => Format::no_auto(),
         }
+    }
+
+    fn post_process(&self) -> Option<&CmdSpec> {
+        if cfg!(windows) {
+            if self.post_process_win.is_some() {
+                return self.post_process_win.as_ref()
+            }
+        }
+
+        self.post_process.as_ref()
     }
 
     pub fn template_filename(&self) -> String {
@@ -435,7 +447,7 @@ impl Project {
     }
 
     fn post_process(&self, output: &Output) -> Result<()> {
-        let cmds = match output.post_process.as_ref() {
+        let cmds = match output.post_process() {
             Some(cmds) if !cmds.is_empty() => cmds,
             _ => return Ok(()),
         };
