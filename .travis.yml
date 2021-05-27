@@ -7,7 +7,7 @@ jobs:
 
 script:
   - cargo build --release
-  - cargo test --lib --release
+  - cargo test --release
 
 deploy:
   provider: releases
