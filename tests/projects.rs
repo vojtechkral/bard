@@ -6,7 +6,7 @@ use bard::render::{RHtml, RTex, RHovorka, DefaultTemaplate};
 use bard::watch::Watch;
 
 mod util;
-use util::{Builder, assert_file_contains, OPTS_NO_PS};
+use util::{Builder, assert_file_contains, OPTS_NO_PS, ROOT, TEST_PROJECTS};
 
 #[test]
 fn init_and_build() {
@@ -15,22 +15,22 @@ fn init_and_build() {
 
 #[test]
 fn project_default() {
-    let _build = Builder::build("default").unwrap();
+    let _build = Builder::build(ROOT / "default").unwrap();
 }
 
 #[test]
 fn project_example() {
-    let _build = Builder::build("example").unwrap();
+    let _build = Builder::build(ROOT / "example").unwrap();
 }
 
 #[test]
 fn project_default_templates () {
-    let _build = Builder::build("default-templates").unwrap();
+    let _build = Builder::build(TEST_PROJECTS / "default-templates").unwrap();
 }
 
 #[test]
 fn project_default_templates_save () {
-    let build = Builder::build("default-templates-save").unwrap();
+    let build = Builder::build(TEST_PROJECTS / "default-templates-save").unwrap();
     let templates = build.dir.join("templates");
 
     let html = fs::read_to_string(templates.join("html.hbs")).unwrap();
@@ -48,7 +48,7 @@ fn watch() {
     const DELAY: Duration = Duration::from_millis(1250);
     const TEST_STR: &str = "test test test";
 
-    let build = Builder::build("watch").unwrap();
+    let build = Builder::build(TEST_PROJECTS / "watch").unwrap();
 
     // Start bard watch in another thread
     let dir2 = build.dir.clone();

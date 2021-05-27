@@ -1,6 +1,8 @@
 use std::env;
-use std::path::{Path, PathBuf};
+use std::ffi::OsStr;
 use std::fs;
+use std::ops;
+use std::path::{Path, PathBuf};
 
 use anyhow::{Result, Context};
 use fs_extra::dir::{self, CopyOptions};
@@ -13,6 +15,32 @@ const INT_DIR: &str = "int-test-workdirs";
 
 pub const OPTS_NO_PS: MakeOpts = MakeOpts {
     no_postprocess: true,
+};
+
+#[derive(Clone, Copy, Debug)]
+pub struct ProjectPath {
+    path: &'static [&'static str],
+}
+
+impl<'rhs> ops::Div<&'rhs str> for ProjectPath {
+    type Output = PathBuf;
+
+    fn div(self, rhs: &'rhs str) -> Self::Output {
+        let mut res = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+        for c in self.path.iter() {
+            res.push(c);
+        }
+        res.push(rhs);
+        res
+    }
+}
+
+pub const ROOT: ProjectPath = ProjectPath {
+    path: &[],
+};
+
+pub const TEST_PROJECTS: ProjectPath = ProjectPath {
+    path: &["tests", "projects"],
 };
 
 pub fn assert_file_contains<P: AsRef<Path>>(path: P, what: &str) {
@@ -28,19 +56,13 @@ pub struct Builder {
 }
 
 impl Builder {
-    fn source_dir(name: &str) -> PathBuf {
-        let root = env::var("CARGO_MANIFEST_DIR").unwrap();
-        let path = format!("{}/tests/projects/{}", root, name);
-        PathBuf::from(path)
-    }
-
-    fn work_dir(name: &str, rm: bool) -> Result<PathBuf> {
-        let root = env::var("CARGO_MANIFEST_DIR").unwrap();
-
-        // FIXME: `target` may be located elsewhere, this is brittle,
-        // write a patch to cargo to pass `CARGO_TARGET_DIR` to tests/bins.
-        let path = format!("{}/target/{}/{}", root, INT_DIR, name);
-        let path = PathBuf::from(path);
+    fn work_dir(name: &OsStr, rm: bool) -> Result<PathBuf> {
+        // Cargo suppor for tmpdir merged yay https://github.com/rust-lang/cargo/pull/9375
+        // but we should still support old cargos, better to use option_env:
+        let path = option_env!("CARGO_TARGET_TMPDIR")
+            .map(|tmpdir| PathBuf::from(tmpdir).join(name))
+            .unwrap_or([env!("CARGO_MANIFEST_DIR"), "target", INT_DIR].iter().collect())
+            .join(name);
 
         if rm {
             if path.exists() {
@@ -66,14 +88,19 @@ impl Builder {
         Ok(())
     }
 
-    pub fn build(name: &str) -> Result<Self> {
+    pub fn build(src_path: PathBuf) -> Result<Self> {
+        Self::build_opts(src_path, &OPTS_NO_PS)
+    }
+
+    pub fn build_opts(src_path: PathBuf, opts: &MakeOpts) -> Result<Self> {
         cli::use_stderr(true);
 
-        let src_path = Self::source_dir(name);
+        // let src_path = Self::source_dir(name);
+        let name = src_path.file_name().unwrap();
         let work_dir = Self::work_dir(name, true)?;
 
         Self::dir_copy(src_path, &work_dir)?;
-        let project = bard::bard_make_at(&OPTS_NO_PS, &work_dir)?;
+        let project = bard::bard_make_at(opts, &work_dir)?;
 
         Ok(Self {
             project,
@@ -84,7 +111,7 @@ impl Builder {
     pub fn init_and_build(name: &str) -> Result<Self> {
         cli::use_stderr(true);
 
-        let work_dir = Self::work_dir(name, true)?;
+        let work_dir = Self::work_dir(name.as_ref(), true)?;
         fs::create_dir_all(&work_dir).with_context(|| format!("Could create directory: `{}`", work_dir.display()))?;
 
         bard::bard_init_at(&work_dir).context("Failed to initialize")?;
