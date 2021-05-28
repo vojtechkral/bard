@@ -1,1 +1,89 @@
-../../../../default/templates/html.hbs
+<html>
+<head><title>{{ book.title }}</title></head>
+
+{{#*inline "verse-label"}}
+  {{~#if verse}}{{verse}}.{{/if~}}
+  {{~#if (contains this "chorus")}}{{@root.book.chorus_label}}{{chorus}}.{{/if~}}
+  {{~#if custom}}{{custom}}{{/if~}}
+{{/inline}}
+{{#*inline "b-verse"}}
+  <li data-label="{{>verse-label label}}">
+    {{~#each paragraphs~}}
+      {{#unless @first}}<br><br>{{/unless~}}
+      {{#each this}}{{> (lookup this "type") }}{{/each}}
+    {{~/each~}}
+  </li>
+{{/inline}}
+{{#*inline "b-bullet-list"}}
+  <ul class="bullet-list">{{#each items}}<li>{{ this }}</li>{{/each}}</ul>
+{{/inline}}
+{{#*inline "b-horizontal-line"}}
+  <hr>
+{{/inline}}
+{{#*inline "b-pre"}}
+  <pre>{{ text }}</pre>
+{{/inline}}
+{{#*inline "i-text"}}{{ text }}{{/inline}}
+{{#*inline "i-chord"}}<table class="chord">
+  <tr class="chord"><td>{{ chord }}</td></tr>
+  {{#if alt_chord}}<tr class="chord chord-alt ws-pre"><td>{{ alt_chord }}</td></tr>{{/if}}
+  <tr><td>{{#each inlines}}{{> (lookup this "type") }}{{/each}}</td></tr>
+</table>{{/inline}}
+{{#*inline "i-break"}}<br>{{/inline}}
+{{#*inline "i-emph"}}<em>{{#each inlines}}{{> (lookup this "type") }}{{/each}}</em>{{/inline}}
+{{#*inline "i-strong"}}<strong>{{#each inlines}}{{> (lookup this "type") }}{{/each}}</strong>{{/inline}}
+{{#*inline "i-link"}}<a href="{{ url }}" title="{{ title }}">{{ text }}</a>{{/inline}}
+{{#*inline "i-chorus-ref"}}<em>{{ prefix_space }}{{ @root.book.chorus_label }}{{ num }}.</em>{{/inline}}
+{{#*inline "i-image"}}<img class="{{ class }}" src="{{ path }}" title="{{ title }}" />{{/inline}}
+
+<body>
+<div id="content">
+  <header class="pad">
+    <h1>{{ book.title }}</h1>
+    {{#if book.subtitle }}
+      <h3>{{ book.subtitle }}</h3>
+    {{/if }}
+    {{~#if book.front_img}}
+        <img src="{{ book.front_img ~}}">
+      {{/if}}
+    {{#if book.title_note }}
+      <p class="note">{{ book.title_note }}</p>
+    {{/if }}
+  </header>
+  <hr class="separator">
+
+  <div id="index" class="pad">
+    <h2>Contents</h2>
+    <ol>
+    {{#each songs}}
+      <li><a href="#song-{{ @index }}">{{ title }}</a></li>
+    {{/each}}
+    </ol>
+  </div>
+
+  <hr class="separator">
+  {{#each songs}}
+    <section id="song-{{ @index }}" class="song pad">
+      <div class="song-header">
+        <h2>{{ title }}</h2>
+        {{#each subtitles}}<h4>{{ this }}</h4>{{/each}}
+      </div>
+
+      <ul class="blocks">
+        {{#each blocks}}{{> (lookup this "type") }}{{/each}}
+      </ul>
+    </section>
+    <hr class="separator">
+  {{/each}}
+
+  {{#if book.backmatter}}
+    <p class="pad">{{ book.backmatter }}</p>
+    <hr class="separator">
+  {{/if}}
+</div>
+<footer class="faint">
+  Created with <strong><a href="{{ program.homepage }}">{{ program.name }}</a></strong> version {{ program.version }}.
+</footer>
+</body>
+</html>
+

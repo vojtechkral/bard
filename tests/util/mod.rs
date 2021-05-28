@@ -46,7 +46,8 @@ pub const TEST_PROJECTS: ProjectPath = ProjectPath {
 pub fn assert_file_contains<P: AsRef<Path>>(path: P, what: &str) {
     let content = fs::read_to_string(&path).unwrap();
     let hit = content.find(what);
-    assert!(hit.is_some(), "String `{}` not found in file: `{}`", what, path.as_ref().display());
+    assert!(hit.is_some(), "String `{}` not found in file: `{}`\nFile contents:\n{}",
+        what, path.as_ref().display(), content);
 }
 
 #[derive(Debug)]

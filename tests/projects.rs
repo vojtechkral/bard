@@ -1,14 +1,17 @@
 use std::collections::HashMap;
 use std::fs;
 use std::path::PathBuf;
+use std::thread;
+use std::time::Duration;
 
 use serde_json as json;
 
 use bard::MakeOpts;
 use bard::render::{RHtml, RTex, RHovorka, DefaultTemaplate};
+use bard::watch::Watch;
 
 mod util;
-use util::{Builder, assert_file_contains, ROOT, TEST_PROJECTS};
+use util::{Builder, assert_file_contains, OPTS_NO_PS, ROOT, TEST_PROJECTS};
 
 #[test]
 fn init_and_build() {
@@ -45,15 +48,8 @@ fn project_default_templates_save () {
     assert_eq!(hovorka, RHovorka::TPL_CONTENT);
 }
 
-#[cfg(not(windows))]  // FIXME: make this work on windows
 #[test]
 fn watch() {
-    use std::thread;
-    use std::time::Duration;
-    use util::OPTS_NO_PS;
-
-    use bard::watch::Watch;
-
     const DELAY: Duration = Duration::from_millis(1250);
     const TEST_STR: &str = "test test test";
 
