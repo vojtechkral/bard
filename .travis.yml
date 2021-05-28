@@ -10,9 +10,11 @@ jobs:
       os: windows
       env: EXE=bard.exe
 
+before_install:
+  - rustup component add rustfmt
+
 script:
-  - cargo build --release
-  - cargo test --release
+  - cargo fmt -- --check && cargo test --release --locked
 
 deploy:
   provider: releases
