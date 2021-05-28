@@ -1,0 +1,198 @@
+
+
+
+
+\documentclass[12pt,a5paper,openany]{memoir}
+\setheadfoot{0pt}{0pt}
+\setlrmarginsandblock{2cm}{2cm}{*}
+\setulmarginsandblock{.75cm}{1cm}{*}
+\checkandfixthelayout
+\raggedbottom
+
+\usepackage{fontspec}
+\usepackage{titlesec}
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage[defaultlines=5,all]{nowidow}
+\usepackage[pdfusetitle,colorlinks=true]{hyperref}
+\usepackage{float}
+\usepackage{graphicx}
+\usepackage{wrapfig}
+
+%% Page style
+\makepagestyle{songs}
+\makeoddfoot{songs}{}{}{\thepage}
+\makeevenfoot{songs}{\thepage}{}{}
+% Patch cleardoublepage to not get blank pages after title & contents pages:
+\renewcommand\cleardoublepage{\clearpage}
+% Suppress page numbers in the toc/frontmatter:
+\aliaspagestyle{chapter}{empty}
+
+%% Fonts
+\setmainfont[Ligatures=TeX]{DejaVu Sans}
+
+%% Spacings
+\setlength{\parindent}{0pt}
+\setlength{\tabcolsep}{0pt}
+\setlength{\parskip}{1mm}
+
+%% ToC style
+% Hide the title of the ToC:
+\renewcommand\tocheadstart{}
+\renewcommand\printtoctitle[1]{}
+\renewcommand\aftertoctitle{}
+% Hide section numbers in the ToC:
+\renewcommand\numberline[1]{}
+\renewcommand\cftdotsep{1}
+
+%% Hyperlinks setup
+\hypersetup{
+  bookmarks=true,
+  linkcolor=.,
+  urlcolor=blue,
+  pdfcreator=bard v. 1.1.0 - https://github.com/vojtechkral/bard,
+}
+
+%% Song title and subtitle formats
+\titleformat{\section}
+  {\centering\large\bfseries}{}{0pt}{\underline}
+\titlespacing*{\section}
+  {0pt}{0pt}{.25ex}
+\newcommand\songtitle[1]{%
+  % This is a trick to only layout a song on the current page
+  % if it fits, otherwise a pagebreak is inserted
+  \FloatBlock
+  \vfil
+  \pagebreak[2]
+  \vfilneg
+  \section{#1}
+}
+\newcommand\subtitle[1]{%
+  \emph{#1}
+}
+
+%% Verse and Chord layout commands
+\makeatletter
+% The verse & label layout code was written by Jonathan P. Spratte
+% under the Beerware license: As long as you retain this notice you
+% can do whatever you want with this stuff. If we meet some day, and you think
+% this stuff is worth it, you can buy me a beer in return. Jonathan P. Spratte
+\newlength\verse@indent
+\newlength\verse@labelsep
+\newlength\verse@vskip
+\AtBeginDocument{% setting AtBeginDocument since earlier we can't rely on em being correct
+  \verse@indent=12mm
+  \verse@labelsep=2mm
+  \verse@vskip=\smallskipamount
+}
+\newcommand\Verse[1]{%
+    \par
+    \vskip\verse@vskip
+    \noindent\kern-\verse@indent
+    \sbox0{\textbf{\footnotesize{#1}}}%
+    \ifdim\wd0>\dimexpr\verse@indent-\verse@labelsep\relax
+      \usebox0\kern\verse@labelsep
+    \else
+      \makebox[\verse@indent][l]{\usebox0}%
+    \fi
+    \ignorespaces
+}
+
+\newcommand{\Chord}{\@ifstar{\@Chordalt}{\@Chord}}
+\newcommand{\@Chord}[2]{%
+  \begin{tabular}[b]{l}%
+    \textbf{\textcolor{red}{#1}}\\%  % The chord
+    #2\mbox{}\end{tabular}%          % The lyrics
+}
+\newcommand{\@Chordalt}[3]{%
+  \begin{tabular}[b]{l}%
+    \textbf{\textcolor{red}{#1}}\\%  % The chord
+    \textbf{\textcolor{blue}{#2}}\\% % The alt chord
+    #3\mbox{}\end{tabular}%          % The lyrics
+}
+\makeatother
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+% Metadata
+\title{My Songbook}
+
+% Document
+\begin{document}
+
+%% Title page
+\frontmatter
+\begin{titlingpage}
+  \begin{vplace}[0.5]
+    \begin{center}
+      \Huge{\textbf{My Songbook}} \\
+      \vspace{0.5cm}
+      \LARGE{(You can edit that title!)} \\
+    \end{center}
+  \end{vplace}
+
+  \mbox{}
+  \vfill
+  \begin{center}\small{(And this note too...)}\end{center}
+\end{titlingpage}
+
+%% Contents page
+\tableofcontents*
+
+%% Songs
+\mainmatter
+
+\pagestyle{songs}
+
+  %% song 0
+  \songtitle{Yippie Yeah}
+
+  \begin{center}
+      \subtitle{(You can edit this content!)}
+    \end{center}
+  
+  
+
+  
+  \Verse{1.} \Chord{Am}{Yippie~yea~}\Chord{C}{oh!}\\
+Yippie~yea~\Chord{Am}{yay!}
+
+    \vspace{\parskip}
+
+  
+
+
+
+\backmatter
+\pagestyle{empty}
+
+
+
+\end{document}

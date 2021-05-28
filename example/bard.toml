@@ -13,7 +13,7 @@ file = "songbook.tex"
 template = "pdf.hbs"
 font = "DejaVu Sans"
 dpi = 144
-process = "tectonic {{file}}"
+process = "xelatex {{file}}"
 
 [[output]]
 file = "songbook.html"
