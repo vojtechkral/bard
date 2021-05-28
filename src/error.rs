@@ -2,7 +2,7 @@ use std::path::PathBuf;
 
 use thiserror::Error;
 
-pub use anyhow::{anyhow, bail, ensure, Context as _, Result, Error};
+pub use anyhow::{anyhow, bail, ensure, Context as _, Error, Result};
 
 #[derive(Error, Debug)]
 pub enum ErrorNotify {

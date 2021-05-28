@@ -1,15 +1,15 @@
 use std::mem;
 use std::str;
 
+use comrak::nodes::{AstNode, ListType, NodeValue};
 use comrak::{ComrakExtensionOptions, ComrakOptions, ComrakParseOptions, ComrakRenderOptions};
-use comrak::nodes::{AstNode, NodeValue, ListType};
 use lazy_static::lazy_static;
-use regex::{Regex, Captures};
+use regex::{Captures, Regex};
 
 use crate::book::*;
-use crate::util::{BStr, ByteSliceExt};
-use crate::music::{self, Notation};
 use crate::error::*;
+use crate::music::{self, Notation};
+use crate::util::{BStr, ByteSliceExt};
 
 type AstRef<'a> = &'a AstNode<'a>;
 type Arena<'a> = comrak::Arena<AstNode<'a>>;
@@ -323,7 +323,6 @@ impl<'a> NodeExt<'a> for AstNode<'a> {
     }
 }
 
-
 #[derive(Debug)]
 struct ChordBuilder {
     chord: BStr,
@@ -380,7 +379,6 @@ impl ChordBuilder {
     }
 }
 
-
 #[derive(Debug)]
 struct VerseBuilder<'a> {
     label: VerseLabel,
@@ -400,7 +398,10 @@ impl<'a> VerseBuilder<'a> {
     }
 
     fn with_p_nodes<'n, I>(
-        label: VerseLabel, xp: Transposition, config: &'a ParserConfig, mut nodes: I,
+        label: VerseLabel,
+        xp: Transposition,
+        config: &'a ParserConfig,
+        mut nodes: I,
     ) -> Result<Self>
     where
         I: Iterator<Item = AstRef<'a>>,
@@ -1159,10 +1160,10 @@ Some lyrics.
 "#;
 
         let song = parse_one(input);
-        assert_eq!(&*song.subtitles, &[
-            "Subtitle 1".into(),
-            "Subtitle 2".into(),
-        ]);
+        assert_eq!(
+            &*song.subtitles,
+            &["Subtitle 1".into(), "Subtitle 2".into(),]
+        );
     }
 
     #[test]

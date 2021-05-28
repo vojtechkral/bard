@@ -17,9 +17,7 @@ fn watch() {
     // Start bard watch in another thread
     let dir2 = build.dir.clone();
     let (watch, cancellation) = Watch::new().unwrap();
-    let watch_thread = thread::spawn(move || {
-        bard::bard_watch_at(&OPTS_NO_PS, &dir2, watch)
-    });
+    let watch_thread = thread::spawn(move || bard::bard_watch_at(&OPTS_NO_PS, &dir2, watch));
 
     thread::sleep(DELAY);
 

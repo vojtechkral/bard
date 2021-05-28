@@ -1,22 +1,22 @@
-use std::str;
+use std::collections::HashMap;
+use std::ffi::OsStr;
+use std::fs;
 use std::iter;
 use std::path::{self, Path, PathBuf};
-use std::ffi::OsStr;
-use std::collections::HashMap;
-use std::fs;
 use std::process::Command;
+use std::str;
 
-use toml;
 use handlebars::Handlebars;
 use serde::{Deserialize, Serialize};
+use toml;
 
-use crate::default_project::DEFAULT_PROJECT;
 use crate::book::{Book, Song};
-use crate::music::Notation;
-use crate::render::{Render, RHtml, RHovorka, RTex, RJson};
 use crate::cli;
-use crate::util::*;
+use crate::default_project::DEFAULT_PROJECT;
 use crate::error::*;
+use crate::music::Notation;
+use crate::render::{RHovorka, RHtml, RJson, RTex, Render};
+use crate::util::*;
 
 pub use toml::Value;
 
@@ -193,7 +193,7 @@ impl Output {
     fn post_process(&self) -> Option<&CmdSpec> {
         if cfg!(windows) {
             if self.post_process_win.is_some() {
-                return self.post_process_win.as_ref()
+                return self.post_process_win.as_ref();
             }
         }
 
@@ -303,7 +303,6 @@ impl<'a> PostProcessCtx<'a> {
     }
 }
 
-
 #[derive(Debug)]
 pub struct Project {
     pub project_dir: PathBuf,
@@ -402,7 +401,9 @@ impl Project {
     }
 
     fn post_process_one<'a>(
-        &'a self, context: &'a PostProcessCtx<'a>, mut iter: impl Iterator<Item = &'a str>,
+        &'a self,
+        context: &'a PostProcessCtx<'a>,
+        mut iter: impl Iterator<Item = &'a str>,
     ) -> Result<()> {
         let arg0 = match iter.next() {
             Some(arg0) => (arg0),
@@ -410,9 +411,9 @@ impl Project {
         };
 
         let hb = Handlebars::new();
-        let arg0_r = hb.render_template(arg0, context).with_context(|| {
-            format!("Could not substitute command: '{}'", arg0)
-        })?;
+        let arg0_r = hb
+            .render_template(arg0, context)
+            .with_context(|| format!("Could not substitute command: '{}'", arg0))?;
 
         let mut cmd = Command::new(arg0_r.clone());
         let mut cmd_src = arg0_r;

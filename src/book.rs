@@ -5,11 +5,11 @@ use std::path::Path;
 
 use serde::Serialize;
 
-use crate::util::BStr;
 use crate::error::*;
 use crate::music::Notation;
 use crate::parser::{Parser, ParserConfig};
 use crate::project::Settings;
+use crate::util::BStr;
 
 #[derive(Serialize, Debug)]
 #[serde(tag = "type")]
@@ -162,7 +162,6 @@ impl Chord {
     }
 }
 
-
 #[derive(Serialize, Debug)]
 pub struct Link {
     pub url: BStr,
@@ -249,7 +248,6 @@ impl Verse {
         self.paragraphs.is_empty()
     }
 }
-
 
 #[derive(Serialize, Debug)]
 pub struct BulletList {
@@ -346,7 +344,7 @@ where
 {
     #[track_caller]
     fn assert_eq(&self, value: serde_json::Value) {
-        use assert_json_diff::{assert_json_matches_no_panic, Config, CompareMode};
+        use assert_json_diff::{assert_json_matches_no_panic, CompareMode, Config};
 
         let config = Config::new(CompareMode::Strict);
         if let Err(diff) = assert_json_matches_no_panic(self, &value, config) {

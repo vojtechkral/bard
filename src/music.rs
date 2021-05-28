@@ -1,6 +1,6 @@
+use std::fmt;
 use std::ops;
 use std::str::FromStr;
-use std::fmt;
 
 use serde::{Deserialize, Serialize};
 
@@ -340,7 +340,6 @@ impl fmt::Display for Chromatic {
     }
 }
 
-
 #[derive(Clone, Debug)]
 pub struct Chord {
     base: Chromatic,
@@ -466,7 +465,6 @@ impl fmt::Display for Chord {
         write!(f, "{}", self.to_string(Notation::English))
     }
 }
-
 
 #[cfg(test)]
 mod tests {

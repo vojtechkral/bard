@@ -3,23 +3,23 @@ use std::ffi::OsString;
 use std::path::{Path, PathBuf};
 
 use serde::Serialize;
-use structopt::StructOpt;
 use structopt::clap::AppSettings;
+use structopt::StructOpt;
 
-pub mod project;
+pub mod book;
+pub mod cli;
 pub mod default_project;
+pub mod error;
 pub mod music;
 pub mod parser;
-pub mod book;
+pub mod project;
 pub mod render;
-pub mod watch;
-pub mod cli;
 pub mod util;
-pub mod error;
+pub mod watch;
 
+use crate::error::*;
 use crate::project::Project;
 use crate::watch::{Watch, WatchEvent};
-use crate::error::*;
 
 #[derive(Serialize, Clone, Debug)]
 pub struct ProgramMeta {

@@ -1,8 +1,8 @@
 use std::fmt::Display;
 use std::sync::atomic::{AtomicBool, Ordering};
 
-use colored::*;
 use anyhow::Error;
+use colored::*;
 
 static USE_STDERR: AtomicBool = AtomicBool::new(false);
 

@@ -1,13 +1,12 @@
 use std::path::PathBuf;
-use std::sync::mpsc::{channel, Sender, Receiver};
-use std::time::Duration;
+use std::sync::mpsc::{channel, Receiver, Sender};
 use std::thread;
+use std::time::Duration;
 
-use notify::{RecommendedWatcher, Watcher, RecursiveMode, DebouncedEvent};
+use notify::{DebouncedEvent, RecommendedWatcher, RecursiveMode, Watcher};
 
-use crate::project::Project;
 use crate::error::*;
-
+use crate::project::Project;
 
 type Result<T, E = ErrorNotify> = std::result::Result<T, E>;
 

@@ -1,20 +1,20 @@
-use std::fs;
 use std::collections::HashMap;
+use std::fs;
 use std::path::{Path, PathBuf};
 use std::sync::Mutex;
 
-use handlebars::{self as hb, Handlebars, HelperDef, JsonValue, handlebars_helper};
-use regex::{Regex, Error as ReError};
+use handlebars::{self as hb, handlebars_helper, Handlebars, HelperDef, JsonValue};
 use image::image_dimensions;
 use lazy_static::lazy_static;
+use regex::{Error as ReError, Regex};
 use serde::Serialize;
 
+use super::Render;
 use crate::book::Song;
+use crate::error::*;
 use crate::project::{Metadata, Output, Project};
 use crate::util::PathBufExt;
-use crate::{PROGRAM_META, ProgramMeta};
-use crate::error::*;
-use super::Render;
+use crate::{ProgramMeta, PROGRAM_META};
 
 type RegexCache = HashMap<String, Result<Regex, ReError>>;
 
@@ -115,7 +115,10 @@ impl ImgHelper {
 
 impl HelperDef for ImgHelper {
     fn call_inner<'reg: 'rc, 'rc>(
-        &self, h: &hb::Helper<'reg, 'rc>, _: &'reg Handlebars<'reg>, _: &'rc hb::Context,
+        &self,
+        h: &hb::Helper<'reg, 'rc>,
+        _: &'reg Handlebars<'reg>,
+        _: &'rc hb::Context,
         _: &mut hb::RenderContext<'reg, 'rc>,
     ) -> Result<Option<hb::ScopedJson<'reg, 'rc>>, hb::RenderError> {
         let path: &str = h
@@ -160,7 +163,10 @@ impl DpiHelper {
 
 impl HelperDef for DpiHelper {
     fn call_inner<'reg: 'rc, 'rc>(
-        &self, h: &hb::Helper<'reg, 'rc>, _: &'reg Handlebars<'reg>, _: &'rc hb::Context,
+        &self,
+        h: &hb::Helper<'reg, 'rc>,
+        _: &'reg Handlebars<'reg>,
+        _: &'rc hb::Context,
         _: &mut hb::RenderContext<'reg, 'rc>,
     ) -> Result<Option<hb::ScopedJson<'reg, 'rc>>, hb::RenderError> {
         let value: f64 = h
@@ -281,7 +287,6 @@ impl Render for RHtml {
     }
 }
 
-
 pub struct RTex;
 
 impl DefaultTemaplate for RTex {
@@ -300,7 +305,6 @@ impl Render for RTex {
         render.render()
     }
 }
-
 
 pub struct RHovorka;
 

@@ -1,13 +1,13 @@
-use std::path::{Path, PathBuf};
 use std::fs;
 use std::iter;
+use std::path::{Path, PathBuf};
 
 use lazy_static::lazy_static;
 
-use crate::project::{PROJECT_FILE, DIR_SONGS, DIR_TEMPLATES};
+use crate::error::*;
+use crate::project::{DIR_SONGS, DIR_TEMPLATES, PROJECT_FILE};
 use crate::render::{DefaultTemaplate, RHtml, RTex};
 use crate::util::PathBufExt as _;
-use crate::error::*;
 
 /// File: Contains a filename and the file's content
 #[derive(Debug)]
@@ -45,7 +45,6 @@ impl File {
             .with_context(|| format!("Could not initialize file `{}`", self.path.display()))
     }
 }
-
 
 #[derive(Debug)]
 pub struct DefaultProject {

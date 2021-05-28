@@ -1,6 +1,6 @@
 use std::fs;
 
-use bard::render::{RHtml, RTex, RHovorka, DefaultTemaplate};
+use bard::render::{DefaultTemaplate, RHovorka, RHtml, RTex};
 
 mod util;
 pub use util::*;
@@ -16,12 +16,12 @@ fn project_example() {
 }
 
 #[test]
-fn project_default_templates () {
+fn project_default_templates() {
     let _build = Builder::build(TEST_PROJECTS / "default-templates").unwrap();
 }
 
 #[test]
-fn project_default_templates_save () {
+fn project_default_templates_save() {
     let build = Builder::build(TEST_PROJECTS / "default-templates-save").unwrap();
     let templates = build.dir.join("templates");
 

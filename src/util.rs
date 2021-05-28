@@ -1,6 +1,6 @@
-use std::process::ExitStatus;
-use std::path::{self, PathBuf, Path};
 use std::env;
+use std::path::{self, Path, PathBuf};
+use std::process::ExitStatus;
 
 #[cfg(unix)]
 use std::os::unix::process::ExitStatusExt as _;
