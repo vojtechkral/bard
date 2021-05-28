@@ -17,6 +17,14 @@ pub const OPTS_NO_PS: MakeOpts = MakeOpts {
     no_postprocess: true,
 };
 
+pub const ROOT: ProjectPath = ProjectPath {
+    path: &[],
+};
+
+pub const TEST_PROJECTS: ProjectPath = ProjectPath {
+    path: &["tests", "test-projects"],
+};
+
 #[derive(Clone, Copy, Debug)]
 pub struct ProjectPath {
     path: &'static [&'static str],
@@ -34,14 +42,6 @@ impl<'rhs> ops::Div<&'rhs str> for ProjectPath {
         res
     }
 }
-
-pub const ROOT: ProjectPath = ProjectPath {
-    path: &[],
-};
-
-pub const TEST_PROJECTS: ProjectPath = ProjectPath {
-    path: &["tests", "projects"],
-};
 
 pub fn assert_file_contains<P: AsRef<Path>>(path: P, what: &str) {
     let content = fs::read_to_string(&path).unwrap();
