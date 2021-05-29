@@ -225,7 +225,7 @@ impl Chromatic {
     pub fn parse_span(from: &str, notation: Notation) -> Option<(Chromatic, usize)> {
         use self::Notation::*;
 
-        if from.len() == 0 {
+        if from.is_empty() {
             None
         } else {
             match notation {
@@ -362,7 +362,7 @@ impl Chord {
     /// bytes) til separator position (if any). Returns `None` if the chord
     /// can't be parsed.
     fn parse_one(from: &str, notation: Notation) -> Option<(Chord, usize)> {
-        if from.len() == 0 {
+        if from.is_empty() {
             return None;
         }
 
@@ -371,6 +371,7 @@ impl Chord {
         let uppercase = first_char.is_uppercase() || first_char.is_numeric();
 
         let mut sep_found = false;
+        let len = from.len();
         let end = from[base_size..]
             .char_indices()
             .find(|(_, c)| {

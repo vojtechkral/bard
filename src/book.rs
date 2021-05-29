@@ -309,7 +309,7 @@ impl Book {
     }
 
     pub fn add_md_str(&mut self, source: &str) -> Result<()> {
-        static STR_PATH: &'static str = "<buffer>";
+        static STR_PATH: &str = "<buffer>";
         self.add_md(source, &Path::new(&STR_PATH))
     }
 
