@@ -27,5 +27,3 @@ deploy:
   skip_cleanup: true
 
 cache: cargo
-before_cache:
-  - chmod -R a+r $HOME/.cargo
