@@ -14,8 +14,7 @@ before_install:
   - rustup component add rustfmt clippy
 
 script:
-  - cargo fmt -- --check && cargo test --release --locked
-  - cargo clippy
+  - cargo fmt -- --check && cargo test --release --locked && cargo clippy
 
 deploy:
   provider: releases

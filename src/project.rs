@@ -311,11 +311,13 @@ pub struct Project {
 impl Project {
     pub fn new<P: AsRef<Path>>(cwd: P) -> Result<Project> {
         let cwd = cwd.as_ref();
-        let (project_file, project_dir) = Self::find_in_parents(cwd).ok_or_else(|| anyhow!(
-            "Could not find {} in current or parent directories\nCurrent directory: '{}'",
-            PROJECT_FILE,
-            cwd.display()
-        ))?;
+        let (project_file, project_dir) = Self::find_in_parents(cwd).ok_or_else(|| {
+            anyhow!(
+                "Could not find {} in current or parent directories\nCurrent directory: '{}'",
+                PROJECT_FILE,
+                cwd.display()
+            )
+        })?;
 
         cli::status("Loading", &format!("project at {}", project_dir.display()));
 
