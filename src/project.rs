@@ -8,7 +8,6 @@ use std::str;
 
 use handlebars::Handlebars;
 use serde::{Deserialize, Serialize};
-use toml;
 
 use crate::book::{Book, Song};
 use crate::cli;
@@ -20,10 +19,10 @@ use crate::util::*;
 
 pub use toml::Value;
 
-pub const PROJECT_FILE: &'static str = "bard.toml";
-pub const DIR_SONGS: &'static str = "songs";
-pub const DIR_TEMPLATES: &'static str = "templates";
-pub const DIR_OUTPUT: &'static str = "output";
+pub const PROJECT_FILE: &str = "bard.toml";
+pub const DIR_SONGS: &str = "songs";
+pub const DIR_TEMPLATES: &str = "templates";
+pub const DIR_OUTPUT: &str = "output";
 
 const CHORUS_LABEL_KEY: &str = "chorus_label";
 const CHORUS_LABEL_DEFAULT: &str = "Ch";
@@ -50,7 +49,7 @@ pub enum SongsGlobs {
 }
 
 impl SongsGlobs {
-    fn iter<'a>(&'a self) -> impl Iterator<Item = &'a str> {
+    fn iter(&self) -> impl Iterator<Item = &str> {
         let mut pos = 0;
 
         iter::from_fn(move || match self {
@@ -154,7 +153,7 @@ impl Output {
             .and_then(OsStr::to_str)
             .map(str::to_lowercase);
 
-        self.format = match ext.as_ref().map(String::as_str) {
+        self.format = match ext.as_deref() {
             Some("html") | Some("xhtml") | Some("htm") | Some("xht") => Format::Html,
             Some("tex") => Format::Tex,
             Some("xml") => Format::Hovorka,
@@ -175,26 +174,21 @@ impl Output {
             .map(|name| {
                 name.to_str()
                     .expect("OutputSpec: template path must be valid utf-8")
-                    .into()
             })
             .expect("OutputSpec: Invalid filename")
     }
 
     fn template_path(&self) -> Option<&Path> {
         match self.format {
-            Format::Html | Format::Tex | Format::Hovorka => {
-                self.template.as_ref().map(PathBuf::as_path)
-            }
+            Format::Html | Format::Tex | Format::Hovorka => self.template.as_deref(),
             Format::Json => None,
             Format::Auto => Format::no_auto(),
         }
     }
 
     fn post_process(&self) -> Option<&CmdSpec> {
-        if cfg!(windows) {
-            if self.post_process_win.is_some() {
-                return self.post_process_win.as_ref();
-            }
+        if cfg!(windows) && self.post_process_win.is_some() {
+            return self.post_process_win.as_ref();
         }
 
         self.post_process.as_ref()
@@ -208,7 +202,7 @@ impl Output {
                     .expect("OutputSpec: template path must be valid utf-8")
                     .into()
             })
-            .unwrap_or(String::from("<builtin>"))
+            .unwrap_or_else(|| String::from("<builtin>"))
     }
 
     pub fn dpi(&self) -> f64 {
@@ -317,11 +311,13 @@ pub struct Project {
 impl Project {
     pub fn new<P: AsRef<Path>>(cwd: P) -> Result<Project> {
         let cwd = cwd.as_ref();
-        let (project_file, project_dir) = Self::find_in_parents(cwd).ok_or(anyhow!(
-            "Could not find {} in current or parent directories\nCurrent directory: '{}'",
-            PROJECT_FILE,
-            cwd.display()
-        ))?;
+        let (project_file, project_dir) = Self::find_in_parents(cwd).ok_or_else(|| {
+            anyhow!(
+                "Could not find {} in current or parent directories\nCurrent directory: '{}'",
+                PROJECT_FILE,
+                cwd.display()
+            )
+        })?;
 
         cli::status("Loading", &format!("project at {}", project_dir.display()));
 

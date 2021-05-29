@@ -11,18 +11,18 @@ pub type BStr = Box<str>;
 
 /// Byte slice extension (also for `Vec<u8>`)
 pub trait ByteSliceExt {
-    fn into_bstr(&self) -> BStr;
+    fn as_bstr(&self) -> BStr;
 }
 
 impl ByteSliceExt for [u8] {
-    fn into_bstr(&self) -> BStr {
-        String::from_utf8_lossy(self).into()
+    fn as_bstr(&self) -> BStr {
+        String::from_utf8_lossy(self).as_ref().into()
     }
 }
 
 impl ByteSliceExt for Vec<u8> {
-    fn into_bstr(&self) -> BStr {
-        self.as_slice().into_bstr()
+    fn as_bstr(&self) -> BStr {
+        self.as_slice().as_bstr()
     }
 }
 
@@ -47,7 +47,8 @@ impl PathBufExt for PathBuf {
     }
 
     fn utf8_check(&self) -> Result<(), path::Display> {
-        self.to_str().map(|_| ()).ok_or(self.display())
+        self.to_str().ok_or_else(|| self.display())?;
+        Ok(())
     }
 }
 

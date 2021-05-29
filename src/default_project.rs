@@ -95,13 +95,13 @@ impl DefaultProject {
         })
     }
 
-    fn files<'a>(&'a self) -> impl Iterator<Item = &'a File> {
+    fn files(&self) -> impl Iterator<Item = &File> {
         iter::once(&self.project_file)
             .chain(self.songs.iter())
             .chain(self.templates.iter())
     }
 
-    fn any_exists<'a>(&'a self) -> Option<&'a File> {
+    fn any_exists(&self) -> Option<&File> {
         self.files().find(|&f| f.exists())
     }
 }

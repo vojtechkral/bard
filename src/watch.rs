@@ -76,7 +76,7 @@ impl Watch {
 
             if self.rx.try_recv().is_ok() {
                 // Drain all immediately available evts
-                while let Ok(_) = self.rx.try_recv() {}
+                while self.rx.try_recv().is_ok() {}
             } else {
                 break;
             }

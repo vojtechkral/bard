@@ -79,12 +79,10 @@ impl Extension {
         if let Some(xpose) = self.try_parse_xpose() {
             // Transposition extension recognized
             Some(Inline::Transpose(xpose))
-        } else if let Some(chorus_ref) = self.try_parse_chorus_ref() {
-            // Chorus reference extension recognized
-            Some(Inline::ChorusRef(chorus_ref))
         } else {
-            // No recognized extension, just push as regular text
-            None
+            // Try parsing chorus reference,
+            // push as regular text if not recognized
+            self.try_parse_chorus_ref().map(Inline::ChorusRef)
         }
     }
 }
@@ -341,7 +339,7 @@ impl ChordBuilder {
         }
     }
 
-    fn inlines_mut<'s>(&'s mut self) -> &'s mut Vec<Inline> {
+    fn inlines_mut(&mut self) -> &mut Vec<Inline> {
         &mut self.inlines
     }
 
@@ -498,14 +496,14 @@ impl<'a> VerseBuilder<'a> {
                 assert!(text.is_text());
                 let text = text.as_plaintext().into();
 
-                let link = Link::new(link.url.into_bstr(), link.title.into_bstr(), text);
+                let link = Link::new(link.url.as_bstr(), link.title.as_bstr(), text);
                 Inline::Link(link)
             }
             NodeValue::Image(link) => {
                 let img = Image::new(
-                    link.url.into_bstr(),
+                    link.url.as_bstr(),
                     node.as_plaintext().into(),
-                    link.title.into_bstr(),
+                    link.title.as_bstr(),
                 );
                 Inline::Image(img)
             }
@@ -533,7 +531,7 @@ impl<'a> VerseBuilder<'a> {
                     cb.finalize(&mut para);
                 }
 
-                let mut new_cb = ChordBuilder::new(code.into_bstr(), c_data.start_line);
+                let mut new_cb = ChordBuilder::new(code.as_bstr(), c_data.start_line);
                 if self.xp.is_some() {
                     new_cb.transpose(&self.xp).with_context(|| {
                         format!(
@@ -590,7 +588,7 @@ impl<'a> VerseBuilder<'a> {
     }
 
     fn finalize(self) -> (Verse, Transposition) {
-        let verse = Verse::new(self.label.into(), self.paragraphs);
+        let verse = Verse::new(self.label, self.paragraphs);
         (verse, self.xp)
     }
 }
@@ -610,7 +608,7 @@ impl<'a> SongBuilder<'a> {
     fn new(nodes: &'a [AstRef<'a>], config: &'a ParserConfig) -> Self {
         // Read song title or use fallback
         let (title, nodes) = match nodes.first() {
-            Some(n) if n.is_h(1) => (n.as_plaintext().into(), &nodes[1..]),
+            Some(n) if n.is_h(1) => (n.as_plaintext(), &nodes[1..]),
             _ => (config.fallback_title.clone(), nodes),
         };
 
@@ -670,7 +668,7 @@ impl<'a> SongBuilder<'a> {
                     prev_bq = false;
                 }
 
-                if !self.verse.is_some() {
+                if self.verse.is_none() {
                     let label = VerseLabel::Chorus(Some(level));
                     let verse = VerseBuilder::new(label, self.xp.clone(), &self.config);
                     self.verse = Some(verse);
@@ -731,7 +729,7 @@ impl<'a> SongBuilder<'a> {
                 }
 
                 NodeValue::CodeBlock(cb) => self.blocks.push(Block::Pre {
-                    text: cb.literal.into_bstr(),
+                    text: cb.literal.as_bstr(),
                 }),
 
                 _ => {}
@@ -760,7 +758,7 @@ impl<'a> SongBuilder<'a> {
         let mut song = Song {
             title: self.title.into(),
             subtitles: self.subtitles.into(),
-            blocks: self.blocks.into(),
+            blocks: self.blocks,
             notation: self.xp.src_notation,
         };
 

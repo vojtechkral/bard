@@ -11,10 +11,10 @@ jobs:
       env: EXE=bard.exe
 
 before_install:
-  - rustup component add rustfmt
+  - rustup component add rustfmt clippy
 
 script:
-  - cargo fmt -- --check && cargo test --release --locked
+  - cargo fmt -- --check && cargo test --release --locked && cargo clippy
 
 deploy:
   provider: releases
@@ -27,5 +27,3 @@ deploy:
   skip_cleanup: true
 
 cache: cargo
-before_cache:
-  - chmod -R a+r $HOME/.cargo

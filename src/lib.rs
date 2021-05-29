@@ -118,7 +118,7 @@ pub fn bard_watch_at<P: AsRef<Path>>(opts: &MakeOpts, path: P, mut watch: Watch)
     loop {
         let project = bard_make_at(opts, &path)?;
 
-        eprintln!("");
+        eprintln!();
         cli::status("Watching", "for changes in the project ...");
         match watch.watch(&project)? {
             WatchEvent::Path(path) => {
