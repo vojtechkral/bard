@@ -57,7 +57,7 @@
 \titleformat{\section}
   {\centering\large\bfseries}{}{0pt}{\underline}
 \titlespacing*{\section}
-  {0pt}{0pt}{.25ex}
+  {0pt}{7mm}{0pt}
 \newcommand\songtitle[1]{%
   % This is a trick to only layout a song on the current page
   % if it fits, otherwise a pagebreak is inserted
@@ -135,8 +135,8 @@
 \begin{document}
 
 %% Title page
-\frontmatter
-\begin{titlingpage}
+\frontmatter*
+\begin{titlingpage*}
   \begin{vplace}[0.5]
     \begin{center}
       \Huge{\textbf{Bard Songbook}} \\
@@ -151,13 +151,13 @@
   \mbox{}
   \vfill
   \begin{center}\small{A set of a few non-copyrighted songs.}\end{center}
-\end{titlingpage}
+\end{titlingpage*}
 
 %% Contents page
 \tableofcontents*
 
 %% Songs
-\mainmatter
+\mainmatter*
 
 \pagestyle{songs}
 

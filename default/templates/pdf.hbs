@@ -63,7 +63,7 @@
 \titleformat{\section}
   {\centering\large\bfseries}{}{0pt}{\underline}
 \titlespacing*{\section}
-  {0pt}{0pt}{.25ex}
+  {0pt}{7mm}{0pt}
 \newcommand\songtitle[1]{%
   % This is a trick to only layout a song on the current page
   % if it fits, otherwise a pagebreak is inserted
@@ -188,8 +188,8 @@
 \begin{document}
 
 %% Title page
-\frontmatter
-\begin{titlingpage}
+\frontmatter*
+\begin{titlingpage*}
   \begin{vplace}[0.5]
     \begin{center}
       \Huge{\textbf{ {{~ book.title ~}} }} \\
@@ -205,13 +205,13 @@
   \mbox{}
   \vfill
   \begin{center}\small{ {{~ book.title_note ~}} }\end{center}
-\end{titlingpage}
+\end{titlingpage*}
 
 %% Contents page
 \tableofcontents*
 
 %% Songs
-\mainmatter
+\mainmatter*
 
 \pagestyle{songs}
 {{#each songs -}}
