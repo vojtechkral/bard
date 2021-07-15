@@ -1,9 +1,9 @@
 # Danny Boy
 ## English ballad
 
-1. `G7`Oh Danny `C`Boy, the pipes, the `C7`pipes are `F`calling
+1. `G7`Oh Danny `C`Boy, the pipes, the ``C7``pipes are `F`calling
 From glen to `C`glen, and `Em`down the `F`mountain `G7`side
-The summer’s `C`gone, and all the `C7`flowers are `F`dying
+The summer’s `C`gone, and all the ``C7``flowers are `F`dying
 ‘Tis you, ’tis `C`you must `Dm`go and `G7`I must `C`bide.
 
 > `G7`But come ye `Am`back when `F`summer’s `G7`in the `C`meadow

@@ -95,6 +95,13 @@ Chords may be inserted anywhere, including middle of a word or end of line.
 Chords may be transposed and there also may be a second line of chords generated
 from the first line by tansposition or notation conversion (see the [Transposition doc](./transposition.md)).
 
+In Markdown, there may be more than one backtick charater sorrounding the inline, ie. for example ` ``G`` `.
+*bard* passes the number of backticks used to the templates.
+By default multiple backticks are used for chords considered optional, ie. for additional musical effect or for advanced players.
+They are rendered slightly smaller and in non-bold font.
+
+## Referencing choruses
+
 Additionally, *bard* defines a *chorus reference* inline element, this is as an extension to Markdown.  
 The syntax is an `!` followed by the same number of `>` characters as in the chorus definition.
 For example:
@@ -107,7 +114,9 @@ Will ye go lassie go? !>
 and will be replaced by the `chorus_label` in the final render.
 Some output formats, such as Hovorka XML, instead use this information to insert chorus references specific to that format.
 
-Rich text formatting such as _emphasized_ or **bold** text is supported, but only in verse text,
+## Rich text
+
+Formatting such as _emphasized_ or **bold** text is supported, but only in verse text,
 not in other parts of the song (such as titles, subtitles, bullet lists, etc.).
 Hyperlinks are supported but rich text inside hyperlinks is not (the content is treated as plaintext).
 
@@ -115,7 +124,9 @@ Some output formats (Hovorka XML) don't support rich text and simply render it a
 
 ## Images
 
-Inserting images is supported. Images are expected to be placed in the `output` folder, where they can be referenced by HTML and TeX. In Markdown, this is the syntax for images:
+Inserting images is supported in HTML and TeX.
+Images are expected to be placed in the `output` folder, where they can be referenced by the template files.
+In Markdown, this is the syntax for images:
 
 ```Markdown
 ![alt-text](path "title")
