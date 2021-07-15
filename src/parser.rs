@@ -606,6 +606,7 @@ struct SongBuilder<'a> {
     blocks: Vec<Block>,
     xp: Transposition,
     config: &'a ParserConfig,
+    verse_num: u32,
 }
 
 impl<'a> SongBuilder<'a> {
@@ -634,7 +635,13 @@ impl<'a> SongBuilder<'a> {
             blocks: vec![],
             xp: Transposition::new(config.notation, config.xp_disabled),
             config,
+            verse_num: 0,
         }
+    }
+
+    fn next_verse_num(&mut self) -> u32 {
+        self.verse_num += 1;
+        self.verse_num
     }
 
     fn verse_mut<'s>(&'s mut self) -> &'s mut VerseBuilder<'a> {
@@ -695,11 +702,11 @@ impl<'a> SongBuilder<'a> {
                 NodeValue::Paragraph => self.verse_mut().add_p_node(node)?,
 
                 NodeValue::List(list) if matches!(list.list_type, ListType::Ordered) => {
-                    for (i, item) in node.children().enumerate() {
+                    for item in node.children() {
                         assert!(item.is_item());
                         self.verse_finalize();
 
-                        let label = VerseLabel::Verse((list.start + i) as u32);
+                        let label = VerseLabel::Verse(self.next_verse_num());
                         let verse = VerseBuilder::with_p_nodes(
                             label,
                             self.xp.clone(),
@@ -943,6 +950,13 @@ mod tests {
         match block {
             Block::Verse(v) => Vec::from(v.paragraphs).drain(..).next().unwrap(),
             _ => panic!("First block in this Song isn't a Verse"),
+        }
+    }
+
+    fn get_verse(song: &Song, block_num: usize) -> &Verse {
+        match &song.blocks[block_num] {
+            Block::Verse(verse) => verse,
+            b => panic!("Unexpected block type: {:?}", b),
         }
     }
 
@@ -1393,5 +1407,38 @@ Mixed !>> in text.
               ]
             }
         ]));
+    }
+
+    #[test]
+    fn parse_verse_numbering() {
+        let input = r#"
+# Song 1
+
+1. Verse 1.
+> Chorus 1.
+1. Verse 2.
+>> Chorus 2.
+1. Verse 3.
+
+# Song 2
+
+1. Verse 1.
+2. Verse 2.
+> Chorus.
+>> Chorus two.
+3. Verse 3.
+3. Verse 3.
+"#;
+
+        let songs = parse(input, true);
+
+        assert_eq!(get_verse(&songs[0], 0).label, VerseLabel::Verse(1));
+        assert_eq!(get_verse(&songs[0], 2).label, VerseLabel::Verse(2));
+        assert_eq!(get_verse(&songs[0], 4).label, VerseLabel::Verse(3));
+
+        assert_eq!(get_verse(&songs[1], 0).label, VerseLabel::Verse(1));
+        assert_eq!(get_verse(&songs[1], 1).label, VerseLabel::Verse(2));
+        assert_eq!(get_verse(&songs[1], 4).label, VerseLabel::Verse(3));
+        assert_eq!(get_verse(&songs[1], 5).label, VerseLabel::Verse(4));
     }
 }

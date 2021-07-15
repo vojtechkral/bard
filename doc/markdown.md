@@ -72,6 +72,9 @@ chorus number and a dot is appended. By default chorus label is `"Ch"`.
 If there is only one chorus in a song, no number is added and simply `"Ch."` is used (or whatever is set in `chorus_label`).
 Choruses may be referenced from verse text, see below.
 
+*bard* automatically maintains correct numerical order of numbered verses throughout each song,
+ie. you can use `1.` for all the numbered verses and they will still be numbered correctly in the output.
+
 Note: Nested list as well as blockqutes nested within lists or vice versa are not supported.
 
 ## Lyrics with chords

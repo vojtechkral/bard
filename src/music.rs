@@ -371,6 +371,7 @@ impl Chord {
         let uppercase = first_char.is_uppercase() || first_char.is_numeric();
 
         let mut sep_found = false;
+        let len = from.len();
         let end = from[base_size..]
             .char_indices()
             .find(|(_, c)| {
@@ -382,7 +383,7 @@ impl Chord {
                 false
             })
             .map(|(idx, _)| idx + base_size)
-            .unwrap_or(from.len());
+            .unwrap_or(len);
 
         let chord = Chord {
             base,
