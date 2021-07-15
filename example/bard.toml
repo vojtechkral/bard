@@ -13,7 +13,7 @@ file = "songbook.tex"
 template = "pdf.hbs"
 font = "DejaVu Sans"
 dpi = 144
-process = "xelatex {{file}}"
+process = "latexmk -xelatex {{file}}"
 
 [[output]]
 file = "songbook.html"

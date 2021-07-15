@@ -1,10 +1,10 @@
 {
   "book": {
     "title": "Bard Songbook",
-    "subtitle": "An example project",
-    "chorus_label": "Ch",
+    "front_img": "guitar.jpg",
     "title_note": "A set of a few non-copyrighted songs.",
-    "front_img": "guitar.jpg"
+    "subtitle": "An example project",
+    "chorus_label": "Ch"
   },
   "songs": [
     {

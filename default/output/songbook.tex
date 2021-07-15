@@ -71,7 +71,7 @@
   \emph{#1}
 }
 
-%% Verse and Chord layout commands
+%% Verse layout command
 \makeatletter
 % The verse & label layout code was written by Jonathan P. Spratte
 % under the Beerware license: As long as you retain this notice you
@@ -96,19 +96,6 @@
       \makebox[\verse@indent][l]{\usebox0}%
     \fi
     \ignorespaces
-}
-
-\newcommand{\Chord}{\@ifstar{\@Chordalt}{\@Chord}}
-\newcommand{\@Chord}[2]{%
-  \begin{tabular}[b]{l}%
-    \textbf{\textcolor{red}{#1}}\\%  % The chord
-    #2\mbox{}\end{tabular}%          % The lyrics
-}
-\newcommand{\@Chordalt}[3]{%
-  \begin{tabular}[b]{l}%
-    \textbf{\textcolor{red}{#1}}\\%  % The chord
-    \textbf{\textcolor{blue}{#2}}\\% % The alt chord
-    #3\mbox{}\end{tabular}%          % The lyrics
 }
 \makeatother
 
@@ -181,8 +168,11 @@
   
 
   
-  \Verse{1.} \Chord{Am}{Yippie~yea~}\Chord{C}{oh!}\\
-Yippie~yea~\Chord{Am}{yay!}
+  \Verse{1.} \begin{tabular}[b]{l}
+    \textbf{\textcolor{red}{Am}}\\Yippie~yea~\mbox{}\end{tabular}\begin{tabular}[b]{l}
+    \textbf{\textcolor{red}{C}}\\oh!\mbox{}\end{tabular}\\
+Yippie~yea~\begin{tabular}[b]{l}
+    \textbf{\textcolor{red}{Am}}\\yay!\mbox{}\end{tabular}
 
     \vspace{\parskip}
 

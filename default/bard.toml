@@ -8,7 +8,7 @@ notation = "english"
 file = "songbook.tex"
 template = "pdf.hbs"
 font = "DejaVu Sans"
-process = "xelatex {{file}}"
+process = "latexmk -xelatex {{file}}"
 
 [[output]]
 file = "songbook.html"
@@ -19,4 +19,3 @@ title = "My Songbook"
 subtitle = "(You can edit that title!)"
 chorus_label = "Ch"
 title_note = "(And this note too...)"
-backmatter = ""  # if not empty, creates a backmatter page
