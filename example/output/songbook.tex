@@ -71,7 +71,7 @@
   \emph{#1}
 }
 
-%% Verse and Chord layout commands
+%% Verse layout command
 \makeatletter
 % The verse & label layout code was written by Jonathan P. Spratte
 % under the Beerware license: As long as you retain this notice you
@@ -96,19 +96,6 @@
       \makebox[\verse@indent][l]{\usebox0}%
     \fi
     \ignorespaces
-}
-
-\newcommand{\Chord}{\@ifstar{\@Chordalt}{\@Chord}}
-\newcommand{\@Chord}[2]{%
-  \begin{tabular}[b]{l}%
-    \textbf{\textcolor{red}{#1}}\\%  % The chord
-    #2\mbox{}\end{tabular}%          % The lyrics
-}
-\newcommand{\@Chordalt}[3]{%
-  \begin{tabular}[b]{l}%
-    \textbf{\textcolor{red}{#1}}\\%  % The chord
-    \textbf{\textcolor{blue}{#2}}\\% % The alt chord
-    #3\mbox{}\end{tabular}%          % The lyrics
 }
 \makeatother
 
@@ -184,18 +171,51 @@
   
 
   
-  \Verse{1.} \Chord{G7}{Oh~Danny~}\Chord{C}{Boy,~the~pipes,~the~}\Chord{C7}{pipes~are~}\Chord{F}{calling}\\
-From~glen~to~\Chord{C}{glen,~and~}\Chord{Em}{down~the~}\Chord{F}{mountain~}\Chord{G7}{side}\\
-The~summer’s~\Chord{C}{gone,~and~all~the~}\Chord{C7}{flowers~are~}\Chord{F}{dying}\\
-‘Tis~you,~’tis~\Chord{C}{you~must~}\Chord{Dm}{go~and~}\Chord{G7}{I~must~}\Chord{C}{bide.}
+  \Verse{1.} \begin{tabular}[b]{l}
+    \textbf{\textcolor{red}{G7}}\\Oh~Danny~\mbox{}\end{tabular}\begin{tabular}[b]{l}
+    \textbf{\textcolor{red}{C}}\\Boy,~the~pipes,~the~\mbox{}\end{tabular}\begin{tabular}[b]{l}
+    \textbf{\textcolor{red}{C7}}\\pipes~are~\mbox{}\end{tabular}\begin{tabular}[b]{l}
+    \textbf{\textcolor{red}{F}}\\calling\mbox{}\end{tabular}\\
+From~glen~to~\begin{tabular}[b]{l}
+    \textbf{\textcolor{red}{C}}\\glen,~and~\mbox{}\end{tabular}\begin{tabular}[b]{l}
+    \textbf{\textcolor{red}{Em}}\\down~the~\mbox{}\end{tabular}\begin{tabular}[b]{l}
+    \textbf{\textcolor{red}{F}}\\mountain~\mbox{}\end{tabular}\begin{tabular}[b]{l}
+    \textbf{\textcolor{red}{G7}}\\side\mbox{}\end{tabular}\\
+The~summer’s~\begin{tabular}[b]{l}
+    \textbf{\textcolor{red}{C}}\\gone,~and~all~the~\mbox{}\end{tabular}\begin{tabular}[b]{l}
+    \textbf{\textcolor{red}{C7}}\\flowers~are~\mbox{}\end{tabular}\begin{tabular}[b]{l}
+    \textbf{\textcolor{red}{F}}\\dying\mbox{}\end{tabular}\\
+‘Tis~you,~’tis~\begin{tabular}[b]{l}
+    \textbf{\textcolor{red}{C}}\\you~must~\mbox{}\end{tabular}\begin{tabular}[b]{l}
+    \textbf{\textcolor{red}{Dm}}\\go~and~\mbox{}\end{tabular}\begin{tabular}[b]{l}
+    \textbf{\textcolor{red}{G7}}\\I~must~\mbox{}\end{tabular}\begin{tabular}[b]{l}
+    \textbf{\textcolor{red}{C}}\\bide.\mbox{}\end{tabular}
 
     \vspace{\parskip}
 
   
-\Verse{Ch1.} \Chord{G7}{But~come~ye~}\Chord{Am}{back~when~}\Chord{F}{summer’s~}\Chord{G7}{in~the~}\Chord{C}{meadow}\\
-Or~when~the~\Chord{Am}{valley’s~}\Chord{F}{hushed~and~}\Chord{Em}{white~with~}\Chord{D7}{snow~}\Chord{G7}{}\\
-‘Tis~I’ll~be~\Chord{C}{here~in~}\Chord{F}{sunshine~or~in~}\Chord{C}{sha}\Chord{Am}{dow.}\\
-Oh~Danny~\Chord{C}{Boy,~oh~Danny~}\Chord{F}{Boy,~I~}\Chord{G7}{love~you~}\Chord{C}{so.}
+\Verse{Ch1.} \begin{tabular}[b]{l}
+    \textbf{\textcolor{red}{G7}}\\But~come~ye~\mbox{}\end{tabular}\begin{tabular}[b]{l}
+    \textbf{\textcolor{red}{Am}}\\back~when~\mbox{}\end{tabular}\begin{tabular}[b]{l}
+    \textbf{\textcolor{red}{F}}\\summer’s~\mbox{}\end{tabular}\begin{tabular}[b]{l}
+    \textbf{\textcolor{red}{G7}}\\in~the~\mbox{}\end{tabular}\begin{tabular}[b]{l}
+    \textbf{\textcolor{red}{C}}\\meadow\mbox{}\end{tabular}\\
+Or~when~the~\begin{tabular}[b]{l}
+    \textbf{\textcolor{red}{Am}}\\valley’s~\mbox{}\end{tabular}\begin{tabular}[b]{l}
+    \textbf{\textcolor{red}{F}}\\hushed~and~\mbox{}\end{tabular}\begin{tabular}[b]{l}
+    \textbf{\textcolor{red}{Em}}\\white~with~\mbox{}\end{tabular}\begin{tabular}[b]{l}
+    \textbf{\textcolor{red}{D7}}\\snow~\mbox{}\end{tabular}\begin{tabular}[b]{l}
+    \textbf{\textcolor{red}{G7}}\\\mbox{}\end{tabular}\\
+‘Tis~I’ll~be~\begin{tabular}[b]{l}
+    \textbf{\textcolor{red}{C}}\\here~in~\mbox{}\end{tabular}\begin{tabular}[b]{l}
+    \textbf{\textcolor{red}{F}}\\sunshine~or~in~\mbox{}\end{tabular}\begin{tabular}[b]{l}
+    \textbf{\textcolor{red}{C}}\\sha\mbox{}\end{tabular}\begin{tabular}[b]{l}
+    \textbf{\textcolor{red}{Am}}\\dow.\mbox{}\end{tabular}\\
+Oh~Danny~\begin{tabular}[b]{l}
+    \textbf{\textcolor{red}{C}}\\Boy,~oh~Danny~\mbox{}\end{tabular}\begin{tabular}[b]{l}
+    \textbf{\textcolor{red}{F}}\\Boy,~I~\mbox{}\end{tabular}\begin{tabular}[b]{l}
+    \textbf{\textcolor{red}{G7}}\\love~you~\mbox{}\end{tabular}\begin{tabular}[b]{l}
+    \textbf{\textcolor{red}{C}}\\so.\mbox{}\end{tabular}
 
     \vspace{\parskip}
 
@@ -239,10 +259,14 @@ I’ll~sleep~in~peace~until~you~come~to~me.
   
 
   
-  \Verse{1.} \Chord{G}{I~wish~I~was~in~London}\\
-Or~some~other~seaport~\Chord{D}{town}\\
-\Chord{D}{I'd~step~my~foot~on~a~steamboat}\\
-And~sail~the~ocean~\Chord{G}{round}
+  \Verse{1.} \begin{tabular}[b]{l}
+    \textbf{\textcolor{red}{G}}\\I~wish~I~was~in~London\mbox{}\end{tabular}\\
+Or~some~other~seaport~\begin{tabular}[b]{l}
+    \textbf{\textcolor{red}{D}}\\town\mbox{}\end{tabular}\\
+\begin{tabular}[b]{l}
+    \textbf{\textcolor{red}{D}}\\I'd~step~my~foot~on~a~steamboat\mbox{}\end{tabular}\\
+And~sail~the~ocean~\begin{tabular}[b]{l}
+    \textbf{\textcolor{red}{G}}\\round\mbox{}\end{tabular}
 
     \vspace{\parskip}
 
@@ -299,22 +323,36 @@ My~heart~is~broken\\
   
 
   
-  \Verse{1.} As~\Chord{C}{I~was~a~goin'~over}\\
-The~\Chord{Am}{far~famed~Kerry~mountains}\\
-I~\Chord{F}{met~with~Captain~Farrell~and~his}\\
-\Chord{C}{Money~he~was~counting}\\
-\Chord{C}{I~first~produced~my~pistol}\\
-And~I~\Chord{Am}{~then~produced~my~rapier}\\
-Saying~\Chord{F}{~"Stand~and~deliver,}\\
-For~\Chord{C}{you~are~a~bold~deceiver!"}
+  \Verse{1.} As~\begin{tabular}[b]{l}
+    \textbf{\textcolor{red}{C}}\\I~was~a~goin'~over\mbox{}\end{tabular}\\
+The~\begin{tabular}[b]{l}
+    \textbf{\textcolor{red}{Am}}\\far~famed~Kerry~mountains\mbox{}\end{tabular}\\
+I~\begin{tabular}[b]{l}
+    \textbf{\textcolor{red}{F}}\\met~with~Captain~Farrell~and~his\mbox{}\end{tabular}\\
+\begin{tabular}[b]{l}
+    \textbf{\textcolor{red}{C}}\\Money~he~was~counting\mbox{}\end{tabular}\\
+\begin{tabular}[b]{l}
+    \textbf{\textcolor{red}{C}}\\I~first~produced~my~pistol\mbox{}\end{tabular}\\
+And~I~\begin{tabular}[b]{l}
+    \textbf{\textcolor{red}{Am}}\\~then~produced~my~rapier\mbox{}\end{tabular}\\
+Saying~\begin{tabular}[b]{l}
+    \textbf{\textcolor{red}{F}}\\~"Stand~and~deliver,\mbox{}\end{tabular}\\
+For~\begin{tabular}[b]{l}
+    \textbf{\textcolor{red}{C}}\\you~are~a~bold~deceiver!"\mbox{}\end{tabular}
 
     \vspace{\parskip}
 
   
-\Verse{Ch.} Mush-a~\Chord{G}{ring~dum-a~do~dum-a~da}\\
-\Chord{C}{Whack~for~me~daddy-o}\\
-\Chord{F}{Whack~for~me~daddy-o}\\
-There's~\Chord{C}{whiskey~}\Chord{G}{in~the~}\Chord{C}{jar}
+\Verse{Ch.} Mush-a~\begin{tabular}[b]{l}
+    \textbf{\textcolor{red}{G}}\\ring~dum-a~do~dum-a~da\mbox{}\end{tabular}\\
+\begin{tabular}[b]{l}
+    \textbf{\textcolor{red}{C}}\\Whack~for~me~daddy-o\mbox{}\end{tabular}\\
+\begin{tabular}[b]{l}
+    \textbf{\textcolor{red}{F}}\\Whack~for~me~daddy-o\mbox{}\end{tabular}\\
+There's~\begin{tabular}[b]{l}
+    \textbf{\textcolor{red}{C}}\\whiskey~\mbox{}\end{tabular}\begin{tabular}[b]{l}
+    \textbf{\textcolor{red}{G}}\\in~the~\mbox{}\end{tabular}\begin{tabular}[b]{l}
+    \textbf{\textcolor{red}{C}}\\jar\mbox{}\end{tabular}
 
     \vspace{\parskip}
 
@@ -381,17 +419,42 @@ So~a~prisoner~I~was~taken\\
   
 
   
-  \Verse{1.} O'~the~\Chord{G}{summer~}\Chord{C}{time~}\Chord{G}{has~come}\\
-And~the~\Chord{C}{trees~are~sweetly~}\Chord{G}{bloomin'}\\
-And~the~\Chord{C}{wild~}\Chord{G}{mountain~}\Chord{Em}{thyme}\\
-Grows~\Chord{C}{around~the~}\Chord{Am}{bloomin'~}\Chord{C}{heather}\\
-Will~ye~\Chord{G}{go~}\Chord{C}{lassie~}\Chord{G}{go?}
+  \Verse{1.} O'~the~\begin{tabular}[b]{l}
+    \textbf{\textcolor{red}{G}}\\summer~\mbox{}\end{tabular}\begin{tabular}[b]{l}
+    \textbf{\textcolor{red}{C}}\\time~\mbox{}\end{tabular}\begin{tabular}[b]{l}
+    \textbf{\textcolor{red}{G}}\\has~come\mbox{}\end{tabular}\\
+And~the~\begin{tabular}[b]{l}
+    \textbf{\textcolor{red}{C}}\\trees~are~sweetly~\mbox{}\end{tabular}\begin{tabular}[b]{l}
+    \textbf{\textcolor{red}{G}}\\bloomin'\mbox{}\end{tabular}\\
+And~the~\begin{tabular}[b]{l}
+    \textbf{\textcolor{red}{C}}\\wild~\mbox{}\end{tabular}\begin{tabular}[b]{l}
+    \textbf{\textcolor{red}{G}}\\mountain~\mbox{}\end{tabular}\begin{tabular}[b]{l}
+    \textbf{\textcolor{red}{Em}}\\thyme\mbox{}\end{tabular}\\
+Grows~\begin{tabular}[b]{l}
+    \textbf{\textcolor{red}{C}}\\around~the~\mbox{}\end{tabular}\begin{tabular}[b]{l}
+    \textbf{\textcolor{red}{Am}}\\bloomin'~\mbox{}\end{tabular}\begin{tabular}[b]{l}
+    \textbf{\textcolor{red}{C}}\\heather\mbox{}\end{tabular}\\
+Will~ye~\begin{tabular}[b]{l}
+    \textbf{\textcolor{red}{G}}\\go~\mbox{}\end{tabular}\begin{tabular}[b]{l}
+    \textbf{\textcolor{red}{C}}\\lassie~\mbox{}\end{tabular}\begin{tabular}[b]{l}
+    \textbf{\textcolor{red}{G}}\\go?\mbox{}\end{tabular}
 
     \vspace{\parskip}
 
   
-\Verse{Ch.} And~we'll~\Chord{C}{all~go~}\Chord{G}{together~to~pull~}\Chord{C}{wild~}\Chord{G}{mountain~}\Chord{Em}{thyme}\\
-All~\Chord{C}{around~the~}\Chord{Am}{bloomin'~}\Chord{C}{heather,~will~ye~}\Chord{G}{go~}\Chord{C}{lassie~}\Chord{G}{go?}
+\Verse{Ch.} And~we'll~\begin{tabular}[b]{l}
+    \textbf{\textcolor{red}{C}}\\all~go~\mbox{}\end{tabular}\begin{tabular}[b]{l}
+    \textbf{\textcolor{red}{G}}\\together~to~pull~\mbox{}\end{tabular}\begin{tabular}[b]{l}
+    \textbf{\textcolor{red}{C}}\\wild~\mbox{}\end{tabular}\begin{tabular}[b]{l}
+    \textbf{\textcolor{red}{G}}\\mountain~\mbox{}\end{tabular}\begin{tabular}[b]{l}
+    \textbf{\textcolor{red}{Em}}\\thyme\mbox{}\end{tabular}\\
+All~\begin{tabular}[b]{l}
+    \textbf{\textcolor{red}{C}}\\around~the~\mbox{}\end{tabular}\begin{tabular}[b]{l}
+    \textbf{\textcolor{red}{Am}}\\bloomin'~\mbox{}\end{tabular}\begin{tabular}[b]{l}
+    \textbf{\textcolor{red}{C}}\\heather,~will~ye~\mbox{}\end{tabular}\begin{tabular}[b]{l}
+    \textbf{\textcolor{red}{G}}\\go~\mbox{}\end{tabular}\begin{tabular}[b]{l}
+    \textbf{\textcolor{red}{C}}\\lassie~\mbox{}\end{tabular}\begin{tabular}[b]{l}
+    \textbf{\textcolor{red}{G}}\\go?\mbox{}\end{tabular}
 
     \vspace{\parskip}
 

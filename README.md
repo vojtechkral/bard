@@ -27,7 +27,7 @@ All `C`around the `Am`bloomin' `C`heather, will ye `G`go `C`lassie `G`go?
 ![example-output](./doc/example.png "Example PDF output")
 
 Check out the [Example PDF](https://raw.githubusercontent.com/vojtechkral/bard/main/example/output/songbook.pdf)
-and the [Example project](./example).
+from the [Example project](./example).
 
 ## Features
 

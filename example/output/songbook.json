@@ -1,10 +1,10 @@
 {
   "book": {
-    "title": "Bard Songbook",
-    "chorus_label": "Ch",
-    "front_img": "guitar.jpg",
     "title_note": "A set of a few non-copyrighted songs.",
-    "subtitle": "An example project"
+    "title": "Bard Songbook",
+    "front_img": "guitar.jpg",
+    "subtitle": "An example project",
+    "chorus_label": "Ch"
   },
   "songs": [
     {
@@ -24,6 +24,7 @@
                 "type": "i-chord",
                 "chord": "G7",
                 "alt_chord": null,
+                "backticks": 1,
                 "inlines": [
                   {
                     "type": "i-text",
@@ -35,6 +36,7 @@
                 "type": "i-chord",
                 "chord": "C",
                 "alt_chord": null,
+                "backticks": 1,
                 "inlines": [
                   {
                     "type": "i-text",
@@ -46,6 +48,7 @@
                 "type": "i-chord",
                 "chord": "C7",
                 "alt_chord": null,
+                "backticks": 1,
                 "inlines": [
                   {
                     "type": "i-text",
@@ -57,6 +60,7 @@
                 "type": "i-chord",
                 "chord": "F",
                 "alt_chord": null,
+                "backticks": 1,
                 "inlines": [
                   {
                     "type": "i-text",
@@ -75,6 +79,7 @@
                 "type": "i-chord",
                 "chord": "C",
                 "alt_chord": null,
+                "backticks": 1,
                 "inlines": [
                   {
                     "type": "i-text",
@@ -86,6 +91,7 @@
                 "type": "i-chord",
                 "chord": "Em",
                 "alt_chord": null,
+                "backticks": 1,
                 "inlines": [
                   {
                     "type": "i-text",
@@ -97,6 +103,7 @@
                 "type": "i-chord",
                 "chord": "F",
                 "alt_chord": null,
+                "backticks": 1,
                 "inlines": [
                   {
                     "type": "i-text",
@@ -108,6 +115,7 @@
                 "type": "i-chord",
                 "chord": "G7",
                 "alt_chord": null,
+                "backticks": 1,
                 "inlines": [
                   {
                     "type": "i-text",
@@ -126,6 +134,7 @@
                 "type": "i-chord",
                 "chord": "C",
                 "alt_chord": null,
+                "backticks": 1,
                 "inlines": [
                   {
                     "type": "i-text",
@@ -137,6 +146,7 @@
                 "type": "i-chord",
                 "chord": "C7",
                 "alt_chord": null,
+                "backticks": 1,
                 "inlines": [
                   {
                     "type": "i-text",
@@ -148,6 +158,7 @@
                 "type": "i-chord",
                 "chord": "F",
                 "alt_chord": null,
+                "backticks": 1,
                 "inlines": [
                   {
                     "type": "i-text",
@@ -166,6 +177,7 @@
                 "type": "i-chord",
                 "chord": "C",
                 "alt_chord": null,
+                "backticks": 1,
                 "inlines": [
                   {
                     "type": "i-text",
@@ -177,6 +189,7 @@
                 "type": "i-chord",
                 "chord": "Dm",
                 "alt_chord": null,
+                "backticks": 1,
                 "inlines": [
                   {
                     "type": "i-text",
@@ -188,6 +201,7 @@
                 "type": "i-chord",
                 "chord": "G7",
                 "alt_chord": null,
+                "backticks": 1,
                 "inlines": [
                   {
                     "type": "i-text",
@@ -199,6 +213,7 @@
                 "type": "i-chord",
                 "chord": "C",
                 "alt_chord": null,
+                "backticks": 1,
                 "inlines": [
                   {
                     "type": "i-text",
@@ -220,6 +235,7 @@
                 "type": "i-chord",
                 "chord": "G7",
                 "alt_chord": null,
+                "backticks": 1,
                 "inlines": [
                   {
                     "type": "i-text",
@@ -231,6 +247,7 @@
                 "type": "i-chord",
                 "chord": "Am",
                 "alt_chord": null,
+                "backticks": 1,
                 "inlines": [
                   {
                     "type": "i-text",
@@ -242,6 +259,7 @@
                 "type": "i-chord",
                 "chord": "F",
                 "alt_chord": null,
+                "backticks": 1,
                 "inlines": [
                   {
                     "type": "i-text",
@@ -253,6 +271,7 @@
                 "type": "i-chord",
                 "chord": "G7",
                 "alt_chord": null,
+                "backticks": 1,
                 "inlines": [
                   {
                     "type": "i-text",
@@ -264,6 +283,7 @@
                 "type": "i-chord",
                 "chord": "C",
                 "alt_chord": null,
+                "backticks": 1,
                 "inlines": [
                   {
                     "type": "i-text",
@@ -282,6 +302,7 @@
                 "type": "i-chord",
                 "chord": "Am",
                 "alt_chord": null,
+                "backticks": 1,
                 "inlines": [
                   {
                     "type": "i-text",
@@ -293,6 +314,7 @@
                 "type": "i-chord",
                 "chord": "F",
                 "alt_chord": null,
+                "backticks": 1,
                 "inlines": [
                   {
                     "type": "i-text",
@@ -304,6 +326,7 @@
                 "type": "i-chord",
                 "chord": "Em",
                 "alt_chord": null,
+                "backticks": 1,
                 "inlines": [
                   {
                     "type": "i-text",
@@ -315,6 +338,7 @@
                 "type": "i-chord",
                 "chord": "D7",
                 "alt_chord": null,
+                "backticks": 1,
                 "inlines": [
                   {
                     "type": "i-text",
@@ -326,6 +350,7 @@
                 "type": "i-chord",
                 "chord": "G7",
                 "alt_chord": null,
+                "backticks": 1,
                 "inlines": []
               },
               {
@@ -339,6 +364,7 @@
                 "type": "i-chord",
                 "chord": "C",
                 "alt_chord": null,
+                "backticks": 1,
                 "inlines": [
                   {
                     "type": "i-text",
@@ -350,6 +376,7 @@
                 "type": "i-chord",
                 "chord": "F",
                 "alt_chord": null,
+                "backticks": 1,
                 "inlines": [
                   {
                     "type": "i-text",
@@ -361,6 +388,7 @@
                 "type": "i-chord",
                 "chord": "C",
                 "alt_chord": null,
+                "backticks": 1,
                 "inlines": [
                   {
                     "type": "i-text",
@@ -372,6 +400,7 @@
                 "type": "i-chord",
                 "chord": "Am",
                 "alt_chord": null,
+                "backticks": 1,
                 "inlines": [
                   {
                     "type": "i-text",
@@ -390,6 +419,7 @@
                 "type": "i-chord",
                 "chord": "C",
                 "alt_chord": null,
+                "backticks": 1,
                 "inlines": [
                   {
                     "type": "i-text",
@@ -401,6 +431,7 @@
                 "type": "i-chord",
                 "chord": "F",
                 "alt_chord": null,
+                "backticks": 1,
                 "inlines": [
                   {
                     "type": "i-text",
@@ -412,6 +443,7 @@
                 "type": "i-chord",
                 "chord": "G7",
                 "alt_chord": null,
+                "backticks": 1,
                 "inlines": [
                   {
                     "type": "i-text",
@@ -423,6 +455,7 @@
                 "type": "i-chord",
                 "chord": "C",
                 "alt_chord": null,
+                "backticks": 1,
                 "inlines": [
                   {
                     "type": "i-text",
@@ -531,6 +564,7 @@
                 "type": "i-chord",
                 "chord": "G",
                 "alt_chord": null,
+                "backticks": 1,
                 "inlines": [
                   {
                     "type": "i-text",
@@ -549,6 +583,7 @@
                 "type": "i-chord",
                 "chord": "D",
                 "alt_chord": null,
+                "backticks": 1,
                 "inlines": [
                   {
                     "type": "i-text",
@@ -563,6 +598,7 @@
                 "type": "i-chord",
                 "chord": "D",
                 "alt_chord": null,
+                "backticks": 1,
                 "inlines": [
                   {
                     "type": "i-text",
@@ -581,6 +617,7 @@
                 "type": "i-chord",
                 "chord": "G",
                 "alt_chord": null,
+                "backticks": 1,
                 "inlines": [
                   {
                     "type": "i-text",
@@ -790,6 +827,7 @@
                 "type": "i-chord",
                 "chord": "C",
                 "alt_chord": null,
+                "backticks": 1,
                 "inlines": [
                   {
                     "type": "i-text",
@@ -808,6 +846,7 @@
                 "type": "i-chord",
                 "chord": "Am",
                 "alt_chord": null,
+                "backticks": 1,
                 "inlines": [
                   {
                     "type": "i-text",
@@ -826,6 +865,7 @@
                 "type": "i-chord",
                 "chord": "F",
                 "alt_chord": null,
+                "backticks": 1,
                 "inlines": [
                   {
                     "type": "i-text",
@@ -840,6 +880,7 @@
                 "type": "i-chord",
                 "chord": "C",
                 "alt_chord": null,
+                "backticks": 1,
                 "inlines": [
                   {
                     "type": "i-text",
@@ -854,6 +895,7 @@
                 "type": "i-chord",
                 "chord": "C",
                 "alt_chord": null,
+                "backticks": 1,
                 "inlines": [
                   {
                     "type": "i-text",
@@ -872,6 +914,7 @@
                 "type": "i-chord",
                 "chord": "Am",
                 "alt_chord": null,
+                "backticks": 1,
                 "inlines": [
                   {
                     "type": "i-text",
@@ -890,6 +933,7 @@
                 "type": "i-chord",
                 "chord": "F",
                 "alt_chord": null,
+                "backticks": 1,
                 "inlines": [
                   {
                     "type": "i-text",
@@ -908,6 +952,7 @@
                 "type": "i-chord",
                 "chord": "C",
                 "alt_chord": null,
+                "backticks": 1,
                 "inlines": [
                   {
                     "type": "i-text",
@@ -933,6 +978,7 @@
                 "type": "i-chord",
                 "chord": "G",
                 "alt_chord": null,
+                "backticks": 1,
                 "inlines": [
                   {
                     "type": "i-text",
@@ -947,6 +993,7 @@
                 "type": "i-chord",
                 "chord": "C",
                 "alt_chord": null,
+                "backticks": 1,
                 "inlines": [
                   {
                     "type": "i-text",
@@ -961,6 +1008,7 @@
                 "type": "i-chord",
                 "chord": "F",
                 "alt_chord": null,
+                "backticks": 1,
                 "inlines": [
                   {
                     "type": "i-text",
@@ -979,6 +1027,7 @@
                 "type": "i-chord",
                 "chord": "C",
                 "alt_chord": null,
+                "backticks": 1,
                 "inlines": [
                   {
                     "type": "i-text",
@@ -990,6 +1039,7 @@
                 "type": "i-chord",
                 "chord": "G",
                 "alt_chord": null,
+                "backticks": 1,
                 "inlines": [
                   {
                     "type": "i-text",
@@ -1001,6 +1051,7 @@
                 "type": "i-chord",
                 "chord": "C",
                 "alt_chord": null,
+                "backticks": 1,
                 "inlines": [
                   {
                     "type": "i-text",
@@ -1256,6 +1307,7 @@
                 "type": "i-chord",
                 "chord": "G",
                 "alt_chord": null,
+                "backticks": 1,
                 "inlines": [
                   {
                     "type": "i-text",
@@ -1267,6 +1319,7 @@
                 "type": "i-chord",
                 "chord": "C",
                 "alt_chord": null,
+                "backticks": 1,
                 "inlines": [
                   {
                     "type": "i-text",
@@ -1278,6 +1331,7 @@
                 "type": "i-chord",
                 "chord": "G",
                 "alt_chord": null,
+                "backticks": 1,
                 "inlines": [
                   {
                     "type": "i-text",
@@ -1296,6 +1350,7 @@
                 "type": "i-chord",
                 "chord": "C",
                 "alt_chord": null,
+                "backticks": 1,
                 "inlines": [
                   {
                     "type": "i-text",
@@ -1307,6 +1362,7 @@
                 "type": "i-chord",
                 "chord": "G",
                 "alt_chord": null,
+                "backticks": 1,
                 "inlines": [
                   {
                     "type": "i-text",
@@ -1325,6 +1381,7 @@
                 "type": "i-chord",
                 "chord": "C",
                 "alt_chord": null,
+                "backticks": 1,
                 "inlines": [
                   {
                     "type": "i-text",
@@ -1336,6 +1393,7 @@
                 "type": "i-chord",
                 "chord": "G",
                 "alt_chord": null,
+                "backticks": 1,
                 "inlines": [
                   {
                     "type": "i-text",
@@ -1347,6 +1405,7 @@
                 "type": "i-chord",
                 "chord": "Em",
                 "alt_chord": null,
+                "backticks": 1,
                 "inlines": [
                   {
                     "type": "i-text",
@@ -1365,6 +1424,7 @@
                 "type": "i-chord",
                 "chord": "C",
                 "alt_chord": null,
+                "backticks": 1,
                 "inlines": [
                   {
                     "type": "i-text",
@@ -1376,6 +1436,7 @@
                 "type": "i-chord",
                 "chord": "Am",
                 "alt_chord": null,
+                "backticks": 1,
                 "inlines": [
                   {
                     "type": "i-text",
@@ -1387,6 +1448,7 @@
                 "type": "i-chord",
                 "chord": "C",
                 "alt_chord": null,
+                "backticks": 1,
                 "inlines": [
                   {
                     "type": "i-text",
@@ -1405,6 +1467,7 @@
                 "type": "i-chord",
                 "chord": "G",
                 "alt_chord": null,
+                "backticks": 1,
                 "inlines": [
                   {
                     "type": "i-text",
@@ -1416,6 +1479,7 @@
                 "type": "i-chord",
                 "chord": "C",
                 "alt_chord": null,
+                "backticks": 1,
                 "inlines": [
                   {
                     "type": "i-text",
@@ -1427,6 +1491,7 @@
                 "type": "i-chord",
                 "chord": "G",
                 "alt_chord": null,
+                "backticks": 1,
                 "inlines": [
                   {
                     "type": "i-text",
@@ -1452,6 +1517,7 @@
                 "type": "i-chord",
                 "chord": "C",
                 "alt_chord": null,
+                "backticks": 1,
                 "inlines": [
                   {
                     "type": "i-text",
@@ -1463,6 +1529,7 @@
                 "type": "i-chord",
                 "chord": "G",
                 "alt_chord": null,
+                "backticks": 1,
                 "inlines": [
                   {
                     "type": "i-text",
@@ -1474,6 +1541,7 @@
                 "type": "i-chord",
                 "chord": "C",
                 "alt_chord": null,
+                "backticks": 1,
                 "inlines": [
                   {
                     "type": "i-text",
@@ -1485,6 +1553,7 @@
                 "type": "i-chord",
                 "chord": "G",
                 "alt_chord": null,
+                "backticks": 1,
                 "inlines": [
                   {
                     "type": "i-text",
@@ -1496,6 +1565,7 @@
                 "type": "i-chord",
                 "chord": "Em",
                 "alt_chord": null,
+                "backticks": 1,
                 "inlines": [
                   {
                     "type": "i-text",
@@ -1514,6 +1584,7 @@
                 "type": "i-chord",
                 "chord": "C",
                 "alt_chord": null,
+                "backticks": 1,
                 "inlines": [
                   {
                     "type": "i-text",
@@ -1525,6 +1596,7 @@
                 "type": "i-chord",
                 "chord": "Am",
                 "alt_chord": null,
+                "backticks": 1,
                 "inlines": [
                   {
                     "type": "i-text",
@@ -1536,6 +1608,7 @@
                 "type": "i-chord",
                 "chord": "C",
                 "alt_chord": null,
+                "backticks": 1,
                 "inlines": [
                   {
                     "type": "i-text",
@@ -1547,6 +1620,7 @@
                 "type": "i-chord",
                 "chord": "G",
                 "alt_chord": null,
+                "backticks": 1,
                 "inlines": [
                   {
                     "type": "i-text",
@@ -1558,6 +1632,7 @@
                 "type": "i-chord",
                 "chord": "C",
                 "alt_chord": null,
+                "backticks": 1,
                 "inlines": [
                   {
                     "type": "i-text",
@@ -1569,6 +1644,7 @@
                 "type": "i-chord",
                 "chord": "G",
                 "alt_chord": null,
+                "backticks": 1,
                 "inlines": [
                   {
                     "type": "i-text",

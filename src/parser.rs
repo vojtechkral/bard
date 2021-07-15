@@ -1,7 +1,7 @@
 use std::mem;
 use std::str;
 
-use comrak::nodes::{AstNode, ListType, NodeValue};
+use comrak::nodes::{AstNode, ListType, NodeCode, NodeValue};
 use comrak::{ComrakExtensionOptions, ComrakOptions, ComrakParseOptions, ComrakRenderOptions};
 use lazy_static::lazy_static;
 use regex::{Captures, Regex};
@@ -239,7 +239,9 @@ impl<'a> NodeExt<'a> for AstNode<'a> {
         fn recurse<'a>(this: &'a AstNode<'a>, res: &mut String) {
             let value = this.data.borrow();
             let text_b = match &value.value {
-                NodeValue::Text(b) | NodeValue::Code(b) => Some(b),
+                NodeValue::Text(literal) | NodeValue::Code(NodeCode { literal, .. }) => {
+                    Some(literal)
+                }
                 _ => None,
             };
 
@@ -325,15 +327,17 @@ impl<'a> NodeExt<'a> for AstNode<'a> {
 struct ChordBuilder {
     chord: BStr,
     alt_chord: Option<BStr>,
+    backticks: usize,
     inlines: Vec<Inline>,
     line: u32,
 }
 
 impl ChordBuilder {
-    fn new(chord: BStr, line: u32) -> Self {
+    fn new(code: &NodeCode, line: u32) -> Self {
         Self {
-            chord,
+            chord: code.literal.as_bstr(),
             alt_chord: None,
+            backticks: code.num_backticks,
             inlines: vec![],
             line,
         }
@@ -368,7 +372,7 @@ impl ChordBuilder {
     }
 
     fn finalize(self, inlines: &mut Vec<Inline>) {
-        let chord = Chord::new(self.chord, self.alt_chord, self.line);
+        let chord = Chord::new(self.chord, self.alt_chord, self.backticks, self.line);
         let chord = Inline::Chord(Inlines {
             data: chord,
             inlines: self.inlines.into(),
@@ -531,7 +535,7 @@ impl<'a> VerseBuilder<'a> {
                     cb.finalize(&mut para);
                 }
 
-                let mut new_cb = ChordBuilder::new(code.as_bstr(), c_data.start_line);
+                let mut new_cb = ChordBuilder::new(code, c_data.start_line);
                 if self.xp.is_some() {
                     new_cb.transpose(&self.xp).with_context(|| {
                         format!(
@@ -896,7 +900,7 @@ impl<'i> Parser<'i> {
         //    as of now this is just removing of empty paragraphs/verses,
         //    this is actually implemented on the Song AST type (in book).
         //
-        // The Result is on or more Song structures which are appended to the songs vec passed in.
+        // The Result is one or more Song structures which are appended to the songs vec passed in.
         // See the book module where the bard AST is defined.
 
         let orig_len = songs.len();
@@ -1169,7 +1173,7 @@ Some lyrics.
         let input = r#"
 # Song
 1. Sailing round `G`the ocean,
-Sailing round the `D`sea.
+Sailing round the ```D```sea.
 "#;
         parse_one_para(input).assert_eq(json!([
             { "type": "i-text", "text": "Sailing round " },
@@ -1177,6 +1181,7 @@ Sailing round the `D`sea.
                 "type": "i-chord",
                 "chord": "G",
                 "alt_chord": null,
+                "backticks": 1,
                 "inlines": [{ "type": "i-text", "text": "the ocean," }],
             },
             { "type": "i-break" },
@@ -1185,6 +1190,7 @@ Sailing round the `D`sea.
                 "type": "i-chord",
                 "chord": "D",
                 "alt_chord": null,
+                "backticks": 3,
                 "inlines": [{ "type": "i-text", "text": "sea." }],
             },
         ]));
@@ -1204,6 +1210,7 @@ Sailing_ round the `D`sea.**
                 "type": "i-chord",
                 "chord": "G",
                 "alt_chord": null,
+                "backticks": 1,
                 "inlines": [{
                     "type": "i-strong",
                     "inlines": [
@@ -1224,6 +1231,7 @@ Sailing_ round the `D`sea.**
                 "type": "i-chord",
                 "chord": "D",
                 "alt_chord": null,
+                "backticks": 1,
                 "inlines": [{
                     "type": "i-strong",
                     "inlines": [{ "type": "i-text", "text": "sea."  }]
@@ -1362,12 +1370,14 @@ Mixed !>> in text.
                     "type": "i-chord",
                     "chord": "Em",
                     "alt_chord": "Hm",
+                    "backticks": 1,
                     "inlines": [ { "type": "i-text", "text": "Yippie yea " } ],
                   },
                   {
                     "type": "i-chord",
                     "chord": "G",
                     "alt_chord": "D",
+                    "backticks": 1,
                     "inlines": [ { "type": "i-text", "text": "oh!" } ],
                   },
                   { "type": "i-break" },
@@ -1376,6 +1386,7 @@ Mixed !>> in text.
                     "type": "i-chord",
                     "chord": "Bm",
                     "alt_chord": "Hm",
+                    "backticks": 1,
                     "inlines": [ { "type": "i-text", "text": "yay!" } ],
                   },
                 ]

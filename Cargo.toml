@@ -37,3 +37,8 @@ toml = "0.5"
 [dev-dependencies]
 assert-json-diff = "2.0.1"
 fs_extra = "1.2.0"
+
+[patch.crates-io]
+# Patch comrak to use merged but unreleased PR https://github.com/kivikakk/comrak/pull/192
+# TODO: Remove & update comrak when there's a release...
+comrak = { git = "https://github.com/kivikakk/comrak.git", branch = "main" }

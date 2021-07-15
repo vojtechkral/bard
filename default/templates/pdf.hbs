@@ -77,7 +77,7 @@
   \emph{#1}
 }
 
-%% Verse and Chord layout commands
+%% Verse layout command
 \makeatletter
 % The verse & label layout code was written by Jonathan P. Spratte
 % under the Beerware license: As long as you retain this notice you
@@ -102,19 +102,6 @@
       \makebox[\verse@indent][l]{\usebox0}%
     \fi
     \ignorespaces
-}
-
-\newcommand{\Chord}{\@ifstar{\@Chordalt}{\@Chord}}
-\newcommand{\@Chord}[2]{%
-  \begin{tabular}[b]{l}%
-    \textbf{\textcolor{red}{#1}}\\%  % The chord
-    #2\mbox{}\end{tabular}%          % The lyrics
-}
-\newcommand{\@Chordalt}[3]{%
-  \begin{tabular}[b]{l}%
-    \textbf{\textcolor{red}{#1}}\\%  % The chord
-    \textbf{\textcolor{blue}{#2}}\\% % The alt chord
-    #3\mbox{}\end{tabular}%          % The lyrics
 }
 \makeatother
 
@@ -153,14 +140,16 @@
 
 {{#*inline "i-text"}}{{{(pre text)}}}{{/inline}}
 
-{{#*inline "i-chord"}}
-  {{~#if alt_chord}}\Chord*{ {{{~ (pre chord) ~}}} }{ {{{~ (pre alt_chord) ~}}} }{
-    {{~#each inlines}}{{> (lookup this "type") }}{{/each~}}
-  }{{/if~}}
-  {{~#unless alt_chord}}\Chord{ {{{~ (pre chord) ~}}} }{
-    {{~#each inlines}}{{> (lookup this "type") }}{{/each~}}
-  }{{/unless~}}
-{{/inline}}
+{{#*inline "chord-style"~}}
+  {{!-- Helper for i-chord, renders `Chord` in bold and ``Chord`` in regular and \small --}}
+  {{~#if (eq backticks 1) }}\textbf{{/if~}}{{~#unless (eq backticks 1) }}\small{{/unless~}}
+{{~/inline~}}
+{{#*inline "i-chord"~}}
+  \begin{tabular}[b]{l}
+    {{> chord-style}}{\textcolor{red}{ {{{~ (pre chord) ~}}} }}\\
+    {{~#if alt_chord}}{{> chord-style}}{\textcolor{blue}{ {{{~ (pre alt_chord) ~}}} }}\\{{/if~}}
+    {{~#each inlines}}{{> (lookup this "type") }}{{/each~}}\mbox{}\end{tabular}
+{{~/inline}}
 
 {{!-- Nb. the i-break element is a line separator, not terminator,
   ie. no i-break after the last inline element. --}}

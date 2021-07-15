@@ -371,7 +371,6 @@ impl Chord {
         let uppercase = first_char.is_uppercase() || first_char.is_numeric();
 
         let mut sep_found = false;
-        let len = from.len();
         let end = from[base_size..]
             .char_indices()
             .find(|(_, c)| {

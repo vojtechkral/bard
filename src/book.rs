@@ -148,15 +148,17 @@ impl Inline {
 pub struct Chord {
     pub chord: BStr,
     pub alt_chord: Option<BStr>,
+    pub backticks: usize,
     #[serde(skip)]
     line: u32,
 }
 
 impl Chord {
-    pub fn new(chord: BStr, alt_chord: Option<BStr>, line: u32) -> Self {
+    pub fn new(chord: BStr, alt_chord: Option<BStr>, backticks: usize, line: u32) -> Self {
         Self {
             chord,
             alt_chord,
+            backticks,
             line,
         }
     }
