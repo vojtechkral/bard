@@ -46,6 +46,7 @@ from the [Example project](./example).
 ## Installation
 
 - On Arch Linux: [via AUR](https://aur.archlinux.org/packages/bard/).
+- On other Linux distros: A prebuilt binary for x86-64 is available from the [Releases page](https://github.com/vojtechkral/bard/releases) (may not be binary-compatible with older distros).
 - On Windows: Download prebuilt binary from the [Releases page](https://github.com/vojtechkral/bard/releases).
 - On any OS with a [Rust toolchain](https://rustup.rs/): Use `cargo install -f bard` .
 
@@ -54,11 +55,10 @@ Packages for more OSes are hopefully Coming Soon™.
 Additionally, to generate PDFs a TeX engine is needed.
 Recommended options are:
 - The `xelatex` compiler from _TeX Live_, available on most Linux OSes.
-- [Tectonic](https://tectonic-typesetting.github.io/en-US/), available on several UNIX OSes,
-  recently there's an early support for Windows as well (see [their CI releases](https://github.com/tectonic-typesetting/tectonic/releases/tag/continuous)).
+- [Tectonic](https://tectonic-typesetting.github.io/en-US/), available on several UNIX OSes.
 - [MiKTeX](https://miktex.org/) for Windows.
 
-A word of warning: bard's Windows support is largely untested so far.
+A word of warning: bard's Windows support is not tested very frequently.
 
 ## Usage
 
