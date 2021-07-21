@@ -40,7 +40,7 @@ pub const PROGRAM_META: ProgramMeta = ProgramMeta {
 
 #[derive(StructOpt, Clone, Default, Debug)]
 pub struct MakeOpts {
-    #[structopt(short = "p", long)]
+    #[structopt(short = "p", long, help = "Don't run outputs' postprocessing steps")]
     pub no_postprocess: bool,
 }
 
@@ -50,11 +50,16 @@ pub struct MakeOpts {
     about = "bard: A Markdown-based songbook compiler",
 )]
 enum Bard {
+    #[structopt(about = "Initialize a new bard project skeleton in this directory")]
     Init,
+    #[structopt(about = "Build the current project")]
     Make {
         #[structopt(flatten)]
         opts: MakeOpts,
     },
+    #[structopt(
+        about = "Like make, but keep runing and rebuild each time there's a change in project files"
+    )]
     Watch {
         #[structopt(flatten)]
         opts: MakeOpts,
