@@ -99,14 +99,22 @@ The variables that are available in the `process` field are:
 
 The post-process commands are run in the output directory.
 
-The `process` field also has an extended syntax, which can be used to write multiple commands and/or arguments containing spaces (which is not possible with the simple syntax).
-The extended syntax is an array of commands, each of which is an array of command and arguments.
-For example, if you wanted to generate PDF and then to zip up the original TeX file, you could write:
+The `process` field also has an extended array syntax, which can be used to write multiple commands.
+For example:
+
+```toml
+process = [
+    "xelatex {{file}}",
+    "zip -9 {{file_stem}}.zip {{file_name}}",
+]
+```
+
+Each command in the extended syntax may also be an array of arguments, this is the only way to pass arguments containing spaces:
 
 ```toml
 process = [
     ["xelatex", "{{file}}"],
-    ["zip", "-9", "{{file_stem}}.zip", "{{file_name}}"],
+    ["zip", "-9", "{{file_stem}} - compressed.zip", "{{file_name}}"],
 ]
 ```
 

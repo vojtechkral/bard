@@ -73,6 +73,7 @@ impl Default for SongsGlobs {
 #[serde(untagged)]
 pub enum CmdSpec {
     Basic(String),
+    Multiple(Vec<String>),
     Extended(Vec<Vec<String>>),
 }
 
@@ -80,6 +81,7 @@ impl CmdSpec {
     fn is_empty(&self) -> bool {
         match self {
             Self::Basic(s) => s.is_empty(),
+            Self::Multiple(v) => v.is_empty(),
             Self::Extended(v) => v.is_empty(),
         }
     }
@@ -464,10 +466,15 @@ impl Project {
         let context = PostProcessCtx::new(&output.file, &self.project_dir)?;
 
         match cmds {
-            CmdSpec::Basic(s) => self.post_process_one(&context, s.split_whitespace())?,
+            CmdSpec::Basic(cmd) => self.post_process_one(&context, cmd.split_whitespace())?,
+            CmdSpec::Multiple(vec) => {
+                for cmd in vec.iter() {
+                    self.post_process_one(&context, cmd.split_ascii_whitespace())?;
+                }
+            }
             CmdSpec::Extended(vec) => {
                 for cmd in vec.iter() {
-                    self.post_process_one(&context, cmd.iter().map(String::as_str))?
+                    self.post_process_one(&context, cmd.iter().map(String::as_str))?;
                 }
             }
         }

@@ -8,12 +8,21 @@ process = "{{project_dir}}/process.sh {{bard}} {{file_name}} {{file_stem}} {{fil
 process_win = "{{project_dir}}\\process.bat {{bard}} {{file_name}} {{file_stem}} {{file}} process-basic.json"
 
 [[output]]
-file = "extended.html"
+file = "multiple.html"
 process = [
-    ["{{project_dir}}/process.sh", "{{bard}}", "{{file_name}}", "{{file_stem}}", "{{file}}", "process-extended.json"],
+    "{{project_dir}}/process.sh {{bard}} {{file_name}} {{file_stem}} {{file}} process-multiple.json",
 ]
 process_win = [
-    ["{{project_dir}}\\process.bat", "{{bard}}", "{{file_name}}", "{{file_stem}}", "{{file}}", "process-extended.json"],
+    "{{project_dir}}\\process.bat {{bard}} {{file_name}} {{file_stem}} {{file}} process-multiple.json",
+]
+
+[[output]]
+file = "extended.html"
+process = [
+    ["{{project_dir}}/process.sh", "{{bard}}", "{{file_name}}", "{{file_stem}}", "{{file}}", "process extended.json"],
+]
+process_win = [
+    ["{{project_dir}}\\process.bat", "{{bard}}", "{{file_name}}", "{{file_stem}}", "{{file}}", "process extended.json"],
 ]
 
 [book]

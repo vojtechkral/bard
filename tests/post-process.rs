@@ -27,7 +27,13 @@ fn project_postprocess() {
     assert_eq!(basic["file_name"], "basic.html");
     assert_eq!(basic["file_stem"], "basic");
 
-    let extended = fs::read_to_string(out_dir.join("process-extended.json")).unwrap();
+    let multiple = fs::read_to_string(out_dir.join("process-multiple.json")).unwrap();
+    let multiple: HashMap<String, String> = json::from_str(&multiple).unwrap();
+    assert_eq!(multiple["bard"], exe);
+    assert_eq!(multiple["file_name"], "multiple.html");
+    assert_eq!(multiple["file_stem"], "multiple");
+
+    let extended = fs::read_to_string(out_dir.join("process extended.json")).unwrap();
     let extended: HashMap<String, String> = json::from_str(&extended).unwrap();
     assert_eq!(extended["bard"], exe);
     assert_eq!(extended["file_name"], "extended.html");
