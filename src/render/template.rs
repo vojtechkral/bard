@@ -120,7 +120,7 @@ impl HelperDef for ImgHelper {
         _: &'reg Handlebars<'reg>,
         _: &'rc hb::Context,
         _: &mut hb::RenderContext<'reg, 'rc>,
-    ) -> Result<hb::ScopedJson<'reg, 'rc>, hb::RenderError> {
+    ) -> Result<Option<hb::ScopedJson<'reg, 'rc>>, hb::RenderError> {
         let path: &str = h
             .param(0)
             .map(|x| x.value())
@@ -145,7 +145,7 @@ impl HelperDef for ImgHelper {
         })?;
 
         let res = [w, h][self.result_i];
-        Ok(hb::ScopedJson::Derived(JsonValue::from(res)))
+        Ok(Some(hb::ScopedJson::Derived(JsonValue::from(res))))
     }
 }
 
@@ -168,7 +168,7 @@ impl HelperDef for DpiHelper {
         _: &'reg Handlebars<'reg>,
         _: &'rc hb::Context,
         _: &mut hb::RenderContext<'reg, 'rc>,
-    ) -> Result<hb::ScopedJson<'reg, 'rc>, hb::RenderError> {
+    ) -> Result<Option<hb::ScopedJson<'reg, 'rc>>, hb::RenderError> {
         let value: f64 = h
             .param(0)
             .map(|x| x.value())
@@ -183,7 +183,7 @@ impl HelperDef for DpiHelper {
             })?;
 
         let res = (value / self.dpi) * Self::INCH_MM;
-        Ok(hb::ScopedJson::Derived(JsonValue::from(res)))
+        Ok(Some(hb::ScopedJson::Derived(JsonValue::from(res))))
     }
 }
 
