@@ -17,8 +17,10 @@ pub const OPTS_NO_PS: MakeOpts = MakeOpts {
     no_postprocess: true,
 };
 
+/// Project source root (where `Cargo.toml` is)
 pub const ROOT: ProjectPath = ProjectPath { path: &[] };
 
+/// `$ROOT/tests/test-projects`
 pub const TEST_PROJECTS: ProjectPath = ProjectPath {
     path: &["tests", "test-projects"],
 };
@@ -53,6 +55,18 @@ pub fn assert_file_contains<P: AsRef<Path>>(path: P, what: &str) {
     );
 }
 
+pub fn int_dir() -> PathBuf {
+    // Cargo suppor for tmpdir merged yay https://github.com/rust-lang/cargo/pull/9375
+    // but we should still support old cargos, better to use option_env:
+    option_env!("CARGO_TARGET_TMPDIR")
+        .map(PathBuf::from)
+        .unwrap_or(
+            [env!("CARGO_MANIFEST_DIR"), "target", INT_DIR]
+                .iter()
+                .collect(),
+        )
+}
+
 #[derive(Debug)]
 pub struct Builder {
     pub project: Project,
@@ -61,16 +75,7 @@ pub struct Builder {
 
 impl Builder {
     fn work_dir(name: &OsStr, rm: bool) -> Result<PathBuf> {
-        // Cargo suppor for tmpdir merged yay https://github.com/rust-lang/cargo/pull/9375
-        // but we should still support old cargos, better to use option_env:
-        let path = option_env!("CARGO_TARGET_TMPDIR")
-            .map(|tmpdir| PathBuf::from(tmpdir).join(name))
-            .unwrap_or(
-                [env!("CARGO_MANIFEST_DIR"), "target", INT_DIR]
-                    .iter()
-                    .collect(),
-            )
-            .join(name);
+        let path = int_dir().join(name);
 
         if rm {
             if path.exists() {
@@ -116,7 +121,6 @@ impl Builder {
     pub fn build_opts(src_path: PathBuf, opts: &MakeOpts) -> Result<Self> {
         cli::use_stderr(true);
 
-        // let src_path = Self::source_dir(name);
         let name = src_path.file_name().unwrap();
         let work_dir = Self::work_dir(name, true)?;
 

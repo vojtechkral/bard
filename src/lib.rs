@@ -15,6 +15,7 @@ pub mod parser;
 pub mod project;
 pub mod render;
 pub mod util;
+pub mod util_cmd;
 pub mod watch;
 
 use crate::error::*;
@@ -44,6 +45,25 @@ pub struct MakeOpts {
     pub no_postprocess: bool,
 }
 
+#[derive(StructOpt, Clone, Default, Debug)]
+pub struct SortLinesOpts {
+    #[structopt(
+        help = "Regular expression that extracts the sort key from each line via a capture group"
+    )]
+    pub regex: String,
+    #[structopt(help = "The file whose lines to sort, in-place")]
+    pub file: String,
+}
+
+#[derive(StructOpt)]
+enum UtilCmd {
+    #[structopt(about = "Alphabetically sorts lines of a file in-place")]
+    SortLines {
+        #[structopt(flatten)]
+        opts: SortLinesOpts,
+    },
+}
+
 #[derive(StructOpt)]
 #[structopt(
     version = env!("CARGO_PKG_VERSION"),
@@ -64,6 +84,8 @@ enum Bard {
         #[structopt(flatten)]
         opts: MakeOpts,
     },
+    #[structopt(about = "Commandline utilities for postprocessing")]
+    Util(UtilCmd),
 }
 
 impl Bard {
@@ -74,6 +96,7 @@ impl Bard {
             Init => bard_init(),
             Make { opts } => bard_make(&opts),
             Watch { opts } => bard_watch(&opts),
+            Util(UtilCmd::SortLines { opts }) => bard_sort_lines(&opts),
         }
     }
 }
@@ -149,6 +172,10 @@ pub fn bard_watch(opts: &MakeOpts) -> Result<()> {
     });
 
     bard_watch_at(opts, &cwd, watch)
+}
+
+pub fn bard_sort_lines(opts: &SortLinesOpts) -> Result<()> {
+    util_cmd::sort_lines(&opts.file, &opts.regex)
 }
 
 pub fn bard(args: &[OsString]) -> Result<()> {
