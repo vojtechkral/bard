@@ -1,10 +1,10 @@
 {
   "book": {
     "title": "Bard Songbook",
-    "subtitle": "An example project",
-    "title_note": "A set of a few non-copyrighted songs.",
+    "front_img": "guitar.jpg",
     "chorus_label": "Ch",
-    "front_img": "guitar.jpg"
+    "subtitle": "An example project",
+    "title_note": "A set of a few non-copyrighted songs."
   },
   "songs": [
     {
@@ -1809,7 +1809,7 @@
   "output": {},
   "program": {
     "name": "bard",
-    "version": "1.2.0",
+    "version": "1.2.1",
     "description": "Creates PDF and HTML songbooks out of easy-to-write Markdown sources.",
     "homepage": "https://github.com/vojtechkral/bard",
     "authors": "Vojtech Kral <vojtech@kral.hk>"
