@@ -1,12 +1,16 @@
 @ECHO OFF
 
-set file=%3
+rem Windows paths contain backslashes - we need to be escape them for JSON:
+set bard=%1
+set bard=%bard:\=\\%
+set file=%4
 set file=%file:\=\\%
 
 (
 echo {
-echo "file_name": "%1",
-echo "file_stem": "%2",
+echo "bard": "%bard%",
+echo "file_name": "%2",
+echo "file_stem": "%3",
 echo "file": "%file%"
 echo }
-) > %4
+) > %5

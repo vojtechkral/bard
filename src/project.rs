@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::env;
 use std::ffi::OsStr;
 use std::fs;
 use std::iter;
@@ -276,6 +277,7 @@ impl Settings {
 
 #[derive(Serialize, Debug)]
 struct PostProcessCtx<'a> {
+    bard: String,
     file: &'a str,
     file_name: &'a str,
     file_stem: &'a str,
@@ -283,17 +285,27 @@ struct PostProcessCtx<'a> {
 }
 
 impl<'a> PostProcessCtx<'a> {
-    fn new(file: &'a Path, project_dir: &'a Path) -> Self {
+    fn new(file: &'a Path, project_dir: &'a Path) -> Result<Self> {
+        let bard = env::current_exe()
+            .map_err(Error::new)
+            .and_then(|exe| {
+                exe.into_os_string()
+                    .into_string()
+                    .map_err(|os| anyhow!("Can't convert to UTF-8: {:?}", os))
+            })
+            .context("Could not read path to bard executable")?;
+
         // NOTE: Filenames should be known to be UTF-8-valid and canonicalized at this point
         let file_name = file.file_name().unwrap();
         let file_stem = file.file_stem().unwrap_or(file_name).to_str().unwrap();
 
-        Self {
+        Ok(Self {
+            bard,
             file: file.to_str().unwrap(),
             file_name: file_name.to_str().unwrap(),
             file_stem,
             project_dir: project_dir.to_str().unwrap(),
-        }
+        })
     }
 }
 
@@ -449,7 +461,7 @@ impl Project {
             _ => return Ok(()),
         };
 
-        let context = PostProcessCtx::new(&output.file, &self.project_dir);
+        let context = PostProcessCtx::new(&output.file, &self.project_dir)?;
 
         match cmds {
             CmdSpec::Basic(s) => self.post_process_one(&context, s.split_whitespace())?,
@@ -478,10 +490,15 @@ impl Project {
                 Json => RJson::render(self, &output),
                 Auto => Format::no_auto(),
             }
-            .with_context(|| format!("Could render output file '{}'", output.file.display()))?;
+            .with_context(|| format!("Could not render output file '{}'", output.file.display()))?;
 
             if self.post_process {
-                self.post_process(&output)?;
+                self.post_process(&output).with_context(|| {
+                    format!(
+                        "Could not postprocess output file '{}'",
+                        output.file.display()
+                    )
+                })?;
             }
 
             Ok(())

@@ -95,6 +95,7 @@ The variables that are available in the `process` field are:
 - `file_name`: The filename of the output file only, ie. without path.
 - `file_stem`: Filename without extension. For example, the stem of `exameple.tex` is `example`.
 - `project_dir`: The path to the current project root dir (ie. where `bard.toml` is placed).
+- `bard`: Full (absolute) path to the bard executable.
 
 The post-process commands are run in the output directory.
 
