@@ -49,6 +49,7 @@ from the [Example project](./example).
 - On other Linux distros: A prebuilt binary for x86-64 is available from the [Releases page](https://github.com/vojtechkral/bard/releases) (may not be binary-compatible with older distros).
 - On Windows: Download prebuilt binary from the [Releases page](https://github.com/vojtechkral/bard/releases).
 - On any OS with a [Rust toolchain](https://rustup.rs/): Use `cargo install -f bard` .
+    - Minimum supported Rust verion is 1.46 (released `2020-08-27`)
 
 Packages for more OSes are hopefully Coming Soon™.
 
