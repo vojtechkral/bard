@@ -123,6 +123,9 @@ Formatting such as _emphasized_ or **bold** text is supported, but only in verse
 not in other parts of the song (such as titles, subtitles, bullet lists, etc.).
 Hyperlinks are supported but rich text inside hyperlinks is not (the content is treated as plaintext).
 
+HTML entities are supported as well, even when rendering non-HTML formats (TeX).
+For example, you can use `&nbsp;` to force extra spaces or empty lines.
+
 Some output formats (Hovorka XML) don't support rich text and simply render it as plain text.
 
 ## Images
