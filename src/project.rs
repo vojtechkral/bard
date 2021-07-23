@@ -1,14 +1,12 @@
 use std::collections::HashMap;
-use std::env;
-use std::ffi::OsStr;
 use std::fs;
 use std::iter;
-use std::path::{self, Path, PathBuf};
+use std::path::{Path, PathBuf};
 use std::process::Command;
 use std::str;
 
 use handlebars::Handlebars;
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 
 use crate::book::{Book, Song, SongRef};
 use crate::cli;
@@ -16,9 +14,16 @@ use crate::default_project::DEFAULT_PROJECT;
 use crate::error::*;
 use crate::music::Notation;
 use crate::render::{RHovorka, RHtml, RJson, RTex, Render};
-use crate::util::*;
+use crate::util::{ExitStatusExt, PathBufExt};
 
 pub use toml::Value;
+
+mod input;
+use input::{InputSet, SongsGlobs};
+mod postprocess;
+use postprocess::{CmdSpec, PostProcessCtx};
+mod output;
+pub use output::Output;
 
 pub const PROJECT_FILE: &str = "bard.toml";
 pub const DIR_SONGS: &str = "songs";
@@ -42,51 +47,6 @@ fn dir_output() -> PathBuf {
 
 pub type Metadata = HashMap<Box<str>, Value>;
 
-#[derive(Deserialize, Debug)]
-#[serde(untagged)]
-pub enum SongsGlobs {
-    One(String),
-    Many(Vec<String>),
-}
-
-impl SongsGlobs {
-    fn iter(&self) -> impl Iterator<Item = &str> {
-        let mut pos = 0;
-
-        iter::from_fn(move || match self {
-            Self::One(s) => Some(s.as_str()),
-            Self::Many(v) => v.get(pos).map(|s| {
-                pos += 1;
-                s.as_str()
-            }),
-        })
-    }
-}
-
-impl Default for SongsGlobs {
-    fn default() -> Self {
-        Self::One("*.md".into())
-    }
-}
-
-#[derive(Deserialize, Debug)]
-#[serde(untagged)]
-pub enum CmdSpec {
-    Basic(String),
-    Multiple(Vec<String>),
-    Extended(Vec<Vec<String>>),
-}
-
-impl CmdSpec {
-    fn is_empty(&self) -> bool {
-        match self {
-            Self::Basic(s) => s.is_empty(),
-            Self::Multiple(v) => v.is_empty(),
-            Self::Extended(v) => v.is_empty(),
-        }
-    }
-}
-
 #[derive(Deserialize, Clone, Copy, Debug)]
 #[serde(rename_all = "lowercase")]
 pub enum Format {
@@ -107,118 +67,6 @@ impl Format {
 impl Default for Format {
     fn default() -> Self {
         Self::Auto
-    }
-}
-
-#[derive(Deserialize, Debug)]
-pub struct Output {
-    pub file: PathBuf,
-    pub template: Option<PathBuf>,
-
-    #[serde(default)]
-    pub format: Format,
-
-    #[serde(rename = "process")]
-    pub post_process: Option<CmdSpec>,
-    #[serde(rename = "process_win")]
-    pub post_process_win: Option<CmdSpec>,
-
-    #[serde(flatten)]
-    pub metadata: Metadata,
-}
-
-impl Output {
-    fn utf8_check(&self) -> Result<(), path::Display> {
-        if let Some(template) = self.template.as_ref() {
-            template.utf8_check()?;
-        }
-
-        self.file.utf8_check()
-    }
-
-    fn resolve(&mut self, dir_templates: &Path, dir_output: &Path) -> Result<()> {
-        // Check that filenames are valid UTF-8
-        self.utf8_check()
-            .map_err(|p| anyhow!("Filename cannot be decoded to UTF-8: {}", p))?;
-
-        if let Some(template) = self.template.as_mut() {
-            template.resolve(dir_templates);
-        }
-        self.file.resolve(dir_output);
-
-        if !matches!(self.format, Format::Auto) {
-            return Ok(());
-        }
-
-        let ext = self
-            .file
-            .extension()
-            .and_then(OsStr::to_str)
-            .map(str::to_lowercase);
-
-        self.format = match ext.as_deref() {
-            Some("html") | Some("xhtml") | Some("htm") | Some("xht") => Format::Html,
-            Some("tex") => Format::Tex,
-            Some("xml") => Format::Hovorka,
-            Some("json") => Format::Json,
-            _ => bail!(
-                "Unknown or unsupported format of output file: {}\nHint: Specify format with  \
-                 'format = ...'",
-                self.file.display()
-            ),
-        };
-
-        Ok(())
-    }
-
-    fn output_filename(&self) -> &str {
-        self.file
-            .file_name()
-            .map(|name| {
-                name.to_str()
-                    .expect("OutputSpec: template path must be valid utf-8")
-            })
-            .expect("OutputSpec: Invalid filename")
-    }
-
-    fn template_path(&self) -> Option<&Path> {
-        match self.format {
-            Format::Html | Format::Tex | Format::Hovorka => self.template.as_deref(),
-            Format::Json => None,
-            Format::Auto => Format::no_auto(),
-        }
-    }
-
-    fn post_process(&self) -> Option<&CmdSpec> {
-        if cfg!(windows) && self.post_process_win.is_some() {
-            return self.post_process_win.as_ref();
-        }
-
-        self.post_process.as_ref()
-    }
-
-    pub fn template_filename(&self) -> String {
-        self.template
-            .as_ref()
-            .map(|p| {
-                p.to_str()
-                    .expect("OutputSpec: template path must be valid utf-8")
-                    .into()
-            })
-            .unwrap_or_else(|| String::from("<builtin>"))
-    }
-
-    pub fn dpi(&self) -> f64 {
-        const DEFAULT: f64 = 144.0;
-
-        self.metadata
-            .get("dpi")
-            .and_then(|value| match value {
-                Value::Integer(i) => Some(*i as f64),
-                Value::Float(f) => Some(*f),
-                _ => None,
-            })
-            .unwrap_or(DEFAULT)
     }
 }
 
@@ -277,40 +125,6 @@ impl Settings {
     }
 }
 
-#[derive(Serialize, Debug)]
-struct PostProcessCtx<'a> {
-    bard: String,
-    file: &'a str,
-    file_name: &'a str,
-    file_stem: &'a str,
-    project_dir: &'a str,
-}
-
-impl<'a> PostProcessCtx<'a> {
-    fn new(file: &'a Path, project_dir: &'a Path) -> Result<Self> {
-        let bard = env::current_exe()
-            .map_err(Error::new)
-            .and_then(|exe| {
-                exe.into_os_string()
-                    .into_string()
-                    .map_err(|os| anyhow!("Can't convert to UTF-8: {:?}", os))
-            })
-            .context("Could not read path to bard executable")?;
-
-        // NOTE: Filenames should be known to be UTF-8-valid and canonicalized at this point
-        let file_name = file.file_name().unwrap();
-        let file_stem = file.file_stem().unwrap_or(file_name).to_str().unwrap();
-
-        Ok(Self {
-            bard,
-            file: file.to_str().unwrap(),
-            file_name: file_name.to_str().unwrap(),
-            file_stem,
-            project_dir: project_dir.to_str().unwrap(),
-        })
-    }
-}
-
 #[derive(Debug)]
 pub struct Project {
     pub project_dir: PathBuf,
@@ -347,7 +161,9 @@ impl Project {
             post_process: true,
         };
 
-        project.input_paths = project.collect_input_paths()?;
+        project.input_paths = project
+            .collect_input_paths()
+            .context("Failed to load input files")?;
         project.book.load_files(&project.input_paths)?;
         project.book.postprocess();
 
@@ -373,43 +189,13 @@ impl Project {
     }
 
     fn collect_input_paths(&mut self) -> Result<Vec<PathBuf>> {
-        // glob doesn't support setting a base for relative paths,
-        // so we have to cd into the songs dir...
-        let _cwd = CwdGuard::new(&self.settings.dir_songs)?;
+        let input_set = InputSet::new(&self.settings.dir_songs)?;
 
         self.settings
             .songs
             .iter()
-            .map(|g| (g, glob::glob(g)))
-            .try_fold(vec![], |mut paths, (glob_src, glob)| {
-                let glob =
-                    glob.with_context(|| format!("Invalid input files pattern: '{}'", glob_src))?;
-
-                let orig_idx = paths.len();
-                for globres in glob {
-                    let path = globres
-                        .context("Could not locate input files")?
-                        .resolved(&self.settings.dir_songs);
-
-                    paths.push(path);
-                }
-
-                if orig_idx == paths.len() {
-                    // No files added, pattern did not match any
-                    bail!(
-                        "No files found for filename/pattern `{}` in `{}`",
-                        glob_src,
-                        self.settings.dir_songs.display()
-                    );
-                }
-
-                // Sort the entries collected for this glob.
-                // This way, paths from one glob pattern are sorted alphabetically,
-                // but order of globs as given in the input array is preserved.
-                paths[orig_idx..].sort();
-
-                Ok(paths)
-            })
+            .try_fold(input_set, InputSet::apply_glob)?
+            .finalize()
     }
 
     pub fn metadata(&self) -> &Metadata {

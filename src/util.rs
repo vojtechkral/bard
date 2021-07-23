@@ -1,11 +1,12 @@
 use std::env;
+use std::fs;
 use std::path::{self, Path, PathBuf};
 use std::process::ExitStatus;
 
 #[cfg(unix)]
 use std::os::unix::process::ExitStatusExt as _;
 
-use lexical_sort::lexical_cmp;
+use lexical_sort::{lexical_cmp, PathSort};
 
 use crate::error::*;
 
@@ -110,6 +111,7 @@ impl Drop for CwdGuard {
 }
 
 // Lexical sorting
+// Basically forwards to the lexical-sort crate
 
 pub fn sort_lexical<S>(slice: &mut [S])
 where
@@ -123,4 +125,34 @@ where
     F: FnMut(&T) -> &str,
 {
     slice.sort_by(|lhs, rhs| lexical_cmp(key_fn(lhs), key_fn(rhs)));
+}
+
+pub fn sort_paths_lexical<S>(slice: &mut [S])
+where
+    S: AsRef<Path>,
+{
+    slice.path_sort(lexical_cmp);
+}
+
+// fs utils
+
+fn read_dir_all_inner(res: &mut Vec<PathBuf>, path: &Path) -> Result<()> {
+    for entry in fs::read_dir(path)? {
+        let entry = entry?;
+        let path = entry.path();
+        if entry.file_type()?.is_dir() {
+            // Recurse
+            read_dir_all_inner(res, &path)?;
+        } else {
+            res.push(path);
+        }
+    }
+
+    Ok(())
+}
+
+pub fn read_dir_all<P: AsRef<Path>>(path: P) -> Result<Vec<PathBuf>> {
+    let mut res = vec![];
+    read_dir_all_inner(&mut res, path.as_ref())?;
+    Ok(res)
 }
