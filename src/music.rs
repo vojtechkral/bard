@@ -241,7 +241,7 @@ impl Chromatic {
         Self::parse_span(from, notation).map(|(chromatic, _)| chromatic)
     }
 
-    fn to_string_western(&self, german: bool, uppercase: bool) -> String {
+    fn as_string_western(&self, german: bool, uppercase: bool) -> String {
         let res = match self.0 {
             0 => "C",
             1 => "C#",
@@ -267,7 +267,7 @@ impl Chromatic {
         }
     }
 
-    fn to_string_nashville(&self) -> String {
+    fn as_string_nashville(&self) -> String {
         match self.0 {
             0 => "1",
             1 => "1#",
@@ -286,7 +286,7 @@ impl Chromatic {
         .into()
     }
 
-    fn to_string_roman(&self, uppercase: bool) -> String {
+    fn as_string_roman(&self, uppercase: bool) -> String {
         let res = match self.0 {
             0 => "I",
             1 => "I#",
@@ -310,13 +310,13 @@ impl Chromatic {
         }
     }
 
-    pub fn to_string(&self, notation: Notation, uppercase: bool) -> String {
+    pub fn as_string(&self, notation: Notation, uppercase: bool) -> String {
         use self::Notation::*;
         match notation {
-            English => self.to_string_western(false, uppercase),
-            German => self.to_string_western(true, uppercase),
-            Nashville => self.to_string_nashville(),
-            Roman => self.to_string_roman(uppercase),
+            English => self.as_string_western(false, uppercase),
+            German => self.as_string_western(true, uppercase),
+            Nashville => self.as_string_nashville(),
+            Roman => self.as_string_roman(uppercase),
         }
     }
 
@@ -336,7 +336,7 @@ impl Default for Chromatic {
 
 impl fmt::Display for Chromatic {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self.to_string(Notation::English, true))
+        write!(f, "{}", self.as_string(Notation::English, true))
     }
 }
 
@@ -416,21 +416,21 @@ impl Chord {
         Some(first)
     }
 
-    fn to_string_inner(&self, res: &mut String, notation: Notation) {
-        let base = self.base.to_string(notation, self.uppercase);
+    fn as_string_inner(&self, res: &mut String, notation: Notation) {
+        let base = self.base.as_string(notation, self.uppercase);
         res.push_str(&base);
         res.push_str(&self.suffix);
     }
 
-    pub fn to_string(&self, notation: Notation) -> String {
+    pub fn as_string(&self, notation: Notation) -> String {
         // Try to target the typical case:
         let mut res = String::with_capacity(self.suffix.len() + 5);
 
         let mut this = self;
-        this.to_string_inner(&mut res, notation);
+        this.as_string_inner(&mut res, notation);
         while let Some(next) = this.next.as_ref() {
             this = next;
-            this.to_string_inner(&mut res, notation);
+            this.as_string_inner(&mut res, notation);
         }
 
         res
@@ -463,7 +463,7 @@ impl Chord {
 
 impl fmt::Display for Chord {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self.to_string(Notation::English))
+        write!(f, "{}", self.as_string(Notation::English))
     }
 }
 
@@ -531,10 +531,10 @@ mod tests {
     fn chromatic_transposition() {
         let c: Chromatic = 0.into();
         let transposed = c.transposed(-1);
-        assert_eq!(transposed.to_string(Notation::German, false), "h");
+        assert_eq!(transposed.as_string(Notation::German, false), "h");
 
         let transposed = c.transposed(3);
-        assert_eq!(transposed.to_string(Notation::German, true), "Eb");
+        assert_eq!(transposed.as_string(Notation::German, true), "Eb");
     }
 
     #[test]
@@ -624,25 +624,25 @@ mod tests {
     #[test]
     fn chord_notations() {
         let chord = Chord::parse("bb", Notation::English).unwrap();
-        assert_eq!(chord.to_string(Notation::German), "b");
+        assert_eq!(chord.as_string(Notation::German), "b");
 
         let chord = Chord::parse("F#mi", Notation::English).unwrap();
         assert_eq!(format!("{}", chord), "F#mi");
 
         let chord = Chord::parse("1°", Notation::Nashville).unwrap();
         assert_eq!(format!("{}", chord), "C°");
-        assert_eq!(chord.to_string(Notation::Nashville), "1°");
+        assert_eq!(chord.as_string(Notation::Nashville), "1°");
 
         let chord = Chord::parse("ivm", Notation::Roman).unwrap();
         assert_eq!(format!("{}", chord), "fm");
-        assert_eq!(chord.to_string(Notation::Roman), "ivm");
+        assert_eq!(chord.as_string(Notation::Roman), "ivm");
 
         // Slash chords:
         let chord = Chord::parse("B / A", Notation::German).unwrap();
-        assert_eq!(chord.to_string(Notation::English), "Bb / A");
+        assert_eq!(chord.as_string(Notation::English), "Bb / A");
 
         let chord = Chord::parse("I/IV7/V°", Notation::Roman).unwrap();
-        assert_eq!(chord.to_string(Notation::English), "C/F7/G°");
+        assert_eq!(chord.as_string(Notation::English), "C/F7/G°");
     }
 
     #[test]

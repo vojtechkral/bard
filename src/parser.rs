@@ -359,13 +359,13 @@ impl ChordBuilder {
         if xp.xpose.is_some() || xp.notation.is_some() {
             let delta = xp.xpose.unwrap_or(0);
             let notation = xp.notation.unwrap_or(src_nt);
-            self.chord = chord.transposed(delta).to_string(notation).into();
+            self.chord = chord.transposed(delta).as_string(notation).into();
         }
 
         if xp.alt_xpose.is_some() || xp.alt_notation.is_some() {
             let delta = xp.alt_xpose.unwrap_or(0);
             let notation = xp.alt_notation.unwrap_or(src_nt);
-            self.alt_chord = Some(chord.transposed(delta).to_string(notation).into());
+            self.alt_chord = Some(chord.transposed(delta).as_string(notation).into());
         }
 
         Ok(())
