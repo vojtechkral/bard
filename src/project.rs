@@ -394,6 +394,15 @@ impl Project {
                     paths.push(path);
                 }
 
+                if orig_idx == paths.len() {
+                    // No files added, pattern did not match any
+                    bail!(
+                        "No files found for filename/pattern `{}` in `{}`",
+                        glob_src,
+                        self.settings.dir_songs.display()
+                    );
+                }
+
                 // Sort the entries collected for this glob.
                 // This way, paths from one glob pattern are sorted alphabetically,
                 // but order of globs as given in the input array is preserved.
