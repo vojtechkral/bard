@@ -1,3 +1,17 @@
+## 1.3.0 `2021-07-23`
+
+In this release:
+- Ability to sort ToC alphabetically in HTML and TeX/PDF ([documentation](https://github.com/vojtechkral/bard/blob/b43c5e0e965dd4d4fbc7333dfd9fe7a40ff8cf5b/doc/bard.toml.md#toc-sort-order))
+- Simpler postprocess syntax when multiple commands are used
+
+Detailed:
+- New subcommand: `util`, so far only contains the `sort-lines` utility designed to sort TeX toc file alphabetically
+- Path to bard itself now available in postprocess context, so that ^ can be called
+- Bugfix: Return non-zero status on program error
+- Support single-string commands in the extended postprocess syntax
+- The `songs_sorted` array now avaiable in template context
+- Internal changes and code maintanance
+
 ## 1.2.1 `2021-07-22`
 
 Patch update only containing a dependency update and a minor fix.
