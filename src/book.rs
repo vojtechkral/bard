@@ -9,7 +9,7 @@ use crate::error::*;
 use crate::music::Notation;
 use crate::parser::{Parser, ParserConfig};
 use crate::project::Settings;
-use crate::util::BStr;
+use crate::util::{sort_lexical_by, BStr};
 
 #[derive(Serialize, Debug)]
 #[serde(tag = "type")]
@@ -286,9 +286,26 @@ impl Song {
     }
 }
 
+#[derive(Serialize, Debug)]
+pub struct SongRef {
+    pub title: BStr,
+    /// index of the song in the Book::songs vector
+    pub idx: usize,
+}
+
+impl SongRef {
+    pub fn new((idx, songs): (usize, &Song)) -> Self {
+        Self {
+            title: songs.title.clone(),
+            idx,
+        }
+    }
+}
+
 #[derive(Debug)]
 pub struct Book {
     pub songs: Vec<Song>,
+    pub songs_sorted: Vec<SongRef>,
     pub notation: Notation,
 }
 
@@ -296,6 +313,7 @@ impl Book {
     pub fn new(settings: &Settings) -> Book {
         Book {
             songs: vec![],
+            songs_sorted: vec![],
             notation: settings.notation,
         }
     }
@@ -331,6 +349,14 @@ impl Book {
         self.songs.shrink_to_fit();
 
         Ok(())
+    }
+
+    /// Book-level postprocessing.
+    /// Currently this is generation of the songs_sorted vec.
+    /// This is unrelated to song postprocessing.
+    pub fn postprocess(&mut self) {
+        self.songs_sorted = self.songs.iter().enumerate().map(SongRef::new).collect();
+        sort_lexical_by(&mut self.songs_sorted, |songref| songref.title.as_ref());
     }
 }
 

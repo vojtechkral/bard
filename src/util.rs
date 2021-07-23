@@ -5,6 +5,8 @@ use std::process::ExitStatus;
 #[cfg(unix)]
 use std::os::unix::process::ExitStatusExt as _;
 
+use lexical_sort::lexical_cmp;
+
 use crate::error::*;
 
 pub type BStr = Box<str>;
@@ -105,4 +107,20 @@ impl Drop for CwdGuard {
     fn drop(&mut self) {
         let _ = env::set_current_dir(&self.orig_path);
     }
+}
+
+// Lexical sorting
+
+pub fn sort_lexical<S>(slice: &mut [S])
+where
+    S: AsRef<str>,
+{
+    sort_lexical_by(slice, AsRef::as_ref)
+}
+
+pub fn sort_lexical_by<T, F>(slice: &mut [T], mut key_fn: F)
+where
+    F: FnMut(&T) -> &str,
+{
+    slice.sort_by(|lhs, rhs| lexical_cmp(key_fn(lhs), key_fn(rhs)));
 }

@@ -10,7 +10,7 @@ use std::str;
 use handlebars::Handlebars;
 use serde::{Deserialize, Serialize};
 
-use crate::book::{Book, Song};
+use crate::book::{Book, Song, SongRef};
 use crate::cli;
 use crate::default_project::DEFAULT_PROJECT;
 use crate::error::*;
@@ -349,6 +349,7 @@ impl Project {
 
         project.input_paths = project.collect_input_paths()?;
         project.book.load_files(&project.input_paths)?;
+        project.book.postprocess();
 
         Ok(project)
     }
@@ -408,6 +409,10 @@ impl Project {
 
     pub fn songs(&self) -> &[Song] {
         &self.book.songs
+    }
+
+    pub fn songs_sorted(&self) -> &[SongRef] {
+        &self.book.songs_sorted
     }
 
     fn post_process_one<'a>(

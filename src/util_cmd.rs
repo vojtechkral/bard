@@ -3,21 +3,15 @@ use std::io::{self, BufRead, BufReader, BufWriter, Write};
 use std::path::PathBuf;
 use std::str::FromStr;
 
-use lexical_sort::{lexical_cmp, StringSort};
 use regex::Regex;
 
 use crate::error::*;
+use crate::util::sort_lexical_by;
 
 #[derive(Debug)]
 struct SortableLine {
     line: String,
     key: String,
-}
-
-impl AsRef<str> for SortableLine {
-    fn as_ref(&self) -> &str {
-        self.key.as_str()
-    }
 }
 
 fn line_read(
@@ -56,7 +50,7 @@ pub fn sort_lines(path: &str, regex: &str) -> Result<()> {
         .try_fold(Vec::new(), |lines, line| line_read(lines, line, &regex))
         .with_context(|| format!("Could not sort file `{}`", path.display()))?;
 
-    lines.string_sort(lexical_cmp);
+    sort_lexical_by(&mut lines, |line| line.key.as_str());
 
     let write_err = || format!("Could not write file `{}`", path.display());
     let mut file = File::create(&path)

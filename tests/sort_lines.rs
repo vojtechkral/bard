@@ -1,7 +1,6 @@
 use std::fs;
 
-use lexical_sort::{lexical_cmp, StringSort};
-
+use bard::util::sort_lexical;
 use bard::SortLinesOpts;
 
 mod util;
@@ -27,7 +26,7 @@ foo bar baz=č
     let sorted_content = fs::read_to_string(&file).unwrap();
     let sorted_content: Vec<_> = sorted_content.lines().collect();
     let mut expected: Vec<_> = content_to_sort.lines().collect();
-    expected.string_sort(lexical_cmp);
+    sort_lexical(&mut expected);
 
     assert_eq!(sorted_content, expected);
 }

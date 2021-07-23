@@ -7,14 +7,11 @@ use handlebars::{self as hb, handlebars_helper, Handlebars, HelperDef, JsonValue
 use image::image_dimensions;
 use lazy_static::lazy_static;
 use regex::{Error as ReError, Regex};
-use serde::Serialize;
 
-use super::Render;
-use crate::book::Song;
+use super::{Render, RenderContext};
 use crate::error::*;
-use crate::project::{Metadata, Output, Project};
+use crate::project::{Output, Project};
 use crate::util::PathBufExt;
-use crate::{ProgramMeta, PROGRAM_META};
 
 type RegexCache = HashMap<String, Result<Regex, ReError>>;
 
@@ -187,14 +184,6 @@ impl HelperDef for DpiHelper {
     }
 }
 
-#[derive(Serialize, Debug)]
-struct HbContext<'a> {
-    book: &'a Metadata,
-    songs: &'a [Song],
-    output: &'a Metadata,
-    program: &'a ProgramMeta,
-}
-
 #[derive(Debug)]
 struct HbRender<'a> {
     hb: Handlebars<'static>,
@@ -253,16 +242,10 @@ impl<'a> HbRender<'a> {
     }
 
     fn render(&self) -> Result<&'a Output> {
-        let context = HbContext {
-            book: self.project.metadata(),
-            songs: self.project.songs(),
-            output: &self.output.metadata,
-            program: &PROGRAM_META,
-        };
+        let context = RenderContext::new(&self.project, &self.output);
+        let output = self.hb.render(&self.tpl_name, &context)?;
 
-        let html = self.hb.render(&self.tpl_name, &context)?;
-
-        fs::write(&self.output.file, html.as_bytes()).with_context(|| {
+        fs::write(&self.output.file, output.as_bytes()).with_context(|| {
             format!(
                 "Error writing output file: `{}`",
                 self.output.file.display()

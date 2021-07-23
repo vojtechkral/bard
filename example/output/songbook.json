@@ -1,10 +1,10 @@
 {
   "book": {
-    "title": "Bard Songbook",
     "front_img": "guitar.jpg",
-    "chorus_label": "Ch",
+    "title": "Bard Songbook",
     "subtitle": "An example project",
-    "title_note": "A set of a few non-copyrighted songs."
+    "title_note": "A set of a few non-copyrighted songs.",
+    "chorus_label": "Ch"
   },
   "songs": [
     {
@@ -1806,6 +1806,25 @@
       "notation": "english"
     }
   ],
+  "songs_sorted": [
+    {
+      "title": "Danny Boy",
+      "idx": 0
+    },
+    {
+      "title": "Handsome Molly",
+      "idx": 1
+    },
+    {
+      "title": "Whiskey in the Jar",
+      "idx": 2
+    },
+    {
+      "title": "Wild Mountain Thyme",
+      "idx": 3
+    }
+  ],
+  "notation": "english",
   "output": {},
   "program": {
     "name": "bard",
