@@ -21,6 +21,8 @@ This is a [glob pattern](https://en.wikipedia.org/wiki/Glob_(programming)).
 An array of filenames or globs can also be used.
 
 Songs are sorted in the resulting songbook in the same order as specified in the `songs` field.
+Table of contents sections in HTML and PDF are sorted in the same order as well, to have them sorted
+alphabetically, refer to the [ToC sort order](#toc-sort-order) section below.
 Filenames matched by a glob pattern are sorted alphabetically. If you want the songs to be in a specific order,
 you may either prefix each song filename with a number or list them explicitly, as in:
 
@@ -126,3 +128,34 @@ This field will be used on MS Windows instead of `process`, which allows to cust
 ##### Skipping post-processing
 
 To skip the post-processing step, pass `-p` or `--no-postprocess` to `bard make` or `bard watch`
+
+### ToC sort order
+
+By default the table of contents in both HTML and PDF outputs is sorted in the same order
+as the songs in the document. This may be unsuitable for larger songbooks where one might instead prefer
+an alphabetically sorted ToC. However, this is not done by default, as the solution is somewhat hacky, especially in TeX.
+
+In HTML, it is easy enough to replace the default ToC code with a code like this, using the `songs_sorted` list:
+```html
+<ul>
+  {{#each songs_sorted}}
+    <li><a href="#song-{{ idx }}">{{ title }}</a></li>
+  {{/each}}
+</ul>
+```
+
+TeX on the other hand uses the [`.toc` file with two rendering passes](https://tex.stackexchange.com/questions/186674/why-is-the-toc-file-created-at-end-document) to generate a correct ToC section.
+To sort the ToC alphabetically, the lines of the `.toc` file need to be sorted between TeX engine runs.
+_bard_ provides a utility in the `util` subcommand to do this.
+
+The solution is to use the a `process` step in the TeX/PDF output similar to this:
+```toml
+process = [
+    "xelatex {{file}}",
+    "{{bard}} util sort-lines numberline\\s+\\{[^}]*}([^}]+) {{file_stem}}.toc",
+    "xelatex {{file}}",
+]
+```
+The `numberline\\s+\\{[^}]*}([^}]+)` argument is a regular expression that extracts a song title from each
+`.toc` line; the song title is expected to be in the first capture group.
+The format of the line may differ in a different TeX engine and based on its settings.
