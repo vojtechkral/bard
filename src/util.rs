@@ -1,4 +1,3 @@
-use std::env;
 use std::fs;
 use std::path::{self, Path, PathBuf};
 use std::process::ExitStatus;
@@ -77,36 +76,6 @@ impl ExitStatusExt for ExitStatus {
             Some(code) => bail!("Process exited with code: {}", code),
             None => bail!("Process failed with unknown error"),
         }
-    }
-}
-
-// CwdGuard
-
-/// Used for globbing, which doesn't support setting base for relative globs
-pub struct CwdGuard {
-    orig_path: PathBuf,
-}
-
-impl CwdGuard {
-    pub fn new<P>(new_path: P) -> Result<Self>
-    where
-        P: AsRef<Path>,
-    {
-        let mut orig_path = env::current_dir().context("Could not read current directory")?;
-
-        let new_path = new_path.as_ref();
-        env::set_current_dir(new_path).with_context(|| {
-            orig_path.push(new_path);
-            format!("Could not enter directory: `{}`", orig_path.display())
-        })?;
-
-        Ok(Self { orig_path })
-    }
-}
-
-impl Drop for CwdGuard {
-    fn drop(&mut self) {
-        let _ = env::set_current_dir(&self.orig_path);
     }
 }
 
