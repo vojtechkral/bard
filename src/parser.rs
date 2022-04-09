@@ -26,7 +26,7 @@ struct Extension {
     num_excls: u32,
     content: String,
     /// `true` if there was a space char in front of the ext,
-    /// used to preserve proper spacing when chord refs are mixed in text.
+    /// used to preserve proper spacing when chorus refs are mixed in text.
     prefix_space: bool,
 }
 

@@ -1,8 +1,8 @@
 {
   "book": {
+    "chorus_label": "Ch",
     "front_img": "guitar.jpg",
     "title": "Bard Songbook",
-    "chorus_label": "Ch",
     "subtitle": "An example project",
     "title_note": "A set of a few non-copyrighted songs."
   },

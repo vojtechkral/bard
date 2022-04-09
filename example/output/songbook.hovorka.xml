@@ -22,17 +22,10 @@
 
 
 
-
-
-
-
-
-
 <song>
   <ID><![CDATA[song-0]]></ID>
   <title><![CDATA[Danny Boy]]></title>
   <author><![CDATA[Bard Songbook]]></author>
-  
   <groupname><![CDATA[[local]]]></groupname>
   <songtext><![CDATA[
 1.
@@ -40,19 +33,16 @@
 From glen to [C]glen, and [Em]down the [F]mountain [G7]side
 The summer’s [C]gone, and all the [C7]flowers are [F]dying
 ‘Tis you, ’tis [C]you must [Dm]go and [G7]I must [C]bide.
-
 R1:
 [G7]But come ye [Am]back when [F]summer’s [G7]in the [C]meadow
 Or when the [Am]valley’s [F]hushed and [Em]white with [D7]snow [G7]
 ‘Tis I’ll be [C]here in [F]sunshine or in [C]sha[Am]dow.
 Oh Danny [C]Boy, oh Danny [F]Boy, I [G7]love you [C]so.
-
 2.
 And if you come, when all the flowers are dying
 And I am dead, as dead I well may be
 You’ll come and find the place where I am lying
 And kneel and say an ”Ave”  there for me.
-
 R2:
 And I shall hear, though soft you tread above me
 And all my dreams will warm and sweeter be
@@ -60,17 +50,13 @@ If you’ll not fail to tell me that you love me
 I’ll sleep in peace until you come to me.
 
 
-
-
 ]]></songtext>
 </song>
-
 
 <song>
   <ID><![CDATA[song-1]]></ID>
   <title><![CDATA[Handsome Molly]]></title>
   <author><![CDATA[Bard Songbook]]></author>
-  
   <groupname><![CDATA[[local]]]></groupname>
   <songtext><![CDATA[
 1.
@@ -78,47 +64,39 @@ I’ll sleep in peace until you come to me.
 Or some other seaport [D]town
 [D]I&#x27;d step my foot on a steamboat
 And sail the ocean [G]round
-
 2.
 While sailing round the ocean
 While sailing round the sea
 I’d think of Handsome Molly
 Wherever she may be
-
 3.
 I went to church last Sunday
 She passed me on by
 I knew her mind was changing
 By the roving of her eye
-
 4.
 Her hair as black as a Raven’s
 Her eyes were black as coal
 Her teeth just like lilies
 Out in the morning cold
-
 5.
 Now do you remember Molly
 When you gave me your right hand
 Said if you ever married
 Then I’d be the man
-
 6.
 Now you’ve broke your promise
 Go marry whom you please
 My heart is broken
 ‘Til I get some ease
 
-
 ]]></songtext>
 </song>
-
 
 <song>
   <ID><![CDATA[song-2]]></ID>
   <title><![CDATA[Whiskey in the Jar]]></title>
   <author><![CDATA[Bard Songbook]]></author>
-  
   <groupname><![CDATA[[local]]]></groupname>
   <songtext><![CDATA[
 1.
@@ -130,13 +108,11 @@ I [F]met with Captain Farrell and his
 And I [Am] then produced my rapier
 Saying [F] &quot;Stand and deliver,
 For [C]you are a bold deceiver!&quot;
-
 R:
 Mush-a [G]ring dum-a do dum-a da
 [C]Whack for me daddy-o
 [F]Whack for me daddy-o
 There&#x27;s [C]whiskey [G]in the [C]jar
-
 2.
 I counted out his money
 And it made a pretty penny
@@ -148,7 +124,6 @@ But the devil take the women
 For they never can be easy
 
 R:
-
 3.
 I went up to my chamber
 All for to take a slumber
@@ -160,7 +135,6 @@ Then sent for captain Farrell
 To be ready for the slaughter
 
 R:
-
 4.
 &#x27;Twas early in the morning
 Just before I rose to travel
@@ -174,17 +148,13 @@ So a prisoner I was taken
 R:
 
 
-
-
 ]]></songtext>
 </song>
-
 
 <song>
   <ID><![CDATA[song-3]]></ID>
   <title><![CDATA[Wild Mountain Thyme]]></title>
   <author><![CDATA[Bard Songbook]]></author>
-  
   <groupname><![CDATA[[local]]]></groupname>
   <songtext><![CDATA[
 1.
@@ -193,11 +163,9 @@ And the [C]trees are sweetly [G]bloomin&#x27;
 And the [C]wild [G]mountain [Em]thyme
 Grows [C]around the [Am]bloomin&#x27; [C]heather
 Will ye [G]go [C]lassie [G]go?
-
 R:
 And we&#x27;ll [C]all go [G]together to pull [C]wild [G]mountain [Em]thyme
 All [C]around the [Am]bloomin&#x27; [C]heather, will ye [G]go [C]lassie [G]go?
-
 2.
 I will build my love a bower
 By yon cool crystal fountain 
@@ -205,7 +173,6 @@ And round it I will pile
 All the wild flowers o&#x27; the mountain.
 Will ye go lassie go?
 R:
-
 3.
 I will range through the wilds
 And the deep glen sae dreamy
@@ -213,7 +180,6 @@ And return wi&#x27; their spoils
 Tae the bower o&#x27; my dearie.
 Will ye go lassie go?
 R:
-
 4.
 If my true love she&#x27;ll not come
 Then I&#x27;ll surely find another
@@ -222,10 +188,8 @@ All around the bloomin&#x27; heather.
 Will ye go lassie go?
 R:
 
-
 ]]></songtext>
 </song>
-
 
 
 </InetSongDb>
