@@ -75,7 +75,6 @@ subtitle = "Collection of songs I like to play"
 chorus_label = "Ch."
 front_img = "some-image.jpg"
 title_note = "John Smith, 2020"
-backmatter = "Backmatter page..."
 ```
 
 ... of these only the `title` is mandatory, the rest is optional.
