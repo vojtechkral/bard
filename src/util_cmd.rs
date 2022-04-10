@@ -1,8 +1,8 @@
 use std::fs::File;
 use std::io::{self, BufRead, BufReader, BufWriter, Write};
-use std::path::PathBuf;
 use std::str::FromStr;
 
+use camino::Utf8PathBuf as PathBuf;
 use regex::Regex;
 
 use crate::error::*;
@@ -38,14 +38,13 @@ pub fn sort_lines(path: &str, regex: &str) -> Result<usize> {
     let regex = Regex::from_str(regex).with_context(|| format!("Invalid regex: `{}`", regex))?;
 
     let path = PathBuf::from(path);
-    let file =
-        File::open(&path).with_context(|| format!("Could not open file `{}`", path.display()))?;
+    let file = File::open(&path).with_context(|| format!("Could not open file `{}`", path))?;
     let reader = BufReader::new(file);
 
     let mut lines = reader
         .lines()
         .try_fold(Vec::new(), |lines, line| line_read(lines, line, &regex))
-        .with_context(|| format!("Could not sort file `{}`", path.display()))?;
+        .with_context(|| format!("Could not sort file `{}`", path))?;
 
     let count = lines
         .as_mut_slice()
@@ -56,7 +55,7 @@ pub fn sort_lines(path: &str, regex: &str) -> Result<usize> {
         })
         .sum();
 
-    let write_err = || format!("Could not write file `{}`", path.display());
+    let write_err = || format!("Could not write file `{}`", path);
     let mut file = File::create(&path)
         .map(BufWriter::new)
         .with_context(write_err)?;

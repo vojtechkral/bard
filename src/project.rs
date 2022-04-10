@@ -1,10 +1,10 @@
 use std::collections::HashMap;
 use std::fs;
 use std::iter;
-use std::path::{Path, PathBuf};
 use std::process::Command;
 use std::str;
 
+use camino::{Utf8Path as Path, Utf8PathBuf as PathBuf};
 use handlebars::Handlebars;
 use serde::Deserialize;
 
@@ -92,10 +92,10 @@ pub struct Settings {
 impl Settings {
     pub fn from_file(path: &Path, project_dir: &Path) -> Result<Settings> {
         let contents = fs::read_to_string(path)
-            .with_context(|| format!("Failed to read project file '{}'", path.display()))?;
+            .with_context(|| format!("Failed to read project file '{}'", path))?;
 
         let mut settings: Settings = toml::from_str(&contents)
-            .with_context(|| format!("Could not parse project file '{}'", path.display()))?;
+            .with_context(|| format!("Could not parse project file '{}'", path))?;
 
         settings.resolve(project_dir)?;
 
@@ -143,11 +143,11 @@ impl Project {
             anyhow!(
                 "Could not find {} in current or parent directories\nCurrent directory: '{}'",
                 PROJECT_FILE,
-                cwd.display()
+                cwd
             )
         })?;
 
-        cli::status("Loading", &format!("project at {}", project_dir.display()));
+        cli::status("Loading", &format!("project at {}", project_dir));
 
         let settings = Settings::from_file(&project_file, &project_dir)?;
         let book = Book::new(&settings);
@@ -297,14 +297,11 @@ impl Project {
                 Json => RJson::render(self, output),
                 Auto => Format::no_auto(),
             }
-            .with_context(|| format!("Could not render output file '{}'", output.file.display()))?;
+            .with_context(|| format!("Could not render output file '{}'", output.file))?;
 
             if self.post_process {
                 self.post_process(output).with_context(|| {
-                    format!(
-                        "Could not postprocess output file '{}'",
-                        output.file.display()
-                    )
+                    format!("Could not postprocess output file '{}'", output.file)
                 })?;
             }
 

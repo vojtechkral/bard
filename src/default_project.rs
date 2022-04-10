@@ -1,7 +1,7 @@
 use std::fs;
 use std::iter;
-use std::path::{Path, PathBuf};
 
+use camino::{Utf8Path as Path, Utf8PathBuf as PathBuf};
 use lazy_static::lazy_static;
 
 use crate::error::*;
@@ -38,11 +38,11 @@ impl File {
     fn create(&self) -> Result<()> {
         if let Some(parent) = self.path.parent() {
             fs::create_dir_all(parent)
-                .with_context(|| format!("Could not create directory `{}`", parent.display()))?;
+                .with_context(|| format!("Could not create directory `{}`", parent))?;
         }
 
         fs::write(&self.path, self.content)
-            .with_context(|| format!("Could not initialize file `{}`", self.path.display()))
+            .with_context(|| format!("Could not initialize file `{}`", self.path))
     }
 }
 
@@ -113,7 +113,7 @@ impl DefaultProjectResolved {
         let project = self.0;
 
         if let Some(existing) = project.any_exists() {
-            bail!("File already exists: '{}'", existing.path.display());
+            bail!("File already exists: '{}'", existing.path);
         }
 
         for file in project.files() {

@@ -38,7 +38,7 @@ xxx
 
     fs::write(&file, content_to_sort.as_bytes()).unwrap();
 
-    let count = util_cmd::sort_lines(file.to_str().unwrap(), r#"baz=(.+)$"#).unwrap();
+    let count = util_cmd::sort_lines(file.as_str(), r#"baz=(.+)$"#).unwrap();
     let sorted_content = fs::read_to_string(&file).unwrap();
 
     assert_eq!(sorted_content, expected);
@@ -51,7 +51,7 @@ fn sort_lines_no_capture_group() {
     let content_to_sort = "foo bar baz=b\n";
 
     fs::write(&file, content_to_sort.as_bytes()).unwrap();
-    util_cmd::sort_lines(file.to_str().unwrap(), r#"baz=.+$"#).unwrap_err();
+    util_cmd::sort_lines(file.as_str(), r#"baz=.+$"#).unwrap_err();
 }
 
 #[test]
@@ -63,6 +63,6 @@ zzz
 "#;
 
     fs::write(&file, content_to_sort.as_bytes()).unwrap();
-    let count = util_cmd::sort_lines(file.to_str().unwrap(), r#"baz=(.+)$"#).unwrap();
+    let count = util_cmd::sort_lines(file.as_str(), r#"baz=(.+)$"#).unwrap();
     assert_eq!(count, 0);
 }

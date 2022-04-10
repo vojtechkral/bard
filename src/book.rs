@@ -1,8 +1,8 @@
 //! AST of a bard songbook
 
 use std::fs;
-use std::path::Path;
 
+use camino::Utf8Path as Path;
 use serde::Serialize;
 
 use crate::error::*;
@@ -319,7 +319,7 @@ impl Book {
         let mut parser = Parser::new(input, config);
         parser
             .parse(&mut self.songs)
-            .with_context(|| format!("Could not parse file `{}`", path.display()))?;
+            .with_context(|| format!("Could not parse file `{}`", path))?;
 
         Ok(())
     }

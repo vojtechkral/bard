@@ -397,11 +397,7 @@ impl VerseBuilder {
         }
     }
 
-    fn with_p_nodes<'n, 'a, I>(
-        label: VerseLabel,
-        xp: Transposition,
-        mut nodes: I,
-    ) -> Result<Self>
+    fn with_p_nodes<'n, 'a, I>(label: VerseLabel, xp: Transposition, mut nodes: I) -> Result<Self>
     where
         I: Iterator<Item = AstRef<'a>>,
     {
@@ -641,10 +637,7 @@ impl<'a> SongBuilder<'a> {
 
     fn verse_mut(&mut self) -> &mut VerseBuilder {
         if self.verse.is_none() {
-            self.verse = Some(VerseBuilder::new(
-                VerseLabel::None {},
-                self.xp.clone(),
-            ));
+            self.verse = Some(VerseBuilder::new(VerseLabel::None {}, self.xp.clone()));
         }
 
         self.verse.as_mut().unwrap()
@@ -701,11 +694,8 @@ impl<'a> SongBuilder<'a> {
                         self.verse_finalize();
 
                         let label = VerseLabel::Verse(self.next_verse_num());
-                        let verse = VerseBuilder::with_p_nodes(
-                            label,
-                            self.xp.clone(),
-                            item.children(),
-                        )?;
+                        let verse =
+                            VerseBuilder::with_p_nodes(label, self.xp.clone(), item.children())?;
                         self.verse = Some(verse);
                     }
                 }

@@ -1,10 +1,9 @@
 use std::env;
-use std::ffi::OsStr;
 use std::fs;
 use std::ops;
-use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result};
+use camino::{Utf8Path as Path, Utf8PathBuf as PathBuf};
 use fs_extra::dir::{self, CopyOptions};
 
 use bard::cli;
@@ -44,13 +43,13 @@ impl<'rhs> ops::Div<&'rhs str> for ProjectPath {
 }
 
 pub fn assert_file_contains<P: AsRef<Path>>(path: P, what: &str) {
-    let content = fs::read_to_string(&path).unwrap();
+    let content = fs::read_to_string(path.as_ref()).unwrap();
     let hit = content.find(what);
     assert!(
         hit.is_some(),
         "String `{}` not found in file: `{}`\nFile contents:\n{}",
         what,
-        path.as_ref().display(),
+        path.as_ref(),
         content
     );
 }
@@ -74,16 +73,13 @@ pub struct Builder {
 }
 
 impl Builder {
-    fn work_dir(name: &OsStr, rm: bool) -> Result<PathBuf> {
+    fn work_dir(name: &str, rm: bool) -> Result<PathBuf> {
         let path = int_dir().join(name);
 
         if rm {
             if path.exists() {
                 fs::remove_dir_all(&path).with_context(|| {
-                    format!(
-                        "Couldn't remove previous test run data: `{}`",
-                        path.display()
-                    )
+                    format!("Couldn't remove previous test run data: `{}`", path)
                 })?;
             }
         }
@@ -100,17 +96,12 @@ impl Builder {
         let dest = dest.as_ref();
 
         fs::create_dir_all(dest)
-            .with_context(|| format!("Couldn't create directory: `{}`", dest.display()))?;
+            .with_context(|| format!("Couldn't create directory: `{}`", dest))?;
 
         let mut opts = CopyOptions::new();
         opts.content_only = true;
-        dir::copy(src, dest, &opts).with_context(|| {
-            format!(
-                "Couldn't copy directory `{}` to `{}`",
-                src.display(),
-                dest.display()
-            )
-        })?;
+        dir::copy(src, dest, &opts)
+            .with_context(|| format!("Couldn't copy directory `{}` to `{}`", src, dest))?;
         Ok(())
     }
 
@@ -138,7 +129,7 @@ impl Builder {
 
         let work_dir = Self::work_dir(name.as_ref(), true)?;
         fs::create_dir_all(&work_dir)
-            .with_context(|| format!("Could create directory: `{}`", work_dir.display()))?;
+            .with_context(|| format!("Could create directory: `{}`", work_dir))?;
 
         bard::bard_init_at(&work_dir).context("Failed to initialize")?;
         let project = bard::bard_make_at(&OPTS_NO_PS, &work_dir)?;

@@ -19,6 +19,7 @@ path = "src/main.rs"
 
 [dependencies]
 anyhow = "1.0.26"
+camino = { version = "1.0.7", features = ["serde1"] }
 colored = "2.0.0"
 comrak = "0.12.1"
 ctrlc = "3.1.3"

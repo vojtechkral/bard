@@ -1,8 +1,8 @@
 use std::collections::HashMap;
 use std::fs;
-use std::path::{Path, PathBuf};
 use std::sync::Mutex;
 
+use camino::{Utf8Path as Path, Utf8PathBuf as PathBuf};
 use handlebars::{self as hb, handlebars_helper, Handlebars, HelperDef, JsonValue};
 use image::image_dimensions;
 use lazy_static::lazy_static;
@@ -135,9 +135,7 @@ impl HelperDef for ImgHelper {
         let (w, h) = image_dimensions(&pathbuf).map_err(|e| {
             hb::RenderError::new(&format!(
                 "{}: Couldn't read image at `{}`: {}",
-                self.name,
-                pathbuf.display(),
-                e
+                self.name, pathbuf, e
             ))
         })?;
 
@@ -204,22 +202,17 @@ impl<'a> HbRender<'a> {
         hb.register_helper("img_h", ImgHelper::height(project));
 
         let tpl_name = if let Some(template) = output.template.as_ref() {
-            // NB: unwrap() should be ok, UTF-8 validity is checked while parsing
-            // project settings TOML:
-            let tpl_name = template.to_str().unwrap().to_string();
+            let tpl_name = template.to_string();
 
             if template.exists() {
                 hb.register_template_file(&tpl_name, &template)
-                    .with_context(|| format!("Error in template file `{}`", template.display()))?;
+                    .with_context(|| format!("Error in template file `{}`", template))?;
             } else {
                 let parent = template.parent().unwrap(); // The temaplate should've been resolved as absolute in Project
                 fs::create_dir_all(parent)
                     .and_then(|_| fs::write(&template, DT::TPL_CONTENT.as_bytes()))
                     .with_context(|| {
-                        format!(
-                            "Error writing default template to file: `{}`",
-                            template.display()
-                        )
+                        format!("Error writing default template to file: `{}`", template)
                     })?;
 
                 hb.register_template_string(&tpl_name, DT::TPL_CONTENT)
@@ -245,12 +238,8 @@ impl<'a> HbRender<'a> {
         let context = RenderContext::new(self.project, self.output);
         let output = self.hb.render(&self.tpl_name, &context)?;
 
-        fs::write(&self.output.file, output.as_bytes()).with_context(|| {
-            format!(
-                "Error writing output file: `{}`",
-                self.output.file.display()
-            )
-        })?;
+        fs::write(&self.output.file, output.as_bytes())
+            .with_context(|| format!("Error writing output file: `{}`", self.output.file))?;
 
         Ok(self.output)
     }

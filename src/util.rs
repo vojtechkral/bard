@@ -1,10 +1,12 @@
+use std::convert::TryInto;
 use std::fs;
-use std::path::{self, Path, PathBuf};
+use std::path::Path as StdPath;
 use std::process::ExitStatus;
 
 #[cfg(unix)]
 use std::os::unix::process::ExitStatusExt as _;
 
+use camino::{Utf8Path as Path, Utf8PathBuf as PathBuf};
 use lexical_sort::{lexical_cmp, PathSort};
 
 use crate::error::*;
@@ -33,7 +35,6 @@ pub trait PathBufExt {
     /// If the path is relative, resolve it as absolute wrt. `base_dir`
     fn resolve(&mut self, base_dir: &Path);
     fn resolved(self, base_dir: &Path) -> Self;
-    fn utf8_check(&self) -> Result<(), path::Display>;
 }
 
 impl PathBufExt for PathBuf {
@@ -46,11 +47,6 @@ impl PathBufExt for PathBuf {
     fn resolved(mut self, base_dir: &Path) -> Self {
         self.resolve(base_dir);
         self
-    }
-
-    fn utf8_check(&self) -> Result<(), path::Display> {
-        self.to_str().ok_or_else(|| self.display())?;
-        Ok(())
     }
 }
 
@@ -98,7 +94,7 @@ where
 
 pub fn sort_paths_lexical<S>(slice: &mut [S])
 where
-    S: AsRef<Path>,
+    S: AsRef<StdPath>,
 {
     slice.path_sort(lexical_cmp);
 }
@@ -108,7 +104,7 @@ where
 fn read_dir_all_inner(res: &mut Vec<PathBuf>, path: &Path) -> Result<()> {
     for entry in fs::read_dir(path)? {
         let entry = entry?;
-        let path = entry.path();
+        let path: PathBuf = entry.path().try_into()?;
         if entry.file_type()?.is_dir() {
             // Recurse
             read_dir_all_inner(res, &path)?;

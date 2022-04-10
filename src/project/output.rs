@@ -1,6 +1,4 @@
-use std::ffi::OsStr;
-use std::path::{self, Path, PathBuf};
-
+use camino::{Utf8Path as Path, Utf8PathBuf as PathBuf};
 use serde::Deserialize;
 use toml::Value;
 
@@ -26,19 +24,7 @@ pub struct Output {
 }
 
 impl Output {
-    fn utf8_check(&self) -> Result<(), path::Display> {
-        if let Some(template) = self.template.as_ref() {
-            template.utf8_check()?;
-        }
-
-        self.file.utf8_check()
-    }
-
     pub fn resolve(&mut self, dir_templates: &Path, dir_output: &Path) -> Result<()> {
-        // Check that filenames are valid UTF-8
-        self.utf8_check()
-            .map_err(|p| anyhow!("Filename cannot be decoded to UTF-8: {}", p))?;
-
         if let Some(template) = self.template.as_mut() {
             template.resolve(dir_templates);
         }
@@ -48,11 +34,7 @@ impl Output {
             return Ok(());
         }
 
-        let ext = self
-            .file
-            .extension()
-            .and_then(OsStr::to_str)
-            .map(str::to_lowercase);
+        let ext = self.file.extension().map(str::to_lowercase);
 
         self.format = match ext.as_deref() {
             Some("html") | Some("xhtml") | Some("htm") | Some("xht") => Format::Html,
@@ -62,7 +44,7 @@ impl Output {
             _ => bail!(
                 "Unknown or unsupported format of output file: {}\nHint: Specify format with  \
                  'format = ...'",
-                self.file.display()
+                self.file
             ),
         };
 
@@ -70,13 +52,7 @@ impl Output {
     }
 
     pub fn output_filename(&self) -> &str {
-        self.file
-            .file_name()
-            .map(|name| {
-                name.to_str()
-                    .expect("OutputSpec: template path must be valid utf-8")
-            })
-            .expect("OutputSpec: Invalid filename")
+        self.file.file_name().expect("OutputSpec: Invalid filename")
     }
 
     pub fn template_path(&self) -> Option<&Path> {
@@ -98,11 +74,7 @@ impl Output {
     pub fn template_filename(&self) -> String {
         self.template
             .as_ref()
-            .map(|p| {
-                p.to_str()
-                    .expect("OutputSpec: template path must be valid utf-8")
-                    .into()
-            })
+            .map(|p| p.to_string())
             .unwrap_or_else(|| String::from("<builtin>"))
     }
 

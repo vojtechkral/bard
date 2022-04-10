@@ -1,6 +1,6 @@
 use std::iter;
-use std::path::{Path, PathBuf};
 
+use camino::{Utf8Path as Path, Utf8PathBuf as PathBuf};
 use globset::Glob;
 use serde::Deserialize;
 
@@ -44,7 +44,7 @@ pub struct InputSet<'a> {
 impl<'a> InputSet<'a> {
     pub fn new(dir_songs: &'a Path) -> Result<Self> {
         let all_files = read_dir_all(dir_songs)
-            .with_context(|| format!("Could not read directory `{}`", dir_songs.display()))?;
+            .with_context(|| format!("Could not read directory `{}`", dir_songs))?;
 
         Ok(Self {
             dir_songs,
@@ -85,7 +85,7 @@ impl<'a> InputSet<'a> {
                 bail!(
                     "No files matched pattern `{}` in diectory `{}`",
                     glob,
-                    self.dir_songs.display(),
+                    self.dir_songs,
                 );
             }
 
@@ -97,7 +97,7 @@ impl<'a> InputSet<'a> {
             // This is a plain filename
             let path = self.dir_songs.join(glob);
             if !path.exists() {
-                bail!("File not found: `{}`", path.display(),);
+                bail!("File not found: `{}`", path);
             }
 
             self.match_set.push(path);

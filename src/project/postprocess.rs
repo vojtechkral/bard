@@ -1,6 +1,7 @@
+use std::convert::TryFrom;
 use std::env;
-use std::path::Path;
 
+use camino::{Utf8Path as Path, Utf8PathBuf as PathBuf};
 use serde::{Deserialize, Serialize};
 
 use crate::error::*;
@@ -35,24 +36,21 @@ pub struct PostProcessCtx<'a> {
 impl<'a> PostProcessCtx<'a> {
     pub fn new(file: &'a Path, project_dir: &'a Path) -> Result<Self> {
         let bard = env::current_exe()
-            .map_err(Error::new)
-            .and_then(|exe| {
-                exe.into_os_string()
-                    .into_string()
-                    .map_err(|os| anyhow!("Can't convert to UTF-8: {:?}", os))
-            })
+            .map_err(Error::from)
+            .and_then(|p| PathBuf::try_from(p).map_err(Error::from))
+            .map(|p| p.to_string())
             .context("Could not read path to bard executable")?;
 
-        // NOTE: Filenames should be known to be UTF-8-valid and canonicalized at this point
+        // NOTE: Filenames should be canonicalized at this point
         let file_name = file.file_name().unwrap();
-        let file_stem = file.file_stem().unwrap_or(file_name).to_str().unwrap();
+        let file_stem = file.file_stem().unwrap_or(file_name);
 
         Ok(Self {
             bard,
-            file: file.to_str().unwrap(),
-            file_name: file_name.to_str().unwrap(),
+            file: file.as_str(),
+            file_name,
             file_stem,
-            project_dir: project_dir.to_str().unwrap(),
+            project_dir: project_dir.as_str(),
         })
     }
 }

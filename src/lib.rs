@@ -1,7 +1,8 @@
+use std::convert::TryFrom;
 use std::env;
 use std::ffi::OsString;
-use std::path::{Path, PathBuf};
 
+use camino::{Utf8Path as Path, Utf8PathBuf as PathBuf};
 use serde::Serialize;
 use structopt::clap::AppSettings;
 use structopt::StructOpt;
@@ -102,18 +103,16 @@ impl Bard {
 }
 
 fn get_cwd() -> Result<PathBuf> {
-    let cwd = env::current_dir().context("Could not read current directory")?;
-    ensure!(
-        cwd.as_path().to_str().is_some(),
-        format!("Path is not valid unicode: '{}'", cwd.display())
-    );
-    Ok(cwd)
+    env::current_dir()
+        .map_err(Error::from)
+        .and_then(|p| PathBuf::try_from(p).map_err(Error::from))
+        .context("Could not read current directory")
 }
 
 pub fn bard_init_at<P: AsRef<Path>>(path: P) -> Result<()> {
     let path = path.as_ref();
 
-    cli::status("Initialize", &format!("new project at {}", path.display()));
+    cli::status("Initialize", &format!("new project at {}", path));
     Project::init(&path).context("Could not initialize a new project")?;
     cli::success("Done!");
     Ok(())
