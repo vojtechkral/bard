@@ -46,8 +46,7 @@ impl Block {
             verse
                 .paragraphs
                 .iter_mut()
-                .map(|p| p.iter_mut())
-                .flatten()
+                .flat_map(|p| p.iter_mut())
                 .for_each(Inline::remove_chorus_num);
         }
     }
@@ -149,17 +148,14 @@ pub struct Chord {
     pub chord: BStr,
     pub alt_chord: Option<BStr>,
     pub backticks: usize,
-    #[serde(skip)]
-    line: u32,
 }
 
 impl Chord {
-    pub fn new(chord: BStr, alt_chord: Option<BStr>, backticks: usize, line: u32) -> Self {
+    pub fn new(chord: BStr, alt_chord: Option<BStr>, backticks: usize) -> Self {
         Self {
             chord,
             alt_chord,
             backticks,
-            line,
         }
     }
 }
@@ -330,7 +326,7 @@ impl Book {
 
     pub fn add_md_str(&mut self, source: &str) -> Result<()> {
         static STR_PATH: &str = "<buffer>";
-        self.add_md(source, &Path::new(&STR_PATH))
+        self.add_md(source, Path::new(&STR_PATH))
     }
 
     pub fn add_md_file<P: AsRef<Path>>(&mut self, path: P) -> Result<()> {

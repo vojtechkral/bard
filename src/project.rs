@@ -291,16 +291,16 @@ impl Project {
             cli::status("Rendering", output.output_filename());
 
             match output.format {
-                Html => RHtml::render(self, &output),
-                Tex => RTex::render(self, &output),
-                Hovorka => RHovorka::render(self, &output),
-                Json => RJson::render(self, &output),
+                Html => RHtml::render(self, output),
+                Tex => RTex::render(self, output),
+                Hovorka => RHovorka::render(self, output),
+                Json => RJson::render(self, output),
                 Auto => Format::no_auto(),
             }
             .with_context(|| format!("Could not render output file '{}'", output.file.display()))?;
 
             if self.post_process {
-                self.post_process(&output).with_context(|| {
+                self.post_process(output).with_context(|| {
                     format!(
                         "Could not postprocess output file '{}'",
                         output.file.display()

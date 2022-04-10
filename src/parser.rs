@@ -372,7 +372,7 @@ impl ChordBuilder {
     }
 
     fn finalize(self, inlines: &mut Vec<Inline>) {
-        let chord = Chord::new(self.chord, self.alt_chord, self.backticks, self.line);
+        let chord = Chord::new(self.chord, self.alt_chord, self.backticks);
         let chord = Inline::Chord(Inlines {
             data: chord,
             inlines: self.inlines.into(),
@@ -382,33 +382,30 @@ impl ChordBuilder {
 }
 
 #[derive(Debug)]
-struct VerseBuilder<'a> {
+struct VerseBuilder {
     label: VerseLabel,
     paragraphs: Vec<Paragraph>,
     xp: Transposition,
-    config: &'a ParserConfig,
 }
 
-impl<'a> VerseBuilder<'a> {
-    fn new(label: VerseLabel, xp: Transposition, config: &'a ParserConfig) -> Self {
+impl VerseBuilder {
+    fn new(label: VerseLabel, xp: Transposition) -> Self {
         Self {
             label,
             paragraphs: vec![],
             xp,
-            config,
         }
     }
 
-    fn with_p_nodes<'n, I>(
+    fn with_p_nodes<'n, 'a, I>(
         label: VerseLabel,
         xp: Transposition,
-        config: &'a ParserConfig,
         mut nodes: I,
     ) -> Result<Self>
     where
         I: Iterator<Item = AstRef<'a>>,
     {
-        nodes.try_fold(Self::new(label, xp, config), |mut this, node| {
+        nodes.try_fold(Self::new(label, xp), |mut this, node| {
             this.add_p_node(node)?;
             Ok(this)
         })
@@ -602,15 +599,14 @@ struct SongBuilder<'a> {
     nodes: &'a [AstRef<'a>],
     title: String,
     subtitles: Vec<BStr>,
-    verse: Option<VerseBuilder<'a>>,
+    verse: Option<VerseBuilder>,
     blocks: Vec<Block>,
     xp: Transposition,
-    config: &'a ParserConfig,
     verse_num: u32,
 }
 
 impl<'a> SongBuilder<'a> {
-    fn new(nodes: &'a [AstRef<'a>], config: &'a ParserConfig) -> Self {
+    fn new(nodes: &'a [AstRef<'a>], config: &ParserConfig) -> Self {
         // Read song title or use fallback
         let (title, nodes) = match nodes.first() {
             Some(n) if n.is_h(1) => (n.as_plaintext(), &nodes[1..]),
@@ -634,7 +630,6 @@ impl<'a> SongBuilder<'a> {
             verse: None,
             blocks: vec![],
             xp: Transposition::new(config.notation, config.xp_disabled),
-            config,
             verse_num: 0,
         }
     }
@@ -644,12 +639,11 @@ impl<'a> SongBuilder<'a> {
         self.verse_num
     }
 
-    fn verse_mut<'s>(&'s mut self) -> &'s mut VerseBuilder<'a> {
+    fn verse_mut(&mut self) -> &mut VerseBuilder {
         if self.verse.is_none() {
             self.verse = Some(VerseBuilder::new(
                 VerseLabel::None {},
                 self.xp.clone(),
-                &self.config,
             ));
         }
 
@@ -681,7 +675,7 @@ impl<'a> SongBuilder<'a> {
 
                 if self.verse.is_none() {
                     let label = VerseLabel::Chorus(Some(level));
-                    let verse = VerseBuilder::new(label, self.xp.clone(), &self.config);
+                    let verse = VerseBuilder::new(label, self.xp.clone());
                     self.verse = Some(verse);
                 }
 
@@ -710,7 +704,6 @@ impl<'a> SongBuilder<'a> {
                         let verse = VerseBuilder::with_p_nodes(
                             label,
                             self.xp.clone(),
-                            &self.config,
                             item.children(),
                         )?;
                         self.verse = Some(verse);
@@ -732,7 +725,7 @@ impl<'a> SongBuilder<'a> {
 
                 NodeValue::Heading(h) if h.level >= 3 => {
                     let label = VerseLabel::Custom(node.as_plaintext().into());
-                    self.verse = Some(VerseBuilder::new(label, self.xp.clone(), &self.config));
+                    self.verse = Some(VerseBuilder::new(label, self.xp.clone()));
                 }
 
                 NodeValue::ThematicBreak => {
@@ -809,7 +802,7 @@ impl<'s, 'a> Iterator for SongsIter<'s, 'a> {
             Some(ret)
         } else {
             // Return the whole remaining slice
-            Some(mem::replace(&mut self.slice, &[]))
+            Some(mem::take(&mut self.slice))
         }
     }
 }

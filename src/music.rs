@@ -57,7 +57,7 @@ impl fmt::Display for Notation {
 
 /// Represents a half-tone in a 12-tone chromatic scale in equal temperament
 /// tuning, starting from C (ie. C = 0, C# = 1, ...)
-#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+#[derive(Clone, Copy, PartialEq, Eq, Default, Debug)]
 pub struct Chromatic(u8);
 
 macro_rules! impl_from {
@@ -325,12 +325,6 @@ impl Chromatic {
         C: Into<Chromatic>,
     {
         self + by.into()
-    }
-}
-
-impl Default for Chromatic {
-    fn default() -> Chromatic {
-        Chromatic(0)
     }
 }
 

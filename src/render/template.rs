@@ -242,7 +242,7 @@ impl<'a> HbRender<'a> {
     }
 
     fn render(&self) -> Result<&'a Output> {
-        let context = RenderContext::new(&self.project, &self.output);
+        let context = RenderContext::new(self.project, self.output);
         let output = self.hb.render(&self.tpl_name, &context)?;
 
         fs::write(&self.output.file, output.as_bytes()).with_context(|| {
