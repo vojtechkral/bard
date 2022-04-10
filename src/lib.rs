@@ -175,7 +175,12 @@ pub fn bard_watch(opts: &MakeOpts) -> Result<()> {
 }
 
 pub fn bard_sort_lines(opts: &SortLinesOpts) -> Result<()> {
-    util_cmd::sort_lines(&opts.file, &opts.regex)
+    let count = util_cmd::sort_lines(&opts.file, &opts.regex)?;
+    if count == 0 {
+        cli::warning("sort-lines: No lines matched the regex.");
+    }
+
+    Ok(())
 }
 
 pub fn bard(args: &[OsString]) -> Result<()> {
