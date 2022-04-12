@@ -1,12 +1,17 @@
 
 
 \documentclass[12pt,a5paper,openany]{memoir}
-\setheadfoot{0pt}{0pt}
-\setlrmarginsandblock{2cm}{2cm}{*}
-\setulmarginsandblock{.75cm}{1cm}{*}
-\checkandfixthelayout
 \raggedbottom
 
+\usepackage{geometry}
+\geometry{
+  a5paper,
+  top=8mm,
+  left=18mm,
+  right=21mm,
+  bottom=10mm,
+%  showframe,
+}
 \usepackage{fontspec}
 \usepackage{titlesec}
 \usepackage{xcolor}
@@ -16,25 +21,33 @@
 \usepackage{float}
 \usepackage{graphicx}
 \usepackage{wrapfig}
+\usepackage{marginnote}
+\usepackage{amssymb}
 
 %% Page style
 \makepagestyle{songs}
-\makeoddfoot{songs}{}{}{\thepage}
-\makeevenfoot{songs}{\thepage}{}{}
+% Hack: Right pagination is moved right by using the margin
+\makeoddfoot{songs}{}{}{\marginnote{\hspace{2mm}$\langle$\thepage$\rangle$}}
+% Hack: Left pagination is moved left with a kern
+\makeevenfoot{songs}{\kern-8mm$\langle$\thepage$\rangle$}{}{}
 % Patch cleardoublepage to not get blank pages after title & contents pages:
 \renewcommand\cleardoublepage{\clearpage}
-% Suppress page numbers in the toc/frontmatter:
-\aliaspagestyle{chapter}{empty}
 
-%% Fonts
-\setmainfont[Ligatures=TeX]{DejaVu Sans}
+%% Fonts and colours
+\setmainfont[Ligatures=TeX]{Droid Serif}
+\setsansfont[Ligatures=TeX]{Droid Sans}
+\colorlet{LightRed}{red!65!}
+\colorlet{DarkGray}{black!70!}
 
 %% Spacings
 \setlength{\parindent}{0pt}
 \setlength{\tabcolsep}{0pt}
 \setlength{\parskip}{1mm}
+\setlength{\footskip}{2mm}
 
 %% ToC style
+% Suppress page numbers
+\aliaspagestyle{chapter}{empty}
 % Hide the title of the ToC:
 \renewcommand\tocheadstart{}
 \renewcommand\printtoctitle[1]{}
@@ -53,7 +66,7 @@
 
 %% Song title and subtitle formats
 \titleformat{\section}
-  {\centering\large\bfseries}{}{0pt}{\underline}
+  {\large\bfseries}{}{0pt}{\underline}
 \titlespacing*{\section}
   {0pt}{7mm}{0pt}
 \newcommand\songtitle[1]{%
@@ -79,8 +92,8 @@
 \newlength\verse@labelsep
 \newlength\verse@vskip
 \AtBeginDocument{% setting AtBeginDocument since earlier we can't rely on em being correct
-  \verse@indent=12mm
-  \verse@labelsep=2mm
+  \verse@indent=8mm
+  \verse@labelsep=1mm
   \verse@vskip=\smallskipamount
 }
 \newcommand\Verse[1]{%
@@ -122,6 +135,7 @@
 
 %% Title page
 \frontmatter*
+\newgeometry{margin=5mm}
 \begin{titlingpage*}
   \begin{vplace}[0.5]
     \begin{center}
@@ -137,8 +151,10 @@
   \vfill
   \begin{center}\small{A set of a few non-copyrighted songs.}\end{center}
 \end{titlingpage*}
+\restoregeometry
 
 %% Contents page
+\pagestyle{empty} % Suppresses ToC continuation page header
 \tableofcontents*
 
 %% Songs
@@ -148,55 +164,54 @@
   %% song 0
   \songtitle{Danny Boy}
 
-\begin{center}
-      \subtitle{English ballad}
-    \end{center}
+\subtitle{English ballad}
+    \vspace{2mm}
   
 
   \Verse{1.} \begin{tabular}[b]{l}
-    \textbf{\textcolor{red}{G7}}\\Oh~Danny~\mbox{}\end{tabular}\begin{tabular}[b]{l}
-    \textbf{\textcolor{red}{C}}\\Boy,~the~pipes,~the~\mbox{}\end{tabular}\begin{tabular}[b]{l}
-    \small{\textcolor{red}{C7}}\\pipes~are~\mbox{}\end{tabular}\begin{tabular}[b]{l}
-    \textbf{\textcolor{red}{F}}\\calling\mbox{}\end{tabular}\\
+    \textbf{\sffamily\color{red}{G7}}\\Oh~Danny~\mbox{}\end{tabular}\begin{tabular}[b]{l}
+    \textbf{\sffamily\color{red}{C}}\\Boy,~the~pipes,~the~\mbox{}\end{tabular}\begin{tabular}[b]{l}
+    \small{\sffamily\color{LightRed}{C7}}\\pipes~are~\mbox{}\end{tabular}\begin{tabular}[b]{l}
+    \textbf{\sffamily\color{red}{F}}\\calling\mbox{}\end{tabular}\\
 From~glen~to~\begin{tabular}[b]{l}
-    \textbf{\textcolor{red}{C}}\\glen,~and~\mbox{}\end{tabular}\begin{tabular}[b]{l}
-    \textbf{\textcolor{red}{Em}}\\down~the~\mbox{}\end{tabular}\begin{tabular}[b]{l}
-    \textbf{\textcolor{red}{F}}\\mountain~\mbox{}\end{tabular}\begin{tabular}[b]{l}
-    \textbf{\textcolor{red}{G7}}\\side\mbox{}\end{tabular}\\
+    \textbf{\sffamily\color{red}{C}}\\glen,~and~\mbox{}\end{tabular}\begin{tabular}[b]{l}
+    \textbf{\sffamily\color{red}{Em}}\\down~the~\mbox{}\end{tabular}\begin{tabular}[b]{l}
+    \textbf{\sffamily\color{red}{F}}\\mountain~\mbox{}\end{tabular}\begin{tabular}[b]{l}
+    \textbf{\sffamily\color{red}{G7}}\\side\mbox{}\end{tabular}\\
 The~summer’s~\begin{tabular}[b]{l}
-    \textbf{\textcolor{red}{C}}\\gone,~and~all~the~\mbox{}\end{tabular}\begin{tabular}[b]{l}
-    \small{\textcolor{red}{C7}}\\flowers~are~\mbox{}\end{tabular}\begin{tabular}[b]{l}
-    \textbf{\textcolor{red}{F}}\\dying\mbox{}\end{tabular}\\
+    \textbf{\sffamily\color{red}{C}}\\gone,~and~all~the~\mbox{}\end{tabular}\begin{tabular}[b]{l}
+    \small{\sffamily\color{LightRed}{C7}}\\flowers~are~\mbox{}\end{tabular}\begin{tabular}[b]{l}
+    \textbf{\sffamily\color{red}{F}}\\dying\mbox{}\end{tabular}\\
 ‘Tis~you,~’tis~\begin{tabular}[b]{l}
-    \textbf{\textcolor{red}{C}}\\you~must~\mbox{}\end{tabular}\begin{tabular}[b]{l}
-    \textbf{\textcolor{red}{Dm}}\\go~and~\mbox{}\end{tabular}\begin{tabular}[b]{l}
-    \textbf{\textcolor{red}{G7}}\\I~must~\mbox{}\end{tabular}\begin{tabular}[b]{l}
-    \textbf{\textcolor{red}{C}}\\bide.\mbox{}\end{tabular}
+    \textbf{\sffamily\color{red}{C}}\\you~must~\mbox{}\end{tabular}\begin{tabular}[b]{l}
+    \textbf{\sffamily\color{red}{Dm}}\\go~and~\mbox{}\end{tabular}\begin{tabular}[b]{l}
+    \textbf{\sffamily\color{red}{G7}}\\I~must~\mbox{}\end{tabular}\begin{tabular}[b]{l}
+    \textbf{\sffamily\color{red}{C}}\\bide.\mbox{}\end{tabular}
 
     \vspace{\parskip}
 
 \Verse{Ch1.} \begin{tabular}[b]{l}
-    \textbf{\textcolor{red}{G7}}\\But~come~ye~\mbox{}\end{tabular}\begin{tabular}[b]{l}
-    \textbf{\textcolor{red}{Am}}\\back~when~\mbox{}\end{tabular}\begin{tabular}[b]{l}
-    \textbf{\textcolor{red}{F}}\\summer’s~\mbox{}\end{tabular}\begin{tabular}[b]{l}
-    \textbf{\textcolor{red}{G7}}\\in~the~\mbox{}\end{tabular}\begin{tabular}[b]{l}
-    \textbf{\textcolor{red}{C}}\\meadow\mbox{}\end{tabular}\\
+    \textbf{\sffamily\color{red}{G7}}\\But~come~ye~\mbox{}\end{tabular}\begin{tabular}[b]{l}
+    \textbf{\sffamily\color{red}{Am}}\\back~when~\mbox{}\end{tabular}\begin{tabular}[b]{l}
+    \textbf{\sffamily\color{red}{F}}\\summer’s~\mbox{}\end{tabular}\begin{tabular}[b]{l}
+    \textbf{\sffamily\color{red}{G7}}\\in~the~\mbox{}\end{tabular}\begin{tabular}[b]{l}
+    \textbf{\sffamily\color{red}{C}}\\meadow\mbox{}\end{tabular}\\
 Or~when~the~\begin{tabular}[b]{l}
-    \textbf{\textcolor{red}{Am}}\\valley’s~\mbox{}\end{tabular}\begin{tabular}[b]{l}
-    \textbf{\textcolor{red}{F}}\\hushed~and~\mbox{}\end{tabular}\begin{tabular}[b]{l}
-    \textbf{\textcolor{red}{Em}}\\white~with~\mbox{}\end{tabular}\begin{tabular}[b]{l}
-    \textbf{\textcolor{red}{D7}}\\snow~\mbox{}\end{tabular}\begin{tabular}[b]{l}
-    \textbf{\textcolor{red}{G7}}\\\mbox{}\end{tabular}\\
+    \textbf{\sffamily\color{red}{Am}}\\valley’s~\mbox{}\end{tabular}\begin{tabular}[b]{l}
+    \textbf{\sffamily\color{red}{F}}\\hushed~and~\mbox{}\end{tabular}\begin{tabular}[b]{l}
+    \textbf{\sffamily\color{red}{Em}}\\white~with~\mbox{}\end{tabular}\begin{tabular}[b]{l}
+    \textbf{\sffamily\color{red}{D7}}\\snow~\mbox{}\end{tabular}\begin{tabular}[b]{l}
+    \textbf{\sffamily\color{red}{G7}}\\\mbox{}\end{tabular}\\
 ‘Tis~I’ll~be~\begin{tabular}[b]{l}
-    \textbf{\textcolor{red}{C}}\\here~in~\mbox{}\end{tabular}\begin{tabular}[b]{l}
-    \textbf{\textcolor{red}{F}}\\sunshine~or~in~\mbox{}\end{tabular}\begin{tabular}[b]{l}
-    \textbf{\textcolor{red}{C}}\\sha\mbox{}\end{tabular}\begin{tabular}[b]{l}
-    \textbf{\textcolor{red}{Am}}\\dow.\mbox{}\end{tabular}\\
+    \textbf{\sffamily\color{red}{C}}\\here~in~\mbox{}\end{tabular}\begin{tabular}[b]{l}
+    \textbf{\sffamily\color{red}{F}}\\sunshine~or~in~\mbox{}\end{tabular}\begin{tabular}[b]{l}
+    \textbf{\sffamily\color{red}{C}}\\sha\mbox{}\end{tabular}\begin{tabular}[b]{l}
+    \textbf{\sffamily\color{red}{Am}}\\dow.\mbox{}\end{tabular}\\
 Oh~Danny~\begin{tabular}[b]{l}
-    \textbf{\textcolor{red}{C}}\\Boy,~oh~Danny~\mbox{}\end{tabular}\begin{tabular}[b]{l}
-    \textbf{\textcolor{red}{F}}\\Boy,~I~\mbox{}\end{tabular}\begin{tabular}[b]{l}
-    \textbf{\textcolor{red}{G7}}\\love~you~\mbox{}\end{tabular}\begin{tabular}[b]{l}
-    \textbf{\textcolor{red}{C}}\\so.\mbox{}\end{tabular}
+    \textbf{\sffamily\color{red}{C}}\\Boy,~oh~Danny~\mbox{}\end{tabular}\begin{tabular}[b]{l}
+    \textbf{\sffamily\color{red}{F}}\\Boy,~I~\mbox{}\end{tabular}\begin{tabular}[b]{l}
+    \textbf{\sffamily\color{red}{G7}}\\love~you~\mbox{}\end{tabular}\begin{tabular}[b]{l}
+    \textbf{\sffamily\color{red}{C}}\\so.\mbox{}\end{tabular}
 
     \vspace{\parskip}
 
@@ -228,19 +243,18 @@ I’ll~sleep~in~peace~until~you~come~to~me.
   %% song 1
   \songtitle{Handsome Molly}
 
-\begin{center}
-      \subtitle{U.S. Old-time}
-    \end{center}
+\subtitle{U.S. Old-time}
+    \vspace{2mm}
   
 
   \Verse{1.} \begin{tabular}[b]{l}
-    \textbf{\textcolor{red}{G}}\\I~wish~I~was~in~London\mbox{}\end{tabular}\\
+    \textbf{\sffamily\color{red}{G}}\\I~wish~I~was~in~London\mbox{}\end{tabular}\\
 Or~some~other~seaport~\begin{tabular}[b]{l}
-    \textbf{\textcolor{red}{D}}\\town\mbox{}\end{tabular}\\
+    \textbf{\sffamily\color{red}{D}}\\town\mbox{}\end{tabular}\\
 \begin{tabular}[b]{l}
-    \textbf{\textcolor{red}{D}}\\I'd~step~my~foot~on~a~steamboat\mbox{}\end{tabular}\\
+    \textbf{\sffamily\color{red}{D}}\\I'd~step~my~foot~on~a~steamboat\mbox{}\end{tabular}\\
 And~sail~the~ocean~\begin{tabular}[b]{l}
-    \textbf{\textcolor{red}{G}}\\round\mbox{}\end{tabular}
+    \textbf{\sffamily\color{red}{G}}\\round\mbox{}\end{tabular}
 
     \vspace{\parskip}
 
@@ -283,40 +297,39 @@ My~heart~is~broken\\
   %% song 2
   \songtitle{Whiskey in the Jar}
 
-\begin{center}
-      \subtitle{Irish traditional}
-    \end{center}
+\subtitle{Irish traditional}
+    \vspace{2mm}
   
 
   \Verse{1.} As~\begin{tabular}[b]{l}
-    \textbf{\textcolor{red}{C}}\\I~was~a~goin'~over\mbox{}\end{tabular}\\
+    \textbf{\sffamily\color{red}{C}}\\I~was~a~goin'~over\mbox{}\end{tabular}\\
 The~\begin{tabular}[b]{l}
-    \textbf{\textcolor{red}{Am}}\\far~famed~Kerry~mountains\mbox{}\end{tabular}\\
+    \textbf{\sffamily\color{red}{Am}}\\far~famed~Kerry~mountains\mbox{}\end{tabular}\\
 I~\begin{tabular}[b]{l}
-    \textbf{\textcolor{red}{F}}\\met~with~Captain~Farrell~and~his\mbox{}\end{tabular}\\
+    \textbf{\sffamily\color{red}{F}}\\met~with~Captain~Farrell~and~his\mbox{}\end{tabular}\\
 \begin{tabular}[b]{l}
-    \textbf{\textcolor{red}{C}}\\Money~he~was~counting\mbox{}\end{tabular}\\
+    \textbf{\sffamily\color{red}{C}}\\Money~he~was~counting\mbox{}\end{tabular}\\
 \begin{tabular}[b]{l}
-    \textbf{\textcolor{red}{C}}\\I~first~produced~my~pistol\mbox{}\end{tabular}\\
+    \textbf{\sffamily\color{red}{C}}\\I~first~produced~my~pistol\mbox{}\end{tabular}\\
 And~I~\begin{tabular}[b]{l}
-    \textbf{\textcolor{red}{Am}}\\~then~produced~my~rapier\mbox{}\end{tabular}\\
+    \textbf{\sffamily\color{red}{Am}}\\~then~produced~my~rapier\mbox{}\end{tabular}\\
 Saying~\begin{tabular}[b]{l}
-    \textbf{\textcolor{red}{F}}\\~"Stand~and~deliver,\mbox{}\end{tabular}\\
+    \textbf{\sffamily\color{red}{F}}\\~"Stand~and~deliver,\mbox{}\end{tabular}\\
 For~\begin{tabular}[b]{l}
-    \textbf{\textcolor{red}{C}}\\you~are~a~bold~deceiver!"\mbox{}\end{tabular}
+    \textbf{\sffamily\color{red}{C}}\\you~are~a~bold~deceiver!"\mbox{}\end{tabular}
 
     \vspace{\parskip}
 
 \Verse{Ch.} Mush-a~\begin{tabular}[b]{l}
-    \textbf{\textcolor{red}{G}}\\ring~dum-a~do~dum-a~da\mbox{}\end{tabular}\\
+    \textbf{\sffamily\color{red}{G}}\\ring~dum-a~do~dum-a~da\mbox{}\end{tabular}\\
 \begin{tabular}[b]{l}
-    \textbf{\textcolor{red}{C}}\\Whack~for~me~daddy-o\mbox{}\end{tabular}\\
+    \textbf{\sffamily\color{red}{C}}\\Whack~for~me~daddy-o\mbox{}\end{tabular}\\
 \begin{tabular}[b]{l}
-    \textbf{\textcolor{red}{F}}\\Whack~for~me~daddy-o\mbox{}\end{tabular}\\
+    \textbf{\sffamily\color{red}{F}}\\Whack~for~me~daddy-o\mbox{}\end{tabular}\\
 There's~\begin{tabular}[b]{l}
-    \textbf{\textcolor{red}{C}}\\whiskey~\mbox{}\end{tabular}\begin{tabular}[b]{l}
-    \textbf{\textcolor{red}{G}}\\in~the~\mbox{}\end{tabular}\begin{tabular}[b]{l}
-    \textbf{\textcolor{red}{C}}\\jar\mbox{}\end{tabular}
+    \textbf{\sffamily\color{red}{C}}\\whiskey~\mbox{}\end{tabular}\begin{tabular}[b]{l}
+    \textbf{\sffamily\color{red}{G}}\\in~the~\mbox{}\end{tabular}\begin{tabular}[b]{l}
+    \textbf{\sffamily\color{red}{C}}\\jar\mbox{}\end{tabular}
 
     \vspace{\parskip}
 
@@ -370,55 +383,56 @@ So~a~prisoner~I~was~taken\\
   %% song 3
   \songtitle{Wild Mountain Thyme}
 
-\begin{center}
-      \subtitle{Irish \& Scottish traditional}
-    \end{center}
+\subtitle{Irish \& Scottish traditional}
+    \vspace{2mm}
   
 
   \Verse{1.} O'~the~\begin{tabular}[b]{l}
-    \textbf{\textcolor{red}{G}}\\summer~\mbox{}\end{tabular}\begin{tabular}[b]{l}
-    \textbf{\textcolor{red}{C}}\\time~\mbox{}\end{tabular}\begin{tabular}[b]{l}
-    \textbf{\textcolor{red}{G}}\\has~come\mbox{}\end{tabular}\\
+    \textbf{\sffamily\color{red}{G}}\\summer~\mbox{}\end{tabular}\begin{tabular}[b]{l}
+    \textbf{\sffamily\color{red}{C}}\\time~\mbox{}\end{tabular}\begin{tabular}[b]{l}
+    \textbf{\sffamily\color{red}{G}}\\has~come\mbox{}\end{tabular}\\
 And~the~\begin{tabular}[b]{l}
-    \textbf{\textcolor{red}{C}}\\trees~are~sweetly~\mbox{}\end{tabular}\begin{tabular}[b]{l}
-    \textbf{\textcolor{red}{G}}\\bloomin'\mbox{}\end{tabular}\\
+    \textbf{\sffamily\color{red}{C}}\\trees~are~sweetly~\mbox{}\end{tabular}\begin{tabular}[b]{l}
+    \textbf{\sffamily\color{red}{G}}\\bloomin'\mbox{}\end{tabular}\\
 And~the~\begin{tabular}[b]{l}
-    \textbf{\textcolor{red}{C}}\\wild~\mbox{}\end{tabular}\begin{tabular}[b]{l}
-    \textbf{\textcolor{red}{G}}\\mountain~\mbox{}\end{tabular}\begin{tabular}[b]{l}
-    \textbf{\textcolor{red}{Em}}\\thyme\mbox{}\end{tabular}\\
+    \textbf{\sffamily\color{red}{C}}\\wild~\mbox{}\end{tabular}\begin{tabular}[b]{l}
+    \textbf{\sffamily\color{red}{G}}\\mountain~\mbox{}\end{tabular}\begin{tabular}[b]{l}
+    \textbf{\sffamily\color{red}{Em}}\\thyme\mbox{}\end{tabular}\\
 Grows~\begin{tabular}[b]{l}
-    \textbf{\textcolor{red}{C}}\\around~the~\mbox{}\end{tabular}\begin{tabular}[b]{l}
-    \textbf{\textcolor{red}{Am}}\\bloomin'~\mbox{}\end{tabular}\begin{tabular}[b]{l}
-    \textbf{\textcolor{red}{C}}\\heather\mbox{}\end{tabular}\\
+    \textbf{\sffamily\color{red}{C}}\\around~the~\mbox{}\end{tabular}\begin{tabular}[b]{l}
+    \textbf{\sffamily\color{red}{Am}}\\bloomin'~\mbox{}\end{tabular}\begin{tabular}[b]{l}
+    \textbf{\sffamily\color{red}{C}}\\heather\mbox{}\end{tabular}\\
 Will~ye~\begin{tabular}[b]{l}
-    \textbf{\textcolor{red}{G}}\\go~\mbox{}\end{tabular}\begin{tabular}[b]{l}
-    \textbf{\textcolor{red}{C}}\\lassie~\mbox{}\end{tabular}\begin{tabular}[b]{l}
-    \textbf{\textcolor{red}{G}}\\go?\mbox{}\end{tabular}
+    \textbf{\sffamily\color{red}{G}}\\go~\mbox{}\end{tabular}\begin{tabular}[b]{l}
+    \textbf{\sffamily\color{red}{C}}\\lassie~\mbox{}\end{tabular}\begin{tabular}[b]{l}
+    \textbf{\sffamily\color{red}{G}}\\go?\mbox{}\end{tabular}
 
     \vspace{\parskip}
 
 \Verse{Ch.} And~we'll~\begin{tabular}[b]{l}
-    \textbf{\textcolor{red}{C}}\\all~go~\mbox{}\end{tabular}\begin{tabular}[b]{l}
-    \textbf{\textcolor{red}{G}}\\together~to~pull~\mbox{}\end{tabular}\begin{tabular}[b]{l}
-    \textbf{\textcolor{red}{C}}\\wild~\mbox{}\end{tabular}\begin{tabular}[b]{l}
-    \textbf{\textcolor{red}{G}}\\mountain~\mbox{}\end{tabular}\begin{tabular}[b]{l}
-    \textbf{\textcolor{red}{Em}}\\thyme\mbox{}\end{tabular}\\
+    \textbf{\sffamily\color{red}{C}}\\all~go~\mbox{}\end{tabular}\begin{tabular}[b]{l}
+    \textbf{\sffamily\color{red}{G}}\\together~to~pull~\mbox{}\end{tabular}\begin{tabular}[b]{l}
+    \textbf{\sffamily\color{red}{C}}\\wild~\mbox{}\end{tabular}\begin{tabular}[b]{l}
+    \textbf{\sffamily\color{red}{G}}\\mountain~\mbox{}\end{tabular}\begin{tabular}[b]{l}
+    \textbf{\sffamily\color{red}{Em}}\\thyme\mbox{}\end{tabular}\\
 All~\begin{tabular}[b]{l}
-    \textbf{\textcolor{red}{C}}\\around~the~\mbox{}\end{tabular}\begin{tabular}[b]{l}
-    \textbf{\textcolor{red}{Am}}\\bloomin'~\mbox{}\end{tabular}\begin{tabular}[b]{l}
-    \textbf{\textcolor{red}{C}}\\heather,~will~ye~\mbox{}\end{tabular}\begin{tabular}[b]{l}
-    \textbf{\textcolor{red}{G}}\\go~\mbox{}\end{tabular}\begin{tabular}[b]{l}
-    \textbf{\textcolor{red}{C}}\\lassie~\mbox{}\end{tabular}\begin{tabular}[b]{l}
-    \textbf{\textcolor{red}{G}}\\go?\mbox{}\end{tabular}
+    \textbf{\sffamily\color{red}{C}}\\around~the~\mbox{}\end{tabular}\begin{tabular}[b]{l}
+    \textbf{\sffamily\color{red}{Am}}\\bloomin'~\mbox{}\end{tabular}\begin{tabular}[b]{l}
+    \textbf{\sffamily\color{red}{C}}\\heather,~will~ye~\mbox{}\end{tabular}\begin{tabular}[b]{l}
+    \textbf{\sffamily\color{red}{G}}\\go~\mbox{}\end{tabular}\begin{tabular}[b]{l}
+    \textbf{\sffamily\color{red}{C}}\\lassie~\mbox{}\end{tabular}\begin{tabular}[b]{l}
+    \textbf{\sffamily\color{red}{G}}\\go?\mbox{}\end{tabular}
 
     \vspace{\parskip}
 
 \Verse{2.} I~will~build~my~love~a~bower\\
 By~yon~cool~crystal~fountain~    \hfill\hspace{0pt}\vspace{-1em}
+    {
     \begin{wrapfigure}{r}{26.458333333333332mm}
       \centering
       \includegraphics[width=26.458333333333332mm]{thyme.png}
     \end{wrapfigure}
+    }
 \\
 And~round~it~I~will~pile\\
 All~the~wild~flowers~o'~the~mountain.\\

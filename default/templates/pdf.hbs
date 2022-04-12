@@ -8,13 +8,18 @@
 
 {{!-- Document header --}}
 
-\documentclass[{{default output.fontsize "12"}}pt,a5paper,openany]{memoir}
-\setheadfoot{0pt}{0pt}
-\setlrmarginsandblock{2cm}{2cm}{*}
-\setulmarginsandblock{.75cm}{1cm}{*}
-\checkandfixthelayout
+\documentclass[12pt,a5paper,openany]{memoir}
 \raggedbottom
 
+\usepackage{geometry}
+\geometry{
+  a5paper,
+  top=8mm,
+  left=18mm,
+  right=21mm,
+  bottom=10mm,
+%  showframe,
+}
 \usepackage{fontspec}
 \usepackage{titlesec}
 \usepackage{xcolor}
@@ -24,25 +29,33 @@
 \usepackage{float}
 \usepackage{graphicx}
 \usepackage{wrapfig}
+\usepackage{marginnote}
+\usepackage{amssymb}
 
 %% Page style
 \makepagestyle{songs}
-\makeoddfoot{songs}{}{}{\thepage}
-\makeevenfoot{songs}{\thepage}{}{}
+% Hack: Right pagination is moved right by using the margin
+\makeoddfoot{songs}{}{}{\marginnote{\hspace{2mm}$\langle$\thepage$\rangle$}}
+% Hack: Left pagination is moved left with a kern
+\makeevenfoot{songs}{\kern-8mm$\langle$\thepage$\rangle$}{}{}
 % Patch cleardoublepage to not get blank pages after title & contents pages:
 \renewcommand\cleardoublepage{\clearpage}
-% Suppress page numbers in the toc/frontmatter:
-\aliaspagestyle{chapter}{empty}
 
-%% Fonts
-\setmainfont[Ligatures=TeX]{ {{~ default output.font "DejaVu Sans" ~}} }
+%% Fonts and colours
+\setmainfont[Ligatures=TeX]{Droid Serif}
+\setsansfont[Ligatures=TeX]{Droid Sans}
+\colorlet{LightRed}{red!65!}
+\colorlet{DarkGray}{black!70!}
 
 %% Spacings
 \setlength{\parindent}{0pt}
 \setlength{\tabcolsep}{0pt}
 \setlength{\parskip}{1mm}
+\setlength{\footskip}{2mm}
 
 %% ToC style
+% Suppress page numbers
+\aliaspagestyle{chapter}{empty}
 % Hide the title of the ToC:
 \renewcommand\tocheadstart{}
 \renewcommand\printtoctitle[1]{}
@@ -61,7 +74,7 @@
 
 %% Song title and subtitle formats
 \titleformat{\section}
-  {\centering\large\bfseries}{}{0pt}{\underline}
+  {\large\bfseries}{}{0pt}{\underline}
 \titlespacing*{\section}
   {0pt}{7mm}{0pt}
 \newcommand\songtitle[1]{%
@@ -87,8 +100,8 @@
 \newlength\verse@labelsep
 \newlength\verse@vskip
 \AtBeginDocument{% setting AtBeginDocument since earlier we can't rely on em being correct
-  \verse@indent=12mm
-  \verse@labelsep=2mm
+  \verse@indent=8mm
+  \verse@labelsep=1mm
   \verse@vskip=\smallskipamount
 }
 \newcommand\Verse[1]{%
@@ -141,13 +154,13 @@
 {{#*inline "i-text"}}{{{(pre text)}}}{{/inline}}
 
 {{#*inline "chord-style"~}}
-  {{!-- Helper for i-chord, renders `Chord` in bold and ``Chord`` in regular and \small --}}
-  {{~#if (eq backticks 1) }}\textbf{{/if~}}{{~#unless (eq backticks 1) }}\small{{/unless~}}
+  {{!-- Helper for i-chord for setting styles based on ` vs `` chords --}}
+  {{~#if (eq backticks 1) }}\textbf{\sffamily\color{red}{{/if~}}{{~#unless (eq backticks 1) }}\small{\sffamily\color{LightRed}{{/unless~}}
 {{~/inline~}}
 {{#*inline "i-chord"~}}
   \begin{tabular}[b]{l}
-    {{> chord-style}}{\textcolor{red}{ {{{~ (pre chord) ~}}} }}\\
-    {{~#if alt_chord}}{{> chord-style}}{\textcolor{blue}{ {{{~ (pre alt_chord) ~}}} }}\\{{/if~}}
+    {{> chord-style}}{ {{{~ (pre chord) ~}}} }}\\
+    {{~#if alt_chord}}{{> chord-style}}\color{blue}{ {{{~ (pre alt_chord) ~}}} }}\\{{/if~}}
     {{~#each inlines}}{{> (lookup this "type") }}{{/each~}}\mbox{}\end{tabular}
 {{~/inline}}
 
@@ -171,10 +184,12 @@
   {{/if~}}
   {{~#if (eq class "right") }}
     \hfill\hspace{0pt}\vspace{-1em}
+    {
     \begin{wrapfigure}{r}{ {{~ px2mm (img_w path) }}mm}
       \centering
       \includegraphics[width={{ px2mm (img_w path) }}mm]{ {{~ path ~}} }
     \end{wrapfigure}
+    }
   {{/if~}}
   {{~#unless class }}\includegraphics[width={{ px2mm (img_w path) }}mm]{ {{~ path ~}} }{{/unless~}}
 {{/inline}}
@@ -189,6 +204,7 @@
 
 %% Title page
 \frontmatter*
+\newgeometry{margin=5mm}
 \begin{titlingpage*}
   \begin{vplace}[0.5]
     \begin{center}
@@ -206,8 +222,10 @@
   \vfill
   \begin{center}\small{ {{~ book.title_note ~}} }\end{center}
 \end{titlingpage*}
+\restoregeometry
 
 %% Contents page
+\pagestyle{empty} % Suppresses ToC continuation page header
 \tableofcontents*
 
 %% Songs
@@ -219,11 +237,10 @@
   \songtitle{ {{~ title ~}} }
 
   {{#if subtitles ~}}
-    \begin{center}
-      {{#each subtitles}}\subtitle{ {{~ this ~}} }{{#unless @last}}\\\{{/unless}}{{/each}}
-    \end{center}
+    {{#each subtitles}}\subtitle{ {{~ this ~}} }{{#unless @last}}\\\{{/unless}}{{/each}}
+    \vspace{2mm}
   {{/if}}
-  {{#unless subtitles}}\vphantom{}{{/unless}}
+  {{#unless subtitles}}\vspace{2mm}{}{{/unless}}
 
   {{!-- Dispatch to block HB inlines prefixed b- , see above --}}
   {{#each blocks}}{{> (lookup this "type") }}{{/each}}

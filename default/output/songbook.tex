@@ -1,12 +1,17 @@
 
 
 \documentclass[12pt,a5paper,openany]{memoir}
-\setheadfoot{0pt}{0pt}
-\setlrmarginsandblock{2cm}{2cm}{*}
-\setulmarginsandblock{.75cm}{1cm}{*}
-\checkandfixthelayout
 \raggedbottom
 
+\usepackage{geometry}
+\geometry{
+  a5paper,
+  top=8mm,
+  left=18mm,
+  right=21mm,
+  bottom=10mm,
+%  showframe,
+}
 \usepackage{fontspec}
 \usepackage{titlesec}
 \usepackage{xcolor}
@@ -16,25 +21,33 @@
 \usepackage{float}
 \usepackage{graphicx}
 \usepackage{wrapfig}
+\usepackage{marginnote}
+\usepackage{amssymb}
 
 %% Page style
 \makepagestyle{songs}
-\makeoddfoot{songs}{}{}{\thepage}
-\makeevenfoot{songs}{\thepage}{}{}
+% Hack: Right pagination is moved right by using the margin
+\makeoddfoot{songs}{}{}{\marginnote{\hspace{2mm}$\langle$\thepage$\rangle$}}
+% Hack: Left pagination is moved left with a kern
+\makeevenfoot{songs}{\kern-8mm$\langle$\thepage$\rangle$}{}{}
 % Patch cleardoublepage to not get blank pages after title & contents pages:
 \renewcommand\cleardoublepage{\clearpage}
-% Suppress page numbers in the toc/frontmatter:
-\aliaspagestyle{chapter}{empty}
 
-%% Fonts
-\setmainfont[Ligatures=TeX]{DejaVu Sans}
+%% Fonts and colours
+\setmainfont[Ligatures=TeX]{Droid Serif}
+\setsansfont[Ligatures=TeX]{Droid Sans}
+\colorlet{LightRed}{red!65!}
+\colorlet{DarkGray}{black!70!}
 
 %% Spacings
 \setlength{\parindent}{0pt}
 \setlength{\tabcolsep}{0pt}
 \setlength{\parskip}{1mm}
+\setlength{\footskip}{2mm}
 
 %% ToC style
+% Suppress page numbers
+\aliaspagestyle{chapter}{empty}
 % Hide the title of the ToC:
 \renewcommand\tocheadstart{}
 \renewcommand\printtoctitle[1]{}
@@ -53,7 +66,7 @@
 
 %% Song title and subtitle formats
 \titleformat{\section}
-  {\centering\large\bfseries}{}{0pt}{\underline}
+  {\large\bfseries}{}{0pt}{\underline}
 \titlespacing*{\section}
   {0pt}{7mm}{0pt}
 \newcommand\songtitle[1]{%
@@ -79,8 +92,8 @@
 \newlength\verse@labelsep
 \newlength\verse@vskip
 \AtBeginDocument{% setting AtBeginDocument since earlier we can't rely on em being correct
-  \verse@indent=12mm
-  \verse@labelsep=2mm
+  \verse@indent=8mm
+  \verse@labelsep=1mm
   \verse@vskip=\smallskipamount
 }
 \newcommand\Verse[1]{%
@@ -122,6 +135,7 @@
 
 %% Title page
 \frontmatter*
+\newgeometry{margin=5mm}
 \begin{titlingpage*}
   \begin{vplace}[0.5]
     \begin{center}
@@ -135,8 +149,10 @@
   \vfill
   \begin{center}\small{(And this note too...)}\end{center}
 \end{titlingpage*}
+\restoregeometry
 
 %% Contents page
+\pagestyle{empty} % Suppresses ToC continuation page header
 \tableofcontents*
 
 %% Songs
@@ -146,16 +162,15 @@
   %% song 0
   \songtitle{Yippie Yeah}
 
-\begin{center}
-      \subtitle{(You can edit this content!)}
-    \end{center}
+\subtitle{(You can edit this content!)}
+    \vspace{2mm}
   
 
   \Verse{1.} \begin{tabular}[b]{l}
-    \textbf{\textcolor{red}{Am}}\\Yippie~yea~\mbox{}\end{tabular}\begin{tabular}[b]{l}
-    \textbf{\textcolor{red}{C}}\\oh!\mbox{}\end{tabular}\\
+    \textbf{\sffamily\color{red}{Am}}\\Yippie~yea~\mbox{}\end{tabular}\begin{tabular}[b]{l}
+    \textbf{\sffamily\color{red}{C}}\\oh!\mbox{}\end{tabular}\\
 Yippie~yea~\begin{tabular}[b]{l}
-    \textbf{\textcolor{red}{Am}}\\yay!\mbox{}\end{tabular}
+    \textbf{\sffamily\color{red}{Am}}\\yay!\mbox{}\end{tabular}
 
     \vspace{\parskip}
 
