@@ -14,7 +14,7 @@ use crate::cli;
 use crate::default_project::DEFAULT_PROJECT;
 use crate::error::*;
 use crate::music::Notation;
-use crate::render::{RHovorka, RHtml, RJson, RTex, Render};
+use crate::render::{Render, Renderer};
 use crate::util::{ExitStatusExt, PathBufExt};
 
 pub use toml::Value;
@@ -60,7 +60,7 @@ pub enum Format {
 }
 
 impl Format {
-    fn no_auto() -> ! {
+    pub fn no_auto() -> ! {
         panic!("Output's Format should have been resolved at this point");
     }
 }
@@ -283,49 +283,33 @@ impl Project {
         Ok(())
     }
 
-    fn call_render<'a, T>(&'a self, output: &'a Output) -> Result<()>
-    where
-        T: Render<'a>,
-    {
-        let mut render: T = Render::new(self, output);
-
-        if let Some(version) = render.load()? {
-            // This Render uses versioned templates, check the compatibility
-            if AST_VERSION < version {
-                cli::warning(
-                    format!("The version of template `{}` is {}, which is newer than what this bard uses ({}).
-Maybe this project was created with a newer bard version.
-This may cause errors while rendering...",
-                    output.template.as_ref().unwrap(), version, AST_VERSION,
-                ))
-            } else if AST_VERSION.major > version.major {
-                cli::warning(
-                    format!("The version of template `{}` is {}, which is from an older generation than what this bard uses ({}).
-This may cause errors while rendering. It may be needed to convert the template to the newer format.",
-                    output.template.as_ref().unwrap(), version, AST_VERSION,
-                ))
-            }
-        }
-
-        render.render()
-    }
-
     pub fn render(&self) -> Result<()> {
         fs::create_dir_all(&self.settings.dir_output)?;
 
         self.settings.output.iter().try_for_each(|output| {
-            use self::Format::*;
-
             cli::status("Rendering", output.output_filename());
+            let context = || format!("Could not render output file '{}'", output.file);
 
-            match output.format {
-                Html => self.call_render::<RHtml>(output),
-                Tex => self.call_render::<RTex>(output),
-                Hovorka => self.call_render::<RHovorka>(output),
-                Json => self.call_render::<RJson>(output),
-                Auto => Format::no_auto(),
+            let mut renderer = Renderer::new(self, output);
+            if let Some(version) = renderer.load().with_context(&context)? {
+                // This Render uses versioned templates, check the compatibility
+                if AST_VERSION < version {
+                    cli::warning(
+                        format!("The version of template `{}` is {}, which is newer than what this bard uses ({}).
+    Maybe this project was created with a newer bard version.
+    This may cause errors while rendering...",
+                        output.template.as_ref().unwrap(), version, AST_VERSION,
+                    ))
+                } else if AST_VERSION.major > version.major {
+                    cli::warning(
+                        format!("The version of template `{}` is {}, which is from an older generation than what this bard uses ({}).
+    This may cause errors while rendering. It may be needed to convert the template to the newer format.",
+                        output.template.as_ref().unwrap(), version, AST_VERSION,
+                    ))
+                }
             }
-            .with_context(|| format!("Could not render output file '{}'", output.file))?;
+
+            renderer.render().with_context(&context)?;
 
             if self.post_process {
                 self.post_process(output).with_context(|| {
