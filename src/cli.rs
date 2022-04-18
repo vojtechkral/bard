@@ -14,29 +14,27 @@ fn stderr_used() -> bool {
     USE_STDERR.load(Ordering::Acquire)
 }
 
-fn status_inner<S, T>(kind: S, color: Color, status: T)
+fn status_inner<K, S>(kind: K, color: Color, status: S)
 where
+    K: Display,
     S: Display,
-    T: Display,
 {
     if stderr_used() {
         let kind = format!("{:>12}", kind).bold().color(color);
+        let status = format!("{}", status).replace('\n', "\n             ");
         eprintln!("{} {}", kind, status);
     }
 }
 
-pub fn status<T>(verb: &str, status: T)
-where
-    T: Display,
-{
+pub fn status<T: Display>(verb: &str, status: T) {
     status_inner(verb, Color::Cyan, status);
 }
 
-pub fn success(verb: &str) {
+pub fn success<T: Display>(verb: T) {
     status_inner(verb, Color::Green, "");
 }
 
-pub fn warning(msg: &str) {
+pub fn warning<T: Display>(msg: T) {
     status_inner("Warning", Color::Yellow, msg);
 }
 

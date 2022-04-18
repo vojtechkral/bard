@@ -1,12 +1,14 @@
 use std::collections::HashMap;
 use std::fs;
-use std::sync::Mutex;
+use std::io;
+use std::sync::{Arc, Mutex};
 
 use camino::{Utf8Path as Path, Utf8PathBuf as PathBuf};
 use handlebars::{self as hb, handlebars_helper, Handlebars, HelperDef, JsonValue};
 use image::image_dimensions;
 use lazy_static::lazy_static;
 use regex::{Error as ReError, Regex};
+use semver::Version;
 
 use super::{Render, RenderContext};
 use crate::error::*;
@@ -182,17 +184,75 @@ impl HelperDef for DpiHelper {
     }
 }
 
+struct VersionCheckHelper {
+    version: Arc<Mutex<Option<Version>>>,
+}
+
+impl VersionCheckHelper {
+    const FN_NAME: &'static str = "version_check";
+
+    fn new() -> (Box<Self>, Arc<Mutex<Option<Version>>>) {
+        let version = Arc::new(Mutex::new(None));
+        let this = Box::new(Self {
+            version: version.clone(),
+        });
+        (this, version)
+    }
+}
+
+impl HelperDef for VersionCheckHelper {
+    fn call_inner<'reg: 'rc, 'rc>(
+        &self,
+        h: &hb::Helper<'reg, 'rc>,
+        _: &'reg Handlebars<'reg>,
+        _: &'rc hb::Context,
+        _: &mut hb::RenderContext<'reg, 'rc>,
+    ) -> Result<hb::ScopedJson<'reg, 'rc>, hb::RenderError> {
+        let version = h
+            .param(0)
+            .map(|x| x.value())
+            .ok_or_else(|| {
+                hb::RenderError::new(format!("{}: No version number supplied", Self::FN_NAME))
+            })
+            .and_then(|x| match x {
+                JsonValue::String(s) => Ok(s.as_str()),
+                _ => Err(hb::RenderError::new(format!(
+                    "{}: Input value not a string",
+                    Self::FN_NAME
+                ))),
+            })
+            .and_then(|s| {
+                Version::parse(s).map_err(|e| {
+                    hb::RenderError::from_error(
+                        &format!("{}: Could not parse version `{}`", Self::FN_NAME, s),
+                        e,
+                    )
+                })
+            })?;
+
+        *self.version.lock().unwrap() = Some(version);
+
+        Ok(hb::ScopedJson::Derived(JsonValue::String(String::new())))
+    }
+}
+
 #[derive(Debug)]
 struct HbRender<'a> {
     hb: Handlebars<'static>,
     tpl_name: String,
     project: &'a Project,
     output: &'a Output,
+    default_content: &'static str,
+    version: Arc<Mutex<Option<Version>>>,
 }
 
 impl<'a> HbRender<'a> {
-    fn new<DT: DefaultTemaplate>(project: &'a Project, output: &'a Output) -> Result<Self> {
+    /// Version of the template to assume if it specifies none.
+    const ASSUMED_FIRST_VERSION: Version = Version::new(1, 0, 0);
+
+    fn new<DT: DefaultTemaplate>(project: &'a Project, output: &'a Output) -> Self {
         let mut hb = Handlebars::new();
+        let (version_helper, version) = VersionCheckHelper::new();
         hb.register_helper("eq", Box::new(hb_eq));
         hb.register_helper("contains", Box::new(hb_contains));
         hb.register_helper("default", Box::new(hb_default));
@@ -200,94 +260,137 @@ impl<'a> HbRender<'a> {
         hb.register_helper("px2mm", DpiHelper::new(output));
         hb.register_helper("img_w", ImgHelper::width(project));
         hb.register_helper("img_h", ImgHelper::height(project));
+        hb.register_helper(VersionCheckHelper::FN_NAME, version_helper);
 
-        let tpl_name = if let Some(template) = output.template.as_ref() {
-            let tpl_name = template.to_string();
+        let tpl_name = output
+            .template
+            .as_ref()
+            .map(|t| t.to_string())
+            .unwrap_or_else(|| DT::TPL_NAME.to_string());
 
-            if template.exists() {
-                hb.register_template_file(&tpl_name, &template)
-                    .with_context(|| format!("Error in template file `{}`", template))?;
-            } else {
-                let parent = template.parent().unwrap(); // The temaplate should've been resolved as absolute in Project
-                fs::create_dir_all(parent)
-                    .and_then(|_| fs::write(&template, DT::TPL_CONTENT.as_bytes()))
-                    .with_context(|| {
-                        format!("Error writing default template to file: `{}`", template)
-                    })?;
-
-                hb.register_template_string(&tpl_name, DT::TPL_CONTENT)
-                    .expect("Internal error: Could not load default template");
-            }
-
-            tpl_name
-        } else {
-            hb.register_template_string(DT::TPL_NAME, DT::TPL_CONTENT)
-                .expect("Internal error: Could not load default template");
-            DT::TPL_NAME.to_string()
-        };
-
-        Ok(Self {
+        Self {
             hb,
             tpl_name,
             project,
             output,
-        })
+            default_content: DT::TPL_CONTENT,
+            version,
+        }
     }
 
-    fn render(&self) -> Result<&'a Output> {
+    fn load(&mut self) -> Result<Version> {
+        if let Some(template) = self.output.template.as_ref() {
+            if template.exists() {
+                self.hb
+                    .register_template_file(&self.tpl_name, &template)
+                    .with_context(|| format!("Error in template file `{}`", template))?;
+            } else {
+                let parent = template.parent().unwrap(); // The temaplate should've been resolved as absolute in Project
+                fs::create_dir_all(parent)
+                    .and_then(|_| fs::write(&template, self.default_content.as_bytes()))
+                    .with_context(|| {
+                        format!("Error writing default template to file: `{}`", template)
+                    })?;
+
+                self.hb
+                    .register_template_string(&self.tpl_name, self.default_content)
+                    .expect("Internal error: Could not load default template");
+            }
+        } else {
+            self.hb
+                .register_template_string(&self.tpl_name, self.default_content)
+                .expect("Internal error: Could not load default template");
+        }
+
+        // Render with no data to an IO Sink.
+        // This will certainly fail, but if the version_check() helper is used on top
+        // of the template, we will get the version in self.version.
+        let _ = self.hb.render_to_write(&self.tpl_name, &(), io::sink());
+        let version = self
+            .version
+            .lock()
+            .unwrap()
+            .clone()
+            .unwrap_or(Self::ASSUMED_FIRST_VERSION);
+        Ok(version)
+    }
+
+    fn render(&self) -> Result<()> {
         let context = RenderContext::new(self.project, self.output);
         let output = self.hb.render(&self.tpl_name, &context)?;
 
         fs::write(&self.output.file, output.as_bytes())
             .with_context(|| format!("Error writing output file: `{}`", self.output.file))?;
 
-        Ok(self.output)
+        Ok(())
     }
 }
 
-pub struct RHtml;
+pub struct RHtml<'a>(HbRender<'a>);
 
-impl DefaultTemaplate for RHtml {
+impl<'a> DefaultTemaplate for RHtml<'a> {
     const TPL_NAME: &'static str = "html.hbs";
     const TPL_CONTENT: &'static str = include_str!("../../default/templates/html.hbs");
 }
 
-impl Render for RHtml {
-    fn render<'a>(project: &'a Project, output: &'a Output) -> Result<&'a Output> {
-        let render = HbRender::new::<Self>(project, output)?;
-        render.render()
+impl<'a> Render<'a> for RHtml<'a> {
+    fn new(project: &'a Project, output: &'a Output) -> Self {
+        Self(HbRender::new::<Self>(project, output))
+    }
+
+    fn load(&mut self) -> Result<Option<Version>> {
+        self.0.load().map(Some)
+    }
+
+    fn render(&self) -> Result<()> {
+        self.0.render()
     }
 }
 
-pub struct RTex;
+pub struct RTex<'a>(HbRender<'a>);
 
-impl DefaultTemaplate for RTex {
+impl<'a> DefaultTemaplate for RTex<'a> {
     const TPL_NAME: &'static str = "pdf.hbs";
     const TPL_CONTENT: &'static str = include_str!("../../default/templates/pdf.hbs");
 }
 
-impl Render for RTex {
-    fn render<'a>(project: &'a Project, output: &'a Output) -> Result<&'a Output> {
-        let mut render = HbRender::new::<Self>(project, output)?;
+impl<'a> Render<'a> for RTex<'a> {
+    fn new(project: &'a Project, output: &'a Output) -> Self {
+        let mut render = HbRender::new::<Self>(project, output);
 
         // Setup Latex escaping
         render.hb.register_escape_fn(hb_latex_escape);
         render.hb.register_helper("pre", Box::new(hb_pre));
 
-        render.render()
+        Self(render)
+    }
+
+    fn load(&mut self) -> Result<Option<Version>> {
+        self.0.load().map(Some)
+    }
+
+    fn render(&self) -> Result<()> {
+        self.0.render()
     }
 }
 
-pub struct RHovorka;
+pub struct RHovorka<'a>(HbRender<'a>);
 
-impl DefaultTemaplate for RHovorka {
+impl<'a> DefaultTemaplate for RHovorka<'a> {
     const TPL_NAME: &'static str = "hovorka.hbs";
     const TPL_CONTENT: &'static str = include_str!("../../example/templates/hovorka.hbs");
 }
 
-impl Render for RHovorka {
-    fn render<'a>(project: &'a Project, output: &'a Output) -> Result<&'a Output> {
-        let render = HbRender::new::<Self>(project, output)?;
-        render.render()
+impl<'a> Render<'a> for RHovorka<'a> {
+    fn new(project: &'a Project, output: &'a Output) -> Self {
+        Self(HbRender::new::<Self>(project, output))
+    }
+
+    fn load(&mut self) -> Result<Option<Version>> {
+        self.0.load().map(Some)
+    }
+
+    fn render(&self) -> Result<()> {
+        self.0.render()
     }
 }

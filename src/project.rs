@@ -8,6 +8,7 @@ use camino::{Utf8Path as Path, Utf8PathBuf as PathBuf};
 use handlebars::Handlebars;
 use serde::Deserialize;
 
+use crate::book::AST_VERSION;
 use crate::book::{Book, Song, SongRef};
 use crate::cli;
 use crate::default_project::DEFAULT_PROJECT;
@@ -282,6 +283,33 @@ impl Project {
         Ok(())
     }
 
+    fn call_render<'a, T>(&'a self, output: &'a Output) -> Result<()>
+    where
+        T: Render<'a>,
+    {
+        let mut render: T = Render::new(self, output);
+
+        if let Some(version) = render.load()? {
+            // This Render uses versioned templates, check the compatibility
+            if AST_VERSION < version {
+                cli::warning(
+                    format!("The version of template `{}` is {}, which is newer than what this bard uses ({}).
+Maybe this project was created with a newer bard version.
+This may cause errors while rendering...",
+                    output.template.as_ref().unwrap(), version, AST_VERSION,
+                ))
+            } else if AST_VERSION.major > version.major {
+                cli::warning(
+                    format!("The version of template `{}` is {}, which is from an older generation than what this bard uses ({}).
+This may cause errors while rendering. It may be needed to convert the template to the newer format.",
+                    output.template.as_ref().unwrap(), version, AST_VERSION,
+                ))
+            }
+        }
+
+        render.render()
+    }
+
     pub fn render(&self) -> Result<()> {
         fs::create_dir_all(&self.settings.dir_output)?;
 
@@ -291,10 +319,10 @@ impl Project {
             cli::status("Rendering", output.output_filename());
 
             match output.format {
-                Html => RHtml::render(self, output),
-                Tex => RTex::render(self, output),
-                Hovorka => RHovorka::render(self, output),
-                Json => RJson::render(self, output),
+                Html => self.call_render::<RHtml>(output),
+                Tex => self.call_render::<RTex>(output),
+                Hovorka => self.call_render::<RHovorka>(output),
+                Json => self.call_render::<RJson>(output),
                 Auto => Format::no_auto(),
             }
             .with_context(|| format!("Could not render output file '{}'", output.file))?;

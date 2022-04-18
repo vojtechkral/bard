@@ -2,6 +2,7 @@ pub mod json;
 pub mod template;
 
 use anyhow::Result;
+use semver::Version;
 use serde::Serialize;
 
 use crate::book::{Song, SongRef};
@@ -32,8 +33,11 @@ impl<'a> RenderContext<'a> {
     }
 }
 
-pub trait Render {
-    fn render<'a>(project: &'a Project, output: &'a Output) -> Result<&'a Output>;
+pub trait Render<'a>: Sized {
+    fn new(project: &'a Project, output: &'a Output) -> Self;
+    /// Load the template file (if any) and return the AST version specified.
+    fn load(&mut self) -> Result<Option<Version>>;
+    fn render(&self) -> Result<()>;
 }
 
 pub use self::json::RJson;
