@@ -580,7 +580,7 @@ impl VerseBuilder {
             NodeValue::BlockQuote | NodeValue::List(..) | NodeValue::Item(..) => {
                 node.children().try_for_each(|c| self.add_p_node(c))
             }
-            other => unreachable!("Unexpected element: {:?}", other),
+            _ => Ok(()), // ignored
         }
     }
 
