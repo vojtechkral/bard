@@ -87,11 +87,7 @@ impl Builder {
         Ok(path)
     }
 
-    fn dir_copy<P1, P2>(src: P1, dest: P2) -> Result<()>
-    where
-        P1: AsRef<Path>,
-        P2: AsRef<Path>,
-    {
+    fn dir_copy(src: impl AsRef<Path>, dest: impl AsRef<Path>) -> Result<()> {
         let src = src.as_ref();
         let dest = dest.as_ref();
 
@@ -106,13 +102,13 @@ impl Builder {
     }
 
     pub fn build(src_path: PathBuf) -> Result<Self> {
-        Self::build_opts(src_path, &OPTS_NO_PS)
+        Self::build_opts(&src_path, src_path.file_name().unwrap(), &OPTS_NO_PS)
     }
 
-    pub fn build_opts(src_path: PathBuf, opts: &MakeOpts) -> Result<Self> {
+    pub fn build_opts(src_path: impl AsRef<Path>, name: &str, opts: &MakeOpts) -> Result<Self> {
         cli::use_stderr(true);
 
-        let name = src_path.file_name().unwrap();
+        let src_path = src_path.as_ref();
         let work_dir = Self::work_dir(name, true)?;
 
         Self::dir_copy(src_path, &work_dir)?;

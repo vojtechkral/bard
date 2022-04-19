@@ -12,7 +12,12 @@ pub use util::*;
 
 #[test]
 fn project_postprocess() {
-    let build = Builder::build_opts(TEST_PROJECTS / "postprocess", &MakeOpts::default()).unwrap();
+    let build = Builder::build_opts(
+        TEST_PROJECTS / "postprocess",
+        "postprocess",
+        &MakeOpts::default(),
+    )
+    .unwrap();
     let out_dir = build.project.settings.dir_output();
 
     let exe = env::current_exe()
