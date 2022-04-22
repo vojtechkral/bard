@@ -1,6 +1,8 @@
 //! AST of a bard songbook
 
+use std::collections::HashMap;
 use std::fs;
+use std::str;
 
 use camino::Utf8Path as Path;
 use semver::Version;
@@ -25,6 +27,9 @@ pub enum Block {
     HorizontalLine,
     #[serde(rename = "b-pre")]
     Pre { text: BStr },
+    /// An HTML block contains inlines which can only be `Text`, `HtmlTag`, or `Break`.
+    #[serde(rename = "b-html-block")]
+    HtmlBlock(Inlines),
 }
 
 impl Block {
@@ -92,6 +97,15 @@ impl<T: Serialize> Inlines<T> {
     }
 }
 
+impl From<Vec<Inline>> for Inlines<()> {
+    fn from(inlines: Vec<Inline>) -> Self {
+        Self {
+            data: (),
+            inlines: inlines.into(),
+        }
+    }
+}
+
 #[derive(Serialize, Debug)]
 #[serde(rename_all = "snake_case")]
 #[serde(tag = "type")]
@@ -113,6 +127,8 @@ pub enum Inline {
     Image(Image),
     #[serde(rename = "i-chorus-ref")]
     ChorusRef(ChorusRef),
+    #[serde(rename = "i-tag")]
+    HtmlTag(HtmlTag),
 
     /// Only used internally by the parser to apply transposition
     #[serde(rename = "i-transpose")]
@@ -120,6 +136,10 @@ pub enum Inline {
 }
 
 impl Inline {
+    pub fn text(text: impl Into<BStr>) -> Self {
+        Self::Text { text: text.into() }
+    }
+
     pub fn is_break(&self) -> bool {
         matches!(self, Self::Break)
     }
@@ -201,6 +221,25 @@ impl ChorusRef {
         Self {
             num,
             prefix_space: if prefix_space { " ".into() } else { "".into() },
+        }
+    }
+}
+
+#[derive(Serialize, Debug)]
+pub struct HtmlTag {
+    pub name: BStr,
+    pub attrs: HashMap<BStr, BStr>,
+}
+
+impl<'a> From<&tl::HTMLTag<'a>> for HtmlTag {
+    fn from(tag: &tl::HTMLTag<'a>) -> Self {
+        Self {
+            name: str::from_utf8(tag.name().as_bytes()).unwrap().into(),
+            attrs: tag
+                .attributes()
+                .iter()
+                .filter_map(|(k, v)| v.map(move |v| (k.into(), v.into())))
+                .collect(),
         }
     }
 }

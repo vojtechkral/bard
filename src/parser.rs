@@ -11,6 +11,8 @@ use crate::error::*;
 use crate::music::{self, Notation};
 use crate::util::{BStr, ByteSliceExt};
 
+mod html;
+
 type AstRef<'a> = &'a AstNode<'a>;
 type Arena<'a> = comrak::Arena<AstNode<'a>>;
 
@@ -18,6 +20,12 @@ const FALLBACK_TITLE: &str = "[Untitled]";
 
 lazy_static! {
     static ref EXTENSION: Regex = Regex::new(r"(^|\s)(!+)(\S+)").unwrap();
+}
+
+// Since parser takes an UTF-8 string as input, we don't have to error-check
+// when converting bytes to strings.
+fn utf8<'a>(bytes: &'a [u8]) -> &'a str {
+    str::from_utf8(bytes).unwrap()
 }
 
 /// Parser for a candidate bard MD extension
@@ -148,6 +156,7 @@ trait NodeExt<'a> {
     fn is_item(&self) -> bool;
     fn is_bq(&self) -> bool;
     fn is_img(&self) -> bool;
+    fn is_inline_html(&self) -> bool;
 
     /// Elements that shouldn't go into chord child inlines,
     /// ie. line break or and image
@@ -172,6 +181,11 @@ trait NodeExt<'a> {
     ///   collected into Chord spans with the content that follows until the next inline code
     ///   or linebreak.
     fn preprocess(&'a self, arena: &'a Arena<'a>);
+
+    /// Parse the html snippet using a 3rd party HTML parser,
+    /// convert HTML elements into `Inline::HtmlTag`s,
+    /// interleaved plain text to `Inline::Text`s and append to `target`.
+    fn parse_html(&self, target: &mut Vec<Inline>);
 }
 
 impl<'a> NodeExt<'a> for AstNode<'a> {
@@ -231,8 +245,13 @@ impl<'a> NodeExt<'a> for AstNode<'a> {
     }
 
     #[inline]
+    fn is_inline_html(&self) -> bool {
+        matches!(self.data.borrow().value, NodeValue::HtmlInline(..))
+    }
+
+    #[inline]
     fn ends_chord(&self) -> bool {
-        self.is_break() || self.is_img()
+        self.is_break() || self.is_img() || self.is_inline_html()
     }
 
     fn as_plaintext(&'a self) -> String {
@@ -309,7 +328,7 @@ impl<'a> NodeExt<'a> for AstNode<'a> {
             if let Some((i, child)) = node
                 .children()
                 .enumerate()
-                .find(|(_, c)| c.is_code() || c.is_break() || c.is_img())
+                .find(|(_, c)| c.is_code() || c.is_break() || c.is_img() || c.is_inline_html())
             {
                 // We want to take this child and append as a sibling to self,
                 // but first self needs to be duplicated with the already-processed nodes
@@ -320,6 +339,18 @@ impl<'a> NodeExt<'a> for AstNode<'a> {
                 start_node = Some(node2);
             }
         }
+    }
+
+    fn parse_html(&self, target: &mut Vec<Inline>) {
+        let this = self.data.borrow();
+        let html = match &this.value {
+            NodeValue::HtmlBlock(b) => b.literal.as_slice(),
+            NodeValue::HtmlInline(b) => b.as_slice(),
+
+            _ => panic!("HTML can only be parsed from HTML nodes."),
+        };
+
+        html::parse_html(html, target);
     }
 }
 
@@ -483,7 +514,10 @@ impl VerseBuilder {
                 return Ok(());
             }
             NodeValue::SoftBreak | NodeValue::LineBreak => Inline::Break,
-            NodeValue::HtmlInline(..) => return Ok(()),
+            NodeValue::HtmlInline(..) => {
+                node.parse_html(target);
+                return Ok(());
+            }
             NodeValue::Emph => Inline::Emph(Inlines::new(self.collect_inlines(node)?)),
             NodeValue::Strong => Inline::Strong(Inlines::new(self.collect_inlines(node)?)),
             NodeValue::Link(link) => {
@@ -580,6 +614,16 @@ impl VerseBuilder {
             NodeValue::BlockQuote | NodeValue::List(..) | NodeValue::Item(..) => {
                 node.children().try_for_each(|c| self.add_p_node(c))
             }
+
+            NodeValue::HtmlBlock(..) => {
+                let mut inlines = vec![];
+                node.parse_html(&mut inlines);
+                if !inlines.is_empty() {
+                    self.paragraphs.push(inlines.into());
+                }
+                Ok(())
+            }
+
             _ => Ok(()), // ignored
         }
     }
@@ -725,6 +769,14 @@ impl<'a> SongBuilder<'a> {
                 NodeValue::CodeBlock(cb) => self.blocks.push(Block::Pre {
                     text: cb.literal.as_bstr(),
                 }),
+
+                NodeValue::HtmlBlock(..) => {
+                    let mut inlines = vec![];
+                    node.parse_html(&mut inlines);
+                    if !inlines.is_empty() {
+                        self.blocks.push(Block::HtmlBlock(inlines.into()));
+                    }
+                }
 
                 _ => {}
             }
