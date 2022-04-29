@@ -9,7 +9,7 @@ pub type Time = (u32, u32);
 #[derive(Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Debug)]
 #[serde(rename_all = "lowercase")]
 /// Musical note notation convention
-/// Variant naming follows https://en.wikipedia.org/wiki/Musical_note#12-tone_chromatic_scale
+/// Variant naming follows <https://en.wikipedia.org/wiki/Musical_note#12-tone_chromatic_scale>
 pub enum Notation {
     #[serde(alias = "western")]
     #[serde(alias = "dutch")]

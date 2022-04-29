@@ -356,9 +356,9 @@ impl Book {
         }
     }
 
-    fn add_md<'s>(&mut self, input: &'s str, path: &Path) -> Result<()> {
+    fn add_md(&mut self, input: &str, path: &Path) -> Result<()> {
         let config = ParserConfig::new(self.notation);
-        let mut parser = Parser::new(input, config);
+        let mut parser = Parser::new(input, path, config);
         parser
             .parse(&mut self.songs)
             .with_context(|| format!("Could not parse file `{}`", path))?;

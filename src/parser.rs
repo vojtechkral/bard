@@ -1,13 +1,21 @@
+//! The bard Markdown parser module.
+//!
+//! Here the bard's Markdown subset is parsed using `comrak`, `tl`,
+//! and code for parsing of `!` extensions.
+//!
+//! The API is provided by the `Parser` type, it's `parse()` method is the entry point.
+
 use std::mem;
 use std::str;
 
+use camino::{Utf8Path as Path, Utf8PathBuf as PathBuf};
 use comrak::nodes::{AstNode, ListType, NodeCode, NodeValue};
 use comrak::{ComrakExtensionOptions, ComrakOptions, ComrakParseOptions, ComrakRenderOptions};
 use lazy_static::lazy_static;
 use regex::{Captures, Regex};
+use thiserror::Error;
 
 use crate::book::*;
-use crate::error::*;
 use crate::music::{self, Notation};
 use crate::util::{BStr, ByteSliceExt};
 
@@ -21,6 +29,58 @@ const FALLBACK_TITLE: &str = "[Untitled]";
 lazy_static! {
     static ref EXTENSION: Regex = Regex::new(r"(^|\s)(!+)(\S+)").unwrap();
 }
+
+#[derive(Error, PartialEq, Eq, Clone, Debug)]
+enum ErrorKind {
+    #[error("Control character not allowed: 0x{char:x}")]
+    ControlChar { char: u32 },
+    #[error("Unrecognized chord: {chord}")]
+    Transposition { chord: BStr },
+}
+
+/// Parser error type.
+///
+/// Reports filename, line number and kind of error occured.
+/// The line number is 1-indexed.
+#[derive(Error, PartialEq, Eq, Clone, Debug)]
+#[error("{file}:{line}: {kind}")]
+pub struct Error {
+    file: PathBuf,
+    line: u32,
+    kind: ErrorKind,
+}
+
+impl Error {
+    pub fn control_char(file: &Path, line: u32, char: u32) -> Self {
+        Self {
+            file: file.to_owned(),
+            line,
+            kind: ErrorKind::ControlChar { char },
+        }
+    }
+
+    pub fn transposition(file: &Path, mut node: AstRef<'_>, chord: BStr) -> Self {
+        // Comrak actually doesn't set the start_line for some elements (code),
+        // so we try to find the line number by looking at parent nodes.
+        // FIXME: This is a hack, report or fix at comrak.
+        let mut line = node.data.borrow().start_line;
+        while line == 0 {
+            node = match node.parent() {
+                Some(n) => n,
+                None => break,
+            };
+            line = node.data.borrow().start_line;
+        }
+
+        Self {
+            file: file.into(),
+            line: line + 1, // make the line number 1-indexed
+            kind: ErrorKind::Transposition { chord },
+        }
+    }
+}
+
+type Result<T, E = Error> = std::result::Result<T, E>;
 
 // Since parser takes an UTF-8 string as input, we don't have to error-check
 // when converting bytes to strings.
@@ -265,8 +325,7 @@ impl<'a> NodeExt<'a> for AstNode<'a> {
             };
 
             if let Some(bytes) = text_b {
-                let utf8 = String::from_utf8_lossy(&bytes[..]);
-                res.push_str(&utf8);
+                res.push_str(utf8(&bytes[..]));
             } else {
                 for c in this.children() {
                     recurse(c, res);
@@ -360,17 +419,15 @@ struct ChordBuilder {
     alt_chord: Option<BStr>,
     backticks: usize,
     inlines: Vec<Inline>,
-    line: u32,
 }
 
 impl ChordBuilder {
-    fn new(code: &NodeCode, line: u32) -> Self {
+    fn new(code: &NodeCode) -> Self {
         Self {
             chord: code.literal.as_bstr(),
             alt_chord: None,
             backticks: code.num_backticks,
             inlines: vec![],
-            line,
         }
     }
 
@@ -378,14 +435,13 @@ impl ChordBuilder {
         &mut self.inlines
     }
 
-    fn transpose(&mut self, xp: &Transposition) -> Result<()> {
+    fn transpose(&mut self, xp: &Transposition) -> Result<(), BStr> {
         if xp.disabled {
             return Ok(());
         }
 
         let src_nt = xp.src_notation;
-        let chord = music::Chord::parse(&self.chord, src_nt)
-            .with_context(|| format!("Unknown chord `{}` on line {}", self.chord, self.line))?;
+        let chord = music::Chord::parse(&self.chord, src_nt).ok_or_else(|| self.chord.clone())?;
 
         if xp.xpose.is_some() || xp.notation.is_some() {
             let delta = xp.xpose.unwrap_or(0);
@@ -413,26 +469,33 @@ impl ChordBuilder {
 }
 
 #[derive(Debug)]
-struct VerseBuilder {
+struct VerseBuilder<'a> {
     label: VerseLabel,
     paragraphs: Vec<Paragraph>,
     xp: Transposition,
+    src_file: &'a Path,
 }
 
-impl VerseBuilder {
-    fn new(label: VerseLabel, xp: Transposition) -> Self {
+impl<'a> VerseBuilder<'a> {
+    fn new(label: VerseLabel, xp: Transposition, src_file: &'a Path) -> Self {
         Self {
             label,
             paragraphs: vec![],
             xp,
+            src_file,
         }
     }
 
-    fn with_p_nodes<'n, 'a, I>(label: VerseLabel, xp: Transposition, mut nodes: I) -> Result<Self>
+    fn with_p_nodes<I>(
+        label: VerseLabel,
+        xp: Transposition,
+        src_file: &'a Path,
+        mut nodes: I,
+    ) -> Result<Self>
     where
         I: Iterator<Item = AstRef<'a>>,
     {
-        nodes.try_fold(Self::new(label, xp), |mut this, node| {
+        nodes.try_fold(Self::new(label, xp, src_file), |mut this, node| {
             this.add_p_node(node)?;
             Ok(this)
         })
@@ -443,13 +506,11 @@ impl VerseBuilder {
     fn parse_text(&mut self, node: AstRef, target: &mut Vec<Inline>) {
         let data = node.data.borrow();
         let text = match &data.value {
-            NodeValue::Text(text) => text,
+            NodeValue::Text(text) => utf8(text),
             other => unreachable!("Unexpected element: {:?}", other),
         };
 
-        let text = String::from_utf8_lossy(&*text);
         let mut pos = 0;
-
         for caps in EXTENSION.captures_iter(&*text) {
             let hit = caps.get(0).unwrap();
 
@@ -459,10 +520,7 @@ impl VerseBuilder {
                 // First see if there's regular text preceding the extension
                 let preceding = &text[pos..hit.start()];
                 if !preceding.is_empty() {
-                    let preceding = Inline::Text {
-                        text: preceding.into(),
-                    };
-                    target.push(preceding);
+                    target.push(Inline::text(preceding));
                 }
 
                 if inline.is_xpose() && !self.xp.disabled {
@@ -489,8 +547,7 @@ impl VerseBuilder {
         // Also add text past the last extension (if any)
         let rest = &text[pos..];
         if !rest.is_empty() {
-            let rest = Inline::Text { text: rest.into() };
-            target.push(rest);
+            target.push(Inline::text(rest));
         }
     }
 
@@ -562,14 +619,11 @@ impl VerseBuilder {
                     cb.finalize(&mut para);
                 }
 
-                let mut new_cb = ChordBuilder::new(code, c_data.start_line);
+                let mut new_cb = ChordBuilder::new(code);
                 if self.xp.is_some() {
-                    new_cb.transpose(&self.xp).with_context(|| {
-                        format!(
-                            "Failed to transpose: Uknown chord `{}` on line {}",
-                            new_cb.chord, new_cb.line
-                        )
-                    })?;
+                    new_cb
+                        .transpose(&self.xp)
+                        .map_err(|chord| Error::transposition(self.src_file, c, chord))?;
                 }
                 cb = Some(new_cb);
             } else if c.ends_chord() {
@@ -639,14 +693,15 @@ struct SongBuilder<'a> {
     nodes: &'a [AstRef<'a>],
     title: String,
     subtitles: Vec<BStr>,
-    verse: Option<VerseBuilder>,
+    verse: Option<VerseBuilder<'a>>,
     blocks: Vec<Block>,
     xp: Transposition,
     verse_num: u32,
+    src_file: &'a Path,
 }
 
 impl<'a> SongBuilder<'a> {
-    fn new(nodes: &'a [AstRef<'a>], config: &ParserConfig) -> Self {
+    fn new(nodes: &'a [AstRef<'a>], config: &ParserConfig, src_file: &'a Path) -> Self {
         // Read song title or use fallback
         let (title, nodes) = match nodes.first() {
             Some(n) if n.is_h(1) => (n.as_plaintext(), &nodes[1..]),
@@ -671,6 +726,7 @@ impl<'a> SongBuilder<'a> {
             blocks: vec![],
             xp: Transposition::new(config.notation, config.xp_disabled),
             verse_num: 0,
+            src_file,
         }
     }
 
@@ -679,9 +735,13 @@ impl<'a> SongBuilder<'a> {
         self.verse_num
     }
 
-    fn verse_mut(&mut self) -> &mut VerseBuilder {
+    fn verse_mut(&mut self) -> &mut VerseBuilder<'a> {
         if self.verse.is_none() {
-            self.verse = Some(VerseBuilder::new(VerseLabel::None {}, self.xp.clone()));
+            self.verse = Some(VerseBuilder::new(
+                VerseLabel::None {},
+                self.xp.clone(),
+                self.src_file,
+            ));
         }
 
         self.verse.as_mut().unwrap()
@@ -712,7 +772,7 @@ impl<'a> SongBuilder<'a> {
 
                 if self.verse.is_none() {
                     let label = VerseLabel::Chorus(Some(level));
-                    let verse = VerseBuilder::new(label, self.xp.clone());
+                    let verse = VerseBuilder::new(label, self.xp.clone(), self.src_file);
                     self.verse = Some(verse);
                 }
 
@@ -738,8 +798,12 @@ impl<'a> SongBuilder<'a> {
                         self.verse_finalize();
 
                         let label = VerseLabel::Verse(self.next_verse_num());
-                        let verse =
-                            VerseBuilder::with_p_nodes(label, self.xp.clone(), item.children())?;
+                        let verse = VerseBuilder::with_p_nodes(
+                            label,
+                            self.xp.clone(),
+                            self.src_file,
+                            item.children(),
+                        )?;
                         self.verse = Some(verse);
                     }
                 }
@@ -759,7 +823,7 @@ impl<'a> SongBuilder<'a> {
 
                 NodeValue::Heading(h) if h.level >= 3 => {
                     let label = VerseLabel::Custom(node.as_plaintext().into());
-                    self.verse = Some(VerseBuilder::new(label, self.xp.clone()));
+                    self.verse = Some(VerseBuilder::new(label, self.xp.clone(), self.src_file));
                 }
 
                 NodeValue::ThematicBreak => {
@@ -879,12 +943,17 @@ impl Default for ParserConfig {
 #[derive(Debug)]
 pub struct Parser<'i> {
     input: &'i str,
+    src_file: &'i Path,
     config: ParserConfig,
 }
 
 impl<'i> Parser<'i> {
-    pub fn new(input: &'i str, config: ParserConfig) -> Self {
-        Self { input, config }
+    pub fn new(input: &'i str, src_file: &'i Path, config: ParserConfig) -> Self {
+        Self {
+            input,
+            src_file,
+            config,
+        }
     }
 
     #[cfg(test)]
@@ -920,36 +989,56 @@ impl<'i> Parser<'i> {
         }
     }
 
+    /// Verify input doesn't contain disallowed control chars,
+    /// which are all of them except LF, TAB, and CR.
+    fn check_control_chars(&self) -> Result<()> {
+        for (num, line) in self.input.lines().enumerate() {
+            for c in line.chars() {
+                // The Lines iterator already takes care of \n and \r,
+                // only need to check for \t here:
+                if c.is_control() && c != '\t' {
+                    return Err(Error::control_char(self.src_file, num as u32 + 1, c as u32));
+                }
+            }
+        }
+
+        Ok(())
+    }
+
+    /// Parsing is done in four steps:
+    ///
+    /// 1. Split the source AST in individual songs (they are separated by H1s),
+    ///    this is done by `SongIter`.
+    ///
+    ///    For each song:
+    ///
+    /// 2. Preprocess the AST for easier parsing, this mainly involves bringing up
+    ///    Code inlines and line breaks to the top level (out of arbitrary nested levels).
+    ///    This is done by methods in `NodeExt`.
+    ///
+    /// 3. Parse the song content, this is done in `SongBuilder`, `VerseBuilder` et al.,
+    ///    as well as helper methods in `NodeExt`.
+    ///    Parsing bard MD extensions, incl. transposition, is also done here (`Extension`).
+    ///    Transposition is applied right away.
+    ///
+    /// 4. Postprocess the song data and convert into the final `Song` AST,
+    ///    as of now this is just removing of empty paragraphs/verses,
+    ///    this is actually implemented on the `Song` AST type in `book`.
+    ///
+    /// The `Result` is one or more `Song` structures which are appended to the `songs` vec passed in.
+    /// See the `book` module where the bard AST is defined.
     pub fn parse<'s>(&mut self, songs: &'s mut Vec<Song>) -> Result<&'s mut [Song]> {
+        self.check_control_chars()?;
+
         let arena = Arena::new();
         let root = comrak::parse_document(&arena, self.input, &Self::comrak_config());
         let root_elems: Vec<_> = root.children().collect();
-
-        // Parsing is done in four steps:
-        //
-        // 1. Split the source AST in individual songs (they are separated by H1s),
-        //    this is done by SongIter.
-        //    For each song:
-        // 2. Preprocess the AST for easier parsing, this mainly involves bringing up
-        //    Code inlines and line breaks to the top level (out of arbitrary nested levels).
-        //    This is done by methods in NodeExt
-        // 3. Parse the song content, this is done in SongBuilder, VerseBuilder et al.,
-        //    as well as helper methods in NodeExt.
-        //    Parsing bard MD extensions, incl. transposition, is also done here.
-        //    Transposition is applied right away, which is the sole reason
-        //    why parsing is fallible (chords may fail to be understood by the music module).
-        // 4. Postprocess the song data and convert into the final Song AST,
-        //    as of now this is just removing of empty paragraphs/verses,
-        //    this is actually implemented on the Song AST type (in book).
-        //
-        // The Result is one or more Song structures which are appended to the songs vec passed in.
-        // See the book module where the bard AST is defined.
 
         let orig_len = songs.len();
         for song_nodes in SongsIter::new(&root_elems) {
             song_nodes.iter().for_each(|node| node.preprocess(&arena));
 
-            let mut song = SongBuilder::new(song_nodes, &self.config);
+            let mut song = SongBuilder::new(song_nodes, &self.config, self.src_file);
             song.parse()?;
             songs.push(song.finalize());
         }

@@ -6,12 +6,16 @@ use super::*;
 
 // Parsing helpers
 
-fn parse(input: &str, disable_xpose: bool) -> Vec<Song> {
+fn try_parse(input: &str, disable_xpose: bool) -> Result<Vec<Song>> {
     let mut songs = vec![];
-    let mut parser = Parser::new(input, ParserConfig::default());
+    let mut parser = Parser::new(input, "<test>".into(), ParserConfig::default());
     parser.set_xp_disabled(disable_xpose);
-    parser.parse(&mut songs).unwrap();
-    songs
+    parser.parse(&mut songs)?;
+    Ok(songs)
+}
+
+fn parse(input: &str, disable_xpose: bool) -> Vec<Song> {
+    try_parse(input, disable_xpose).unwrap()
 }
 
 fn parse_one(input: &str) -> Song {
@@ -453,6 +457,23 @@ fn transposition() {
             i_chord("Bm", "Hm", 1, [i_text("yay!")]),
         ]]
     )]));
+}
+
+#[test]
+fn transposition_error() {
+    let input = r#"
+# Song
+
+!+5
+
+> 1. `Bm`Yippie yea `D`oh!
+Yippie yea `X`yay!
+"#;
+
+    let err = try_parse(input, false).unwrap_err();
+    assert_eq!(err.file, "<test>");
+    assert_eq!(err.line, 7);
+    assert_eq!(err.kind, ErrorKind::Transposition { chord: "X".into() });
 }
 
 #[test]
