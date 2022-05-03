@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use serde::Serialize;
 use serde_json::json;
 use serde_json::Value::{self as Json, Null};
@@ -63,43 +65,57 @@ fn song(
     })
 }
 
-fn b_verse(
-    typ: &str,
-    label: impl Serialize,
-    paras: impl IntoIterator<Item = impl IntoIterator<Item = Json>>,
-) -> Json {
-    let paras: Vec<Vec<Json>> = paras
-        .into_iter()
-        .map(|inlines| inlines.into_iter().collect())
-        .collect();
-
+fn b_verse(typ: &str, label: impl Serialize, paras: impl IntoIterator<Item = Json>) -> Json {
     json!({
         "type": "b-verse",
         "label": { typ: label },
-        "paragraphs": paras,
+        "paragraphs": paras.into_iter().collect::<Vec<_>>(),
     })
 }
 
-fn ver_verse(label: u32, paras: impl IntoIterator<Item = impl IntoIterator<Item = Json>>) -> Json {
+fn ver_verse(label: u32, paras: impl IntoIterator<Item = Json>) -> Json {
     b_verse("verse", label, paras)
 }
 
-fn ver_chorus(
-    label: impl Serialize,
-    paras: impl IntoIterator<Item = impl IntoIterator<Item = Json>>,
-) -> Json {
+fn ver_chorus(label: impl Serialize, paras: impl IntoIterator<Item = Json>) -> Json {
     b_verse("chorus", label, paras)
 }
 
-fn ver_custom(
-    label: &str,
-    paras: impl IntoIterator<Item = impl IntoIterator<Item = Json>>,
-) -> Json {
+fn ver_custom(label: &str, paras: impl IntoIterator<Item = Json>) -> Json {
     b_verse("custom", label, paras)
 }
 
-fn ver_none(paras: impl IntoIterator<Item = impl IntoIterator<Item = Json>>) -> Json {
+fn ver_none(paras: impl IntoIterator<Item = Json>) -> Json {
     b_verse("none", json!({}), paras)
+}
+
+fn p(inlines: impl IntoIterator<Item = Json>) -> Json {
+    json!(inlines.into_iter().collect::<Vec<_>>())
+}
+
+fn b_bullet_list<'a>(items: impl IntoIterator<Item = &'a str>) -> Json {
+    json!({
+        "type": "b-bullet-list",
+        "items": items.into_iter().collect::<Vec<_>>(),
+    })
+}
+
+fn b_hr() -> Json {
+    json!({"type": "b-horizontal-line"})
+}
+
+fn b_pre(text: &str) -> Json {
+    json!({
+        "type": "b-pre",
+        "text": text,
+    })
+}
+
+fn b_html(inlines: impl IntoIterator<Item = Json>) -> Json {
+    json!({
+        "type": "b-html-block",
+        "inlines": inlines.into_iter().collect::<Vec<_>>(),
+    })
 }
 
 fn i_text(text: impl AsRef<str>) -> Json {
@@ -139,6 +155,32 @@ fn i_xpose(typ: &str, value: impl Serialize) -> Json {
 
 fn i_chorus_ref(num: impl Serialize, prefix_space: &str) -> Json {
     json!({ "type": "i-chorus-ref", "num": num, "prefix_space": prefix_space })
+}
+
+fn i_link(text: &str, url: &str, title: &str) -> Json {
+    json!({
+        "type": "i-link",
+        "url": url,
+        "title": title,
+        "text": text,
+    })
+}
+
+fn i_image(path: &str, title: &str, class: &str) -> Json {
+    json!({
+        "type": "i-image",
+        "path": path,
+        "title": title,
+        "class": class,
+    })
+}
+
+fn i_tag<'a>(name: &str, attrs: impl IntoIterator<Item = (&'a str, &'a str)>) -> Json {
+    json!({
+        "type": "i-tag",
+        "name": name,
+        "attrs": attrs.into_iter().collect::<HashMap<_, _>>(),
+    })
 }
 
 #[test]
@@ -229,20 +271,20 @@ Second paragraph of the second verse.
             ver_verse(
                 1,
                 [
-                    [i_text("First verse.")],
-                    [i_text("Second paragraph of the first verse.")],
+                    p([i_text("First verse.")]),
+                    p([i_text("Second paragraph of the first verse.")]),
                 ],
             ),
             ver_verse(
                 2,
                 [
-                    [i_text("Second verse.")],
-                    [i_text("Second paragraph of the second verse.")],
+                    p([i_text("Second verse.")]),
+                    p([i_text("Second paragraph of the second verse.")]),
                 ],
             ),
-            ver_verse(3, [[i_text("Third verse.")]]),
-            ver_verse(4, [[i_text("Fourth verse.")]]),
-            ver_chorus(Null, [[i_text("Chorus.")]]),
+            ver_verse(3, [p([i_text("Third verse.")])]),
+            ver_verse(4, [p([i_text("Fourth verse.")])]),
+            ver_chorus(Null, [p([i_text("Chorus.")])]),
         ],
     ));
 }
@@ -281,27 +323,27 @@ More lyrics to the chorus 3.
         "english",
         [
             ver_none([
-                [i_text("Verse without any label.")],
-                [i_text("Next paragraph of that verse.")],
+                p([i_text("Verse without any label.")]),
+                p([i_text("Next paragraph of that verse.")]),
             ]),
-            ver_custom("Custom label", [[i_text("Lyrics Lyrics lyrics.")]]),
-            ver_chorus(1, [[i_text("Chorus 1.")]]),
-            ver_chorus(2, [[i_text("Chorus 2.")]]),
+            ver_custom("Custom label", [p([i_text("Lyrics Lyrics lyrics.")])]),
+            ver_chorus(1, [p([i_text("Chorus 1.")])]),
+            ver_chorus(2, [p([i_text("Chorus 2.")])]),
             ver_chorus(
                 1,
                 [
-                    [i_text("Chorus 1 again.")],
-                    [i_text("More lyrics.")],
-                    [i_text(
+                    p([i_text("Chorus 1 again.")]),
+                    p([i_text("More lyrics.")]),
+                    p([i_text(
                         "Yet more lyrics (these should go to the chorus as well actually).",
-                    )],
+                    )]),
                 ],
             ),
             ver_chorus(
                 3,
                 [
-                    [i_text("Chorus 3.")],
-                    [i_text("More lyrics to the chorus 3.")],
+                    p([i_text("Chorus 3.")]),
+                    p([i_text("More lyrics to the chorus 3.")]),
                 ],
             ),
         ],
@@ -393,31 +435,31 @@ Mixed !>> in text.
     let songs = parse(input, true);
 
     songs[0].blocks.assert_eq(json!([
-        ver_none([[
+        ver_none([p([
             i_xpose("t-transpose", 5),
             i_break(),
             i_xpose("t-alt-notation", "german")
-        ],]),
-        ver_chorus(Null, [[i_text("Chorus.")]]),
+        ])]),
+        ver_chorus(Null, [p([i_text("Chorus.")])]),
         ver_verse(
             1,
-            [[
+            [p([
                 i_text("Lyrics !!> !!!english"),
                 i_xpose("t-transpose", 0),
                 i_break(),
                 i_xpose("t-transpose", 2),
                 i_text(" More lyrics"),
                 i_chorus_ref(Null, " "),
-            ],]
+            ])]
         ),
     ]));
 
     songs[1].blocks.assert_eq(json!([
-        ver_chorus(1, [[i_text("Chorus.")]]),
-        ver_chorus(2, [[i_text("Chorus two.")]]),
+        ver_chorus(1, [p([i_text("Chorus.")])]),
+        ver_chorus(2, [p([i_text("Chorus two.")])]),
         ver_verse(
             1,
-            [[
+            [p([
                 i_text("Reference both:"),
                 i_chorus_ref(1, " "),
                 i_chorus_ref(2, " "),
@@ -428,7 +470,7 @@ Mixed !>> in text.
                 i_text("Mixed"),
                 i_chorus_ref(2, " "),
                 i_text(" in text."),
-            ]]
+            ])]
         ),
     ]));
 }
@@ -449,13 +491,13 @@ fn transposition() {
     let song = parse_one(input);
     song.blocks.assert_eq(json!([ver_chorus(
         Null,
-        [[
+        [p([
             i_chord("Em", "Hm", 1, [i_text("Yippie yea ")]),
             i_chord("G", "D", 1, [i_text("oh!")]),
             i_break(),
             i_text("Yippie yea "),
             i_chord("Bm", "Hm", 1, [i_text("yay!")]),
-        ]]
+        ])]
     )]));
 }
 
@@ -509,4 +551,228 @@ fn parse_verse_numbering() {
     assert_eq!(get_verse(&songs[1], 5).label, VerseLabel::Verse(4));
 }
 
-// FIXME: test HTML
+#[test]
+fn parse_bullet_list() {
+    let input = r#"
+# Song
+
+- Item 1
+- Item 2
+
+1. First verse.
+
+* Item 3
+* Item 4
+"#;
+
+    parse_one(input).assert_eq(song(
+        "Song",
+        [],
+        "english",
+        [
+            b_bullet_list(["Item 1", "Item 2"]),
+            ver_verse(1, [p([i_text("First verse.")])]),
+            b_bullet_list(["Item 3", "Item 4"]),
+        ],
+    ));
+}
+
+#[test]
+fn parse_hr() {
+    let input = r#"
+# Song
+
+1. First verse.
+
+---
+
+2. Second verse.
+"#;
+
+    parse_one(input).assert_eq(song(
+        "Song",
+        [],
+        "english",
+        [
+            ver_verse(1, [p([i_text("First verse.")])]),
+            b_hr(),
+            ver_verse(2, [p([i_text("Second verse.")])]),
+        ],
+    ));
+}
+
+#[test]
+fn parse_link() {
+    let input = r#"
+# Song
+
+1. First verse. [Link](http://example.com)
+
+[Link 2](http://example.com "title")
+"#;
+
+    parse_one(input).assert_eq(song(
+        "Song",
+        [],
+        "english",
+        [ver_verse(
+            1,
+            [
+                p([
+                    i_text("First verse. "),
+                    i_link("Link", "http://example.com", ""),
+                ]),
+                p([i_link("Link 2", "http://example.com", "title")]),
+            ],
+        )],
+    ));
+}
+
+#[test]
+fn parse_image() {
+    let input = r#"
+# Song
+
+1. First verse. ![Foo](foo.jpg)
+
+![Bar](bar.jpg "center")
+"#;
+
+    parse_one(input).assert_eq(song(
+        "Song",
+        [],
+        "english",
+        [ver_verse(
+            1,
+            [
+                p([i_text("First verse. "), i_image("foo.jpg", "Foo", "")]),
+                p([i_image("bar.jpg", "Bar", "center")]),
+            ],
+        )],
+    ));
+}
+
+#[test]
+fn parse_html() {
+    let input = r#"
+# Song
+
+<foo>
+
+1. First verse.
+
+</foo>
+
+<table>
+Second paragraph of the first verse.
+</table>
+
+2. Second verse with <bar baz="1">inline html</bar>.
+
+<qux>
+Second paragraph of `C`the second verse.
+</qux>
+Trailing text.
+"#;
+
+    parse_one(input).assert_eq(song(
+        "Song",
+        [],
+        "english",
+        [
+            b_html([i_tag("foo", [])]),
+            ver_verse(1, [p([i_text("First verse.")])]),
+            b_html([i_tag("/foo", [])]),
+            b_html([
+                i_tag("table", []),
+                i_break(),
+                i_text("Second paragraph of the first verse."),
+                i_break(),
+                i_tag("/table", []),
+            ]),
+            ver_verse(
+                2,
+                [p([
+                    i_text("Second verse with "),
+                    i_tag("bar", [("baz", "1")]),
+                    i_text("inline html"),
+                    i_tag("/bar", []),
+                    i_text("."),
+                ])],
+            ),
+            b_html([
+                i_tag("qux", []),
+                i_break(),
+                i_text("Second paragraph of `C`the second verse."),
+                i_break(),
+                i_tag("/qux", []),
+                i_break(),
+                i_text("Trailing text."),
+            ]),
+        ],
+    ));
+}
+
+#[test]
+fn parse_crlf() {
+    let input = b"# Song\r\n\r\n1. First verse.\r\n\r\n```\r\npre1\r\npre2\r\n```";
+
+    let input = str::from_utf8(input).unwrap();
+    parse_one(input).assert_eq(song(
+        "Song",
+        [],
+        "english",
+        [
+            ver_verse(1, [p([i_text("First verse.")])]),
+            b_pre("pre1\npre2\n"),
+        ],
+    ));
+}
+
+#[test]
+fn parse_crlf_html() {
+    let input = b"# Song\r\n\r\n<foo>\r\nline1\r\nline2\r\n</foo>\r\n";
+
+    let input = str::from_utf8(input).unwrap();
+    parse_one(input).assert_eq(song(
+        "Song",
+        [],
+        "english",
+        [b_html([
+            i_tag("foo", []),
+            i_break(),
+            i_text("line1"),
+            i_break(),
+            i_text("line2"),
+            i_break(),
+            i_tag("/foo", []),
+        ])],
+    ));
+}
+
+#[test]
+fn control_chars_error() {
+    let input = "# Song
+
+1. First verse.
+2. Second verse.\0
+";
+
+    let err = try_parse(input, false).unwrap_err();
+    assert_eq!(err.file, "<test>");
+    assert_eq!(err.line, 4);
+    assert_eq!(err.kind, ErrorKind::ControlChar { char: 0 });
+
+    let input = "\u{009f}";
+    let err = try_parse(input, false).unwrap_err();
+    assert_eq!(err.file, "<test>");
+    assert_eq!(err.line, 1);
+    assert_eq!(err.kind, ErrorKind::ControlChar { char: 159 });
+}
+
+#[test]
+fn bom() {
+    let input = "\u{feff}# Song";
+    let song = parse_one(input);
+    assert_eq!(&*song.title, "Song");
+}
