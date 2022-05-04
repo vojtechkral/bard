@@ -1,0 +1,24 @@
+songs = [
+    "yippie.md"
+]
+
+notation = "english"
+
+[[output]]
+file = "songbook.tex"
+template = "pdf.hbs"
+font = "DejaVu Sans"
+process = "latexmk -xelatex {{file}}"
+
+[[output]]
+file = "songbook.html"
+template = "html.hbs"
+
+[[output]]
+file = "songbook.json"
+
+[book]
+title = "My Songbook"
+subtitle = "(You can edit that title!)"
+chorus_label = "Ch"
+title_note = "(And this note too...)"

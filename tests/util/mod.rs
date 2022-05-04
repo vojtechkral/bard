@@ -136,3 +136,14 @@ impl Builder {
         })
     }
 }
+
+pub trait StringExt {
+    fn remove_newlines(self) -> Self;
+}
+
+impl StringExt for String {
+    fn remove_newlines(mut self) -> Self {
+        self.retain(|c| c != '\n' && c != '\r');
+        self
+    }
+}
