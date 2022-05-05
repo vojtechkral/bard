@@ -120,13 +120,15 @@
 }
 \makeatother
 
-{{!-- HB inlines: Block types --}}
+{{!-- HB inlines: User-defined --}}
 
 {{#*inline "verse-label"}}
   {{~#if verse}}{{verse}}.{{/if~}}
   {{~#if (contains this "chorus")}}{{@root.book.chorus_label}}{{chorus}}.{{/if~}}
   {{~#if custom}}{{custom}}{{/if~}}
 {{/inline}}
+
+{{!-- HB inlines: Block types --}}
 
 {{#*inline "b-verse"~}}
   {{#each paragraphs~}}
@@ -149,6 +151,10 @@
 
 {{#*inline "b-pre"}}
   \begin{verbatim}{{{ text }}}\end{verbatim}
+{{/inline}}
+
+{{#*inline "b-html-block"}}
+  {{~#each inlines}}{{> (lookup this "type") }}{{/each~}}
 {{/inline}}
 
 {{!-- HB inlines: Inline types --}}
@@ -195,6 +201,8 @@
   {{/if~}}
   {{~#unless class }}\includegraphics[width={{ px2mm (img_w path) }}mm]{ {{~ path ~}} }{{/unless~}}
 {{/inline}}
+
+{{#*inline "i-tag"}}{{> (lookup this "name") attrs }}{{/inline}}
 
 {{!-- Main content --}}
 

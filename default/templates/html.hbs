@@ -147,13 +147,15 @@
     </style>
 </head>
 
-{{!-- HB inlines: Block types --}}
+{{!-- HB inlines: User-defined --}}
 
 {{#*inline "verse-label"}}
   {{~#if verse}}{{verse}}.{{/if~}}
   {{~#if (contains this "chorus")}}{{@root.book.chorus_label}}{{chorus}}.{{/if~}}
   {{~#if custom}}{{custom}}{{/if~}}
 {{/inline}}
+
+{{!-- HB inlines: Block types --}}
 
 {{#*inline "b-verse"}}
   <li data-label="{{>verse-label label}}">
@@ -176,6 +178,9 @@
   <pre>{{ text }}</pre>
 {{/inline}}
 
+{{#*inline "b-html-block"}}
+  {{~#each inlines}}{{> (lookup this "type") }}{{/each~}}
+{{/inline}}
 
 {{!-- HB inlines: Inline types --}}
 
@@ -197,7 +202,7 @@
 {{#*inline "i-link"}}<a href="{{ url }}" title="{{ title }}">{{ text }}</a>{{/inline}}
 {{#*inline "i-chorus-ref"}}<em>{{ prefix_space }}{{ @root.book.chorus_label }}{{ num }}.</em>{{/inline}}
 {{#*inline "i-image"}}<img class="{{ class }}" src="{{ path }}" title="{{ title }}" />{{/inline}}
-
+{{#*inline "i-tag"}}{{> (lookup this "name") attrs }}{{/inline}}
 
 {{!-- Body - main structure --}}
 
