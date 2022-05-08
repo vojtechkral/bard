@@ -37,7 +37,7 @@ impl Output {
         let ext = self.file.extension().map(str::to_lowercase);
 
         self.format = match ext.as_deref() {
-            Some("html") | Some("xhtml") | Some("htm") | Some("xht") => Format::Html,
+            Some("html") => Format::Html,
             Some("tex") => Format::Tex,
             Some("xml") => Format::Hovorka,
             Some("json") => Format::Json,

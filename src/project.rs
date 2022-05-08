@@ -51,7 +51,6 @@ pub type Metadata = HashMap<Box<str>, Value>;
 #[derive(Deserialize, Clone, Copy, Debug)]
 #[serde(rename_all = "lowercase")]
 pub enum Format {
-    #[serde(alias = "xhtml")]
     Html,
     Tex,
     Hovorka,
