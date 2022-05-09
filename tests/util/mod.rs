@@ -73,7 +73,7 @@ pub struct Builder {
 }
 
 impl Builder {
-    fn work_dir(name: &str, rm: bool) -> Result<PathBuf> {
+    pub fn work_dir(name: &str, rm: bool) -> Result<PathBuf> {
         let path = int_dir().join(name);
 
         if rm {
@@ -101,6 +101,16 @@ impl Builder {
         Ok(())
     }
 
+    pub fn prepare(src_path: impl AsRef<Path>, name: &str) -> Result<PathBuf> {
+        cli::use_stderr(true);
+
+        let src_path = src_path.as_ref();
+        let work_dir = Self::work_dir(name, true)?;
+
+        Self::dir_copy(src_path, &work_dir)?;
+        Ok(work_dir)
+    }
+
     pub fn build(src_path: PathBuf) -> Result<Self> {
         Self::build_opts(&src_path, src_path.file_name().unwrap(), &OPTS_NO_PS)
     }
@@ -108,10 +118,7 @@ impl Builder {
     pub fn build_opts(src_path: impl AsRef<Path>, name: &str, opts: &MakeOpts) -> Result<Self> {
         cli::use_stderr(true);
 
-        let src_path = src_path.as_ref();
-        let work_dir = Self::work_dir(name, true)?;
-
-        Self::dir_copy(src_path, &work_dir)?;
+        let work_dir = Self::prepare(src_path, name)?;
         let project = bard::bard_make_at(opts, &work_dir)?;
 
         Ok(Self {

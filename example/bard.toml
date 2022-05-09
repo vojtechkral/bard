@@ -10,14 +10,12 @@ notation = "english"
 
 [[output]]
 file = "songbook.tex"
-template = "pdf.hbs"
 font = "DejaVu Sans"
 dpi = 144
 process = "latexmk -xelatex {{file}}"
 
 [[output]]
 file = "songbook.html"
-template = "html.hbs"
 
 [[output]]
 file = "songbook.hovorka.xml"

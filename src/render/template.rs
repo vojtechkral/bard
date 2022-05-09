@@ -330,7 +330,7 @@ pub struct RHtml<'a>(HbRender<'a>);
 
 impl<'a> DefaultTemaplate for RHtml<'a> {
     const TPL_NAME: &'static str = "html.hbs";
-    const TPL_CONTENT: &'static str = include_str!("../../default/templates/html.hbs");
+    const TPL_CONTENT: &'static str = include_str!("./templates/html.hbs");
 }
 
 impl<'a> Render<'a> for RHtml<'a> {
@@ -351,7 +351,7 @@ pub struct RTex<'a>(HbRender<'a>);
 
 impl<'a> DefaultTemaplate for RTex<'a> {
     const TPL_NAME: &'static str = "pdf.hbs";
-    const TPL_CONTENT: &'static str = include_str!("../../default/templates/pdf.hbs");
+    const TPL_CONTENT: &'static str = include_str!("./templates/pdf.hbs");
 }
 
 impl<'a> Render<'a> for RTex<'a> {
@@ -378,7 +378,7 @@ pub struct RHovorka<'a>(HbRender<'a>);
 
 impl<'a> DefaultTemaplate for RHovorka<'a> {
     const TPL_NAME: &'static str = "hovorka.hbs";
-    const TPL_CONTENT: &'static str = include_str!("../../example/templates/hovorka.hbs");
+    const TPL_CONTENT: &'static str = include_str!("./templates/hovorka.hbs");
 }
 
 impl<'a> Render<'a> for RHovorka<'a> {

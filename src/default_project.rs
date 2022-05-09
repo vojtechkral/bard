@@ -1,108 +1,113 @@
 use std::fs;
-use std::iter;
+use std::path::MAIN_SEPARATOR;
 
 use camino::{Utf8Path as Path, Utf8PathBuf as PathBuf};
 use lazy_static::lazy_static;
 
 use crate::error::*;
-use crate::project::{DIR_SONGS, DIR_TEMPLATES, PROJECT_FILE};
-use crate::render::{DefaultTemaplate, RHtml, RTex};
+use crate::project::{DIR_SONGS, PROJECT_FILE};
 use crate::util::PathBufExt as _;
 
-/// File: Contains a filename and the file's content
+/// A filesystem node, either a file (with content), or a directory.
 #[derive(Debug)]
-struct File {
-    path: PathBuf,
-    content: &'static [u8],
+enum Node {
+    File {
+        path: PathBuf,
+        content: &'static [u8],
+    },
+    Dir {
+        path: PathBuf,
+    },
 }
 
-impl File {
-    fn new(path: &str, content: &'static str) -> Self {
-        Self {
+impl Node {
+    fn file(path: impl Into<PathBuf>, content: &'static str) -> Self {
+        Self::File {
             path: path.into(),
             content: content.as_bytes(),
         }
     }
 
+    fn dir(path: impl Into<PathBuf>) -> Self {
+        Self::Dir { path: path.into() }
+    }
+
+    fn path(&self) -> &Path {
+        match self {
+            Self::File { path, .. } => path,
+            Self::Dir { path } => path,
+        }
+    }
+
     fn exists(&self) -> bool {
-        self.path.exists()
+        self.path().exists()
     }
 
     fn resolved(&self, base: &Path) -> Self {
-        Self {
-            path: self.path.clone().resolved(base),
-            content: self.content,
+        match self {
+            Self::File { path, content } => Self::File {
+                path: path.clone().resolved(base),
+                content,
+            },
+            Self::Dir { path } => Self::Dir {
+                path: path.clone().resolved(base),
+            },
         }
     }
 
     fn create(&self) -> Result<()> {
-        if let Some(parent) = self.path.parent() {
-            fs::create_dir_all(parent)
-                .with_context(|| format!("Could not create directory `{}`", parent))?;
+        let dir_path = match self {
+            Self::File { path, .. } => path.parent(),
+            Self::Dir { path } => Some(path.as_ref()),
+        };
+        if let Some(dir_path) = dir_path {
+            fs::create_dir_all(dir_path)
+                .with_context(|| format!("Could not create directory `{}`", dir_path))?;
         }
 
-        fs::write(&self.path, self.content)
-            .with_context(|| format!("Could not initialize file `{}`", self.path))
+        if let Self::File { path, content } = self {
+            fs::write(path, content)
+                .with_context(|| format!("Could not initialize file `{}`", path))?;
+        }
+
+        Ok(())
     }
 }
 
 #[derive(Debug)]
 pub struct DefaultProject {
-    project_file: File,
-    songs: Box<[File]>,
-    templates: Box<[File]>,
+    nodes: Vec<Node>,
 }
 
 impl DefaultProject {
     fn new() -> Self {
-        let project_file = File::new(PROJECT_FILE, include_str!("../default/bard.toml"));
+        let nodes = vec![
+            // Project file:
+            Node::file(PROJECT_FILE, include_str!("../default/bard.toml")),
+            // Song:
+            Node::file(
+                format!("{}{}yippie.md", DIR_SONGS, MAIN_SEPARATOR),
+                include_str!("../default/songs/yippie.md"),
+            ),
+            // Output dir:
+            Node::dir("output"),
+        ];
 
-        let songs = vec![File::new(
-            "yippie.md",
-            include_str!("../default/songs/yippie.md"),
-        )]
-        .into();
-
-        let templates = vec![
-            File::new(RTex::TPL_NAME, RTex::TPL_CONTENT),
-            File::new(RHtml::TPL_NAME, RHtml::TPL_CONTENT),
-        ]
-        .into();
-
-        Self {
-            project_file,
-            songs,
-            templates,
-        }
+        Self { nodes }
     }
 
     pub fn resolve(&self, project_dir: &Path) -> DefaultProjectResolved {
-        let dir_songs = project_dir.join(DIR_SONGS);
-        let dir_templates = project_dir.join(DIR_TEMPLATES);
-
-        let project_file = self.project_file.resolved(project_dir);
-        let songs = self.songs.iter().map(|f| f.resolved(&dir_songs)).collect();
-        let templates = self
-            .templates
+        let nodes = self
+            .nodes
             .iter()
-            .map(|f| f.resolved(&dir_templates))
+            .map(|f| f.resolved(&project_dir))
             .collect();
 
-        DefaultProjectResolved(Self {
-            project_file,
-            songs,
-            templates,
-        })
+        DefaultProjectResolved(Self { nodes })
     }
 
-    fn files(&self) -> impl Iterator<Item = &File> {
-        iter::once(&self.project_file)
-            .chain(self.songs.iter())
-            .chain(self.templates.iter())
-    }
-
-    fn any_exists(&self) -> Option<&File> {
-        self.files().find(|&f| f.exists())
+    fn any_exists(&self) -> Option<&Node> {
+        self.nodes.iter().find(|&f| f.exists())
     }
 }
 
@@ -113,14 +118,28 @@ impl DefaultProjectResolved {
         let project = self.0;
 
         if let Some(existing) = project.any_exists() {
-            bail!("File already exists: '{}'", existing.path);
+            bail!("File already exists: '{}'", existing.path());
         }
 
-        for file in project.files() {
-            file.create()?;
+        for node in &project.nodes[..] {
+            node.create()?;
         }
 
         Ok(())
+    }
+
+    pub fn files(&self) -> impl Iterator<Item = &Path> {
+        self.0.nodes.iter().filter_map(|node| match node {
+            Node::File { path, .. } => Some(path.as_path()),
+            Node::Dir { .. } => None,
+        })
+    }
+
+    pub fn dirs(&self) -> impl Iterator<Item = &Path> {
+        self.0.nodes.iter().filter_map(|node| match node {
+            Node::Dir { path } => Some(path.as_path()),
+            Node::File { .. } => None,
+        })
     }
 }
 
