@@ -1,0 +1,147 @@
+<book notation="english">
+  <metadata>
+    <subtitle>An example project</subtitle>
+    <chorus_label>Ch</chorus_label>
+    <front_img>guitar.jpg</front_img>
+    <title>Bard Songbook</title>
+    <title_note>A set of a few non-copyrighted songs.</title_note>
+  </metadata>
+  <song title="Danny Boy" notation="english">
+    <subtitle>English ballad</subtitle>
+    <verse label="1" label-type="verse">
+      <chord backticks="1" chord="G7">Oh Danny </chord>
+      <chord backticks="1" chord="C">Boy, the pipes, the </chord>
+      <chord chord="C7" backticks="2">pipes are </chord>
+      <chord chord="F" backticks="1">calling</chord>
+      <br/>From glen to <chord backticks="1" chord="C">glen, and </chord>
+      <chord chord="Em" backticks="1">down the </chord>
+      <chord chord="F" backticks="1">mountain </chord>
+      <chord backticks="1" chord="G7">side</chord>
+      <br/>The summer’s <chord chord="C" backticks="1">gone, and all the </chord>
+      <chord backticks="2" chord="C7">flowers are </chord>
+      <chord chord="F" backticks="1">dying</chord>
+      <br/>‘Tis you, ’tis <chord chord="C" backticks="1">you must </chord>
+      <chord backticks="1" chord="Dm">go and </chord>
+      <chord backticks="1" chord="G7">I must </chord>
+      <chord chord="C" backticks="1">bide.</chord>
+    </verse>
+    <verse label="1" label-type="chorus">
+      <chord backticks="1" chord="G7">But come ye </chord>
+      <chord chord="Am" backticks="1">back when </chord>
+      <chord chord="F" backticks="1">summer’s </chord>
+      <chord backticks="1" chord="G7">in the </chord>
+      <chord backticks="1" chord="C">meadow</chord>
+      <br/>Or when the <chord chord="Am" backticks="1">valley’s </chord>
+      <chord chord="F" backticks="1">hushed and </chord>
+      <chord chord="Em" backticks="1">white with </chord>
+      <chord backticks="1" chord="D7">snow </chord>
+      <chord backticks="1" chord="G7">
+      </chord>
+      <br/>‘Tis I’ll be <chord chord="C" backticks="1">here in </chord>
+      <chord backticks="1" chord="F">sunshine or in </chord>
+      <chord backticks="1" chord="C">sha</chord>
+      <chord backticks="1" chord="Am">dow.</chord>
+      <br/>Oh Danny <chord backticks="1" chord="C">Boy, oh Danny </chord>
+      <chord backticks="1" chord="F">Boy, I </chord>
+      <chord backticks="1" chord="G7">love you </chord>
+      <chord chord="C" backticks="1">so.</chord>
+    </verse>
+    <verse label-type="verse" label="2">And if you come, when all the flowers are dying<br/>And I am dead, as dead I well may be<br/>You’ll come and find the place where I am lying<br/>And kneel and say an ”Ave”  there for me.</verse>
+    <verse label-type="chorus" label="2">And I shall hear, though soft you tread above me<br/>And all my dreams will warm and sweeter be<br/>If you’ll not fail to tell me that you love me<br/>I’ll sleep in peace until you come to me.<image path="hills.jpg" title="hills" class="center"/>
+    </verse>
+  </song>
+  <song notation="english" title="Handsome Molly">
+    <subtitle>U.S. Old-time</subtitle>
+    <verse label="1" label-type="verse">
+      <chord chord="G" backticks="1">I wish I was in London</chord>
+      <br/>Or some other seaport <chord chord="D" backticks="1">town</chord>
+      <br/>
+      <chord chord="D" backticks="1">I&apos;d step my foot on a steamboat</chord>
+      <br/>And sail the ocean <chord backticks="1" chord="G">round</chord>
+    </verse>
+    <verse label="2" label-type="verse">While sailing round the ocean<br/>While sailing round the sea<br/>I’d think of Handsome Molly<br/>Wherever she may be</verse>
+    <verse label-type="verse" label="3">I went to church last Sunday<br/>She passed me on by<br/>I knew her mind was changing<br/>By the roving of her eye</verse>
+    <verse label-type="verse" label="4">Her hair as black as a Raven’s<br/>Her eyes were black as coal<br/>Her teeth just like lilies<br/>Out in the morning cold</verse>
+    <verse label-type="verse" label="5">Now do you remember Molly<br/>When you gave me your right hand<br/>Said if you ever married<br/>Then I’d be the man</verse>
+    <verse label="6" label-type="verse">Now you’ve broke your promise<br/>Go marry whom you please<br/>My heart is broken<br/>‘Til I get some ease</verse>
+  </song>
+  <song notation="english" title="Whiskey in the Jar">
+    <subtitle>Irish traditional</subtitle>
+    <verse label-type="verse" label="1">As <chord chord="C" backticks="1">I was a goin&apos; over</chord>
+      <br/>The <chord backticks="1" chord="Am">far famed Kerry mountains</chord>
+      <br/>I <chord chord="F" backticks="1">met with Captain Farrell and his</chord>
+      <br/>
+      <chord backticks="1" chord="C">Money he was counting</chord>
+      <br/>
+      <chord backticks="1" chord="C">I first produced my pistol</chord>
+      <br/>And I <chord backticks="1" chord="Am"> then produced my rapier</chord>
+      <br/>Saying <chord chord="F" backticks="1"> &quot;Stand and deliver,</chord>
+      <br/>For <chord backticks="1" chord="C">you are a bold deceiver!&quot;</chord>
+    </verse>
+    <verse label-type="chorus">Mush-a <chord chord="G" backticks="1">ring dum-a do dum-a da</chord>
+      <br/>
+      <chord chord="C" backticks="1">Whack for me daddy-o</chord>
+      <br/>
+      <chord chord="F" backticks="1">Whack for me daddy-o</chord>
+      <br/>There&apos;s <chord chord="C" backticks="1">whiskey </chord>
+      <chord backticks="1" chord="G">in the </chord>
+      <chord chord="C" backticks="1">jar</chord>
+    </verse>
+    <verse label-type="verse" label="2">I counted out his money<br/>And it made a pretty penny<br/>I put it in me pocket<br/>And I took it home to Jenny<br/>She sighed and she swore<br/>That she never would deceive me<br/>But the devil take the women<br/>For they never can be easy<br/>
+      <chorus-ref prefix_space=""/>
+    </verse>
+    <verse label-type="verse" label="3">I went up to my chamber<br/>All for to take a slumber<br/>I dreamt of gold and jewels<br/>And for sure &apos;t was no wonder<br/>But Jenny drew me charges<br/>And she filled them up with water<br/>Then sent for captain Farrell<br/>To be ready for the slaughter<br/>
+      <chorus-ref prefix_space=""/>
+    </verse>
+    <verse label="4" label-type="verse">&apos;Twas early in the morning<br/>Just before I rose to travel<br/>Up comes a band of footmen<br/>And likewise captain Farrell<br/>I first produced me pistol<br/>For she stole away me rapier<br/>I couldn&apos;t shoot the water<br/>So a prisoner I was taken<br/>
+      <chorus-ref prefix_space=""/>
+      <image class="center" path="chest.jpg" title="chest"/>
+    </verse>
+  </song>
+  <song notation="english" title="Wild Mountain Thyme">
+    <subtitle>Irish &amp; Scottish traditional</subtitle>
+    <verse label="1" label-type="verse">O&apos; the <chord chord="G" backticks="1">summer </chord>
+      <chord backticks="1" chord="C">time </chord>
+      <chord chord="G" backticks="1">has come</chord>
+      <br/>And the <chord backticks="1" chord="C">trees are sweetly </chord>
+      <chord backticks="1" chord="G">bloomin&apos;</chord>
+      <br/>And the <chord chord="C" backticks="1">wild </chord>
+      <chord backticks="1" chord="G">mountain </chord>
+      <chord backticks="1" chord="Em">thyme</chord>
+      <br/>Grows <chord chord="C" backticks="1">around the </chord>
+      <chord chord="Am" backticks="1">bloomin&apos; </chord>
+      <chord backticks="1" chord="C">heather</chord>
+      <br/>Will ye <chord backticks="1" chord="G">go </chord>
+      <chord chord="C" backticks="1">lassie </chord>
+      <chord backticks="1" chord="G">go?</chord>
+    </verse>
+    <verse label-type="chorus">And we&apos;ll <chord chord="C" backticks="1">all go </chord>
+      <chord chord="G" backticks="1">together to pull </chord>
+      <chord backticks="1" chord="C">wild </chord>
+      <chord backticks="1" chord="G">mountain </chord>
+      <chord chord="Em" backticks="1">thyme</chord>
+      <br/>All <chord chord="C" backticks="1">around the </chord>
+      <chord backticks="1" chord="Am">bloomin&apos; </chord>
+      <chord chord="C" backticks="1">heather, will ye </chord>
+      <chord backticks="1" chord="G">go </chord>
+      <chord chord="C" backticks="1">lassie </chord>
+      <chord chord="G" backticks="1">go?</chord>
+    </verse>
+    <verse label="2" label-type="verse">I will build my love a bower<br/>By yon cool crystal fountain <image title="thyme" class="right" path="thyme.png"/>
+      <br/>And round it I will pile<br/>All the wild flowers o&apos; the mountain.<br/>Will ye go lassie go?<chorus-ref prefix_space=" "/>
+    </verse>
+    <verse label-type="verse" label="3">I will range through the wilds<br/>And the deep glen sae dreamy<br/>And return wi&apos; their spoils<br/>Tae the bower o&apos; my dearie.<br/>Will ye go lassie go?<chorus-ref prefix_space=" "/>
+    </verse>
+    <verse label="4" label-type="verse">If my true love she&apos;ll not come<br/>Then I&apos;ll surely find another<br/>To pull wild mountain thyme<br/>All around the bloomin&apos; heather.<br/>Will ye go lassie go?<chorus-ref prefix_space=" "/>
+    </verse>
+  </song>
+  <output-meta>
+  </output-meta>
+  <program>
+    <name>bard</name>
+    <version>1.3.0</version>
+    <description>Creates PDF and HTML songbooks out of easy-to-write Markdown sources.</description>
+    <homepage>https://github.com/vojtechkral/bard</homepage>
+    <authors>Vojtech Kral &lt;vojtech@kral.hk&gt;</authors>
+  </program>
+</book>

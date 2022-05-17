@@ -24,6 +24,9 @@ format = "hovorka"
 [[output]]
 file = "songbook.json"
 
+[[output]]
+file = "songbook.xml"
+
 [book]
 title = "Bard Songbook"
 subtitle = "An example project"

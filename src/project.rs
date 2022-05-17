@@ -55,6 +55,7 @@ pub enum Format {
     Tex,
     Hovorka,
     Json,
+    Xml,
     Auto,
 }
 

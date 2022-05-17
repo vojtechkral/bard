@@ -459,12 +459,8 @@ impl ChordBuilder {
     }
 
     fn finalize(self, inlines: &mut Vec<Inline>) {
-        let chord = Chord::new(self.chord, self.alt_chord, self.backticks);
-        let chord = Inline::Chord(Inlines {
-            data: chord,
-            inlines: self.inlines.into(),
-        });
-        inlines.push(chord);
+        let chord = Chord::new(self.chord, self.alt_chord, self.backticks, self.inlines);
+        inlines.push(Inline::Chord(chord));
     }
 }
 
@@ -551,13 +547,11 @@ impl<'a> VerseBuilder<'a> {
         }
     }
 
-    fn collect_inlines(&mut self, node: AstRef) -> Result<Box<[Inline]>> {
-        node.children()
-            .try_fold(vec![], |mut vec, node| {
-                self.make_inlines(node, &mut vec)?;
-                Ok(vec)
-            })
-            .map(Into::into)
+    fn collect_inlines(&mut self, node: AstRef) -> Result<Vec<Inline>> {
+        node.children().try_fold(vec![], |mut vec, node| {
+            self.make_inlines(node, &mut vec)?;
+            Ok(vec)
+        })
     }
 
     /// Generate `Inline`s out of this inline node.
@@ -575,8 +569,8 @@ impl<'a> VerseBuilder<'a> {
                 node.parse_html(target);
                 return Ok(());
             }
-            NodeValue::Emph => Inline::Emph(Inlines::new(self.collect_inlines(node)?)),
-            NodeValue::Strong => Inline::Strong(Inlines::new(self.collect_inlines(node)?)),
+            NodeValue::Emph => Inline::Emph(self.collect_inlines(node)?.into()),
+            NodeValue::Strong => Inline::Strong(self.collect_inlines(node)?.into()),
             NodeValue::Link(link) => {
                 let mut children = node.children();
                 let text = children.next().unwrap();

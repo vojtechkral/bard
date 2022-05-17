@@ -9,9 +9,11 @@ use crate::{ProgramMeta, PROGRAM_META};
 
 pub mod json;
 pub mod template;
+pub mod xml;
 
 pub use self::json::RJson;
 pub use self::template::{DefaultTemaplate, RHovorka, RHtml, RTex};
+pub use self::xml::RXml;
 
 #[derive(Serialize, Debug)]
 pub struct RenderContext<'a> {
@@ -48,6 +50,7 @@ pub enum Renderer<'a> {
     Tex(RTex<'a>),
     Hovorka(RHovorka<'a>),
     Json(RJson<'a>),
+    Xml(RXml<'a>),
 }
 
 impl<'a> Render<'a> for Renderer<'a> {
@@ -57,6 +60,7 @@ impl<'a> Render<'a> for Renderer<'a> {
             Format::Tex => Self::Tex(RTex::new(project, output)),
             Format::Hovorka => Self::Hovorka(RHovorka::new(project, output)),
             Format::Json => Self::Json(RJson::new(project, output)),
+            Format::Xml => Self::Xml(RXml::new(project, output)),
             Format::Auto => Format::no_auto(),
         }
     }
@@ -67,6 +71,7 @@ impl<'a> Render<'a> for Renderer<'a> {
             Self::Tex(r) => r.load(),
             Self::Hovorka(r) => r.load(),
             Self::Json(r) => r.load(),
+            Self::Xml(r) => r.load(),
         }
     }
 
@@ -76,6 +81,7 @@ impl<'a> Render<'a> for Renderer<'a> {
             Self::Tex(r) => r.render(),
             Self::Hovorka(r) => r.render(),
             Self::Json(r) => r.render(),
+            Self::Xml(r) => r.render(),
         }
     }
 }

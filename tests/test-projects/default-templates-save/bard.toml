@@ -11,8 +11,9 @@ file = "songbook.html"
 template = "html.hbs"
 
 [[output]]
-file = "songbook.xml"
+file = "songbook.hovorka.xml"
 template = "hovorka.hbs"
+format = "hovorka"
 
 [book]
 title = "My Songbook"

@@ -45,6 +45,7 @@ impl Block {
         }
     }
 
+    /// Used to remove chorus numbers in case there's one chorus.
     pub fn remove_chorus_num(&mut self) {
         if let Self::Verse(verse) = self {
             if let VerseLabel::Chorus(num) = &mut verse.label {
@@ -60,36 +61,15 @@ impl Block {
     }
 }
 
+/// Needed for Inline enum tagging in JSON and similar...
 #[derive(Serialize, Debug)]
-pub struct Heading {
-    /// There will actually only be headings of level 2 and more,
-    /// because level 1 heading always starts a new song
-    pub level: u32,
-}
-
-/// Like `()` but doesn't implement `Serialize` so that
-/// we can serialize `Inlines<Void>` as just a sequence.
-#[derive(Debug)]
-pub struct Void;
-
-/// Generic container for inlines.
-/// Allows to add arbitrary serializable data to an array of inlines.
-#[derive(Serialize, Debug)]
-pub struct Inlines<T = ()> {
-    #[serde(flatten)]
-    pub data: T,
+pub struct Inlines {
     pub inlines: Box<[Inline]>,
 }
 
-impl Inlines<()> {
+impl Inlines {
     pub fn new(inlines: Box<[Inline]>) -> Self {
-        Self { data: (), inlines }
-    }
-}
-
-impl<T: Serialize> Inlines<T> {
-    pub fn with(data: T, inlines: Box<[Inline]>) -> Self {
-        Self { data, inlines }
+        Self { inlines }
     }
 
     fn remove_chorus_num(&mut self) {
@@ -97,12 +77,17 @@ impl<T: Serialize> Inlines<T> {
     }
 }
 
-impl From<Vec<Inline>> for Inlines<()> {
+impl From<Vec<Inline>> for Inlines {
     fn from(inlines: Vec<Inline>) -> Self {
         Self {
-            data: (),
             inlines: inlines.into(),
         }
+    }
+}
+
+impl AsRef<[Inline]> for Inlines {
+    fn as_ref(&self) -> &[Inline] {
+        self.inlines.as_ref()
     }
 }
 
@@ -113,8 +98,8 @@ pub enum Inline {
     #[serde(rename = "i-text")]
     Text { text: BStr },
     #[serde(rename = "i-chord")]
-    Chord(Inlines<Chord>),
-    /// In bard all line breaks are considered hard breaks
+    Chord(Chord),
+    /// All line breaks are considered hard breaks
     #[serde(rename = "i-break")]
     Break,
     #[serde(rename = "i-emph")]
@@ -171,15 +156,26 @@ pub struct Chord {
     pub chord: BStr,
     pub alt_chord: Option<BStr>,
     pub backticks: usize,
+    pub inlines: Box<[Inline]>,
 }
 
 impl Chord {
-    pub fn new(chord: BStr, alt_chord: Option<BStr>, backticks: usize) -> Self {
+    pub fn new(
+        chord: BStr,
+        alt_chord: Option<BStr>,
+        backticks: usize,
+        inlines: Vec<Inline>,
+    ) -> Self {
         Self {
             chord,
             alt_chord,
             backticks,
+            inlines: inlines.into(),
         }
+    }
+
+    fn remove_chorus_num(&mut self) {
+        self.inlines.iter_mut().for_each(Inline::remove_chorus_num);
     }
 }
 
