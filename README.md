@@ -1,6 +1,6 @@
 # bard
 
-[![Build Status](https://travis-ci.com/vojtechkral/bard.svg?branch=main)](https://travis-ci.com/vojtechkral/bard) [![crates.io](https://img.shields.io/crates/v/bard.svg)](https://crates.io/crates/bard)
+[![crates.io](https://img.shields.io/crates/v/bard.svg)](https://crates.io/crates/bard)
 
 Markdown → songbooks.
 
