@@ -227,19 +227,6 @@ pub struct HtmlTag {
     pub attrs: HashMap<BStr, BStr>,
 }
 
-impl<'a> From<&tl::HTMLTag<'a>> for HtmlTag {
-    fn from(tag: &tl::HTMLTag<'a>) -> Self {
-        Self {
-            name: str::from_utf8(tag.name().as_bytes()).unwrap().into(),
-            attrs: tag
-                .attributes()
-                .iter()
-                .filter_map(|(k, v)| v.map(move |v| (k.into(), v.into())))
-                .collect(),
-        }
-    }
-}
-
 #[derive(Serialize, Clone, Copy, Debug)]
 pub enum Transpose {
     #[serde(rename = "t-transpose")]
