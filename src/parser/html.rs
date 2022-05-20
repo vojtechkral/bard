@@ -134,7 +134,7 @@ pub fn parse_html(html: &[u8], target: &mut Vec<Inline>) {
 
     queue.push_back(utf8(html).into());
     loop {
-        if let TokenizerResult::Done = tokenizer.feed(&mut &mut queue) {
+        if let TokenizerResult::Done = tokenizer.feed(&mut queue) {
             break;
         }
     }

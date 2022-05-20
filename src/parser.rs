@@ -84,7 +84,7 @@ type Result<T, E = Error> = std::result::Result<T, E>;
 
 // Since parser takes an UTF-8 string as input, we don't have to error-check
 // when converting bytes to strings.
-fn utf8<'a>(bytes: &'a [u8]) -> &'a str {
+fn utf8(bytes: &[u8]) -> &str {
     str::from_utf8(bytes).unwrap()
 }
 

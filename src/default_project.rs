@@ -97,11 +97,7 @@ impl DefaultProject {
     }
 
     pub fn resolve(&self, project_dir: &Path) -> DefaultProjectResolved {
-        let nodes = self
-            .nodes
-            .iter()
-            .map(|f| f.resolved(&project_dir))
-            .collect();
+        let nodes = self.nodes.iter().map(|f| f.resolved(project_dir)).collect();
 
         DefaultProjectResolved(Self { nodes })
     }

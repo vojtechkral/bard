@@ -169,7 +169,7 @@ pub struct TagBuilder<'w> {
 impl<'w> TagBuilder<'w> {
     pub fn attr(mut self, attr: impl Into<Attr>) -> Self {
         let Attr(name, value) = attr.into();
-        self.attrs.insert(name.to_string(), value.to_string());
+        self.attrs.insert(name, value);
         self
     }
 
