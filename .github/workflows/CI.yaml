@@ -1,0 +1,173 @@
+on: [push, pull_request]
+
+name: CI
+
+jobs:
+  fmt:
+    name: Format check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+      - run: rustup component add rustfmt
+      - uses: actions-rs/cargo@v1
+        with:
+          command: fmt
+          args: --all -- --check
+
+  clippy:
+    name: Clippy lints
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          components: clippy
+          override: true
+      - uses: actions-rs/clippy-check@v1
+        with:
+          name: Clippy Output
+          token: ${{ secrets.GITHUB_TOKEN }}
+          args: --all-features
+
+  test:
+    name: Test
+    needs: fmt
+    strategy:
+      matrix:
+        os:
+        - ubuntu-latest
+        - windows-latest
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+      - name: Cache dependencies
+        uses: actions/cache@v2
+        env:
+          cache-name: cache-dependencies
+        with:
+          path: |
+            ~/.cargo/.crates.toml
+            ~/.cargo/.crates2.json
+            ~/.cargo/bin
+            ~/.cargo/registry/index
+            ~/.cargo/registry/cache
+            target
+          key: test-${{ runner.os }}-${{ env.cache-name }}-${{ hashFiles('Cargo.lock') }}
+      - name: Test
+        run: |
+          cargo test --locked
+
+  msrv:
+    name: MSRV check
+    needs: fmt
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: 1.56.0
+          override: true
+      - name: Cache dependencies
+        uses: actions/cache@v2
+        env:
+          cache-name: cache-dependencies
+        with:
+          path: |
+            ~/.cargo/.crates.toml
+            ~/.cargo/.crates2.json
+            ~/.cargo/bin
+            ~/.cargo/registry/index
+            ~/.cargo/registry/cache
+            target
+          key: msrv-${{ runner.os }}-${{ env.cache-name }}-${{ hashFiles('Cargo.lock') }}
+      - uses: actions-rs/cargo@v1
+        with:
+          command: check
+          args: --locked --tests
+
+  build-linux:
+    name: Linux build
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev'
+    needs:
+      - test
+      - msrv
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          target: x86_64-unknown-linux-musl
+          override: true
+      - uses: awalsh128/cache-apt-pkgs-action@v1
+        with:
+          packages: musl-tools # provides musl-gcc
+          version: 1.0
+      - name: Cache dependencies
+        uses: actions/cache@v2
+        env:
+          cache-name: cache-dependencies
+        with:
+          path: |
+            ~/.cargo/.crates.toml
+            ~/.cargo/.crates2.json
+            ~/.cargo/bin
+            ~/.cargo/registry/index
+            ~/.cargo/registry/cache
+            target
+          key: build-${{ runner.os }}-${{ env.cache-name }}-${{ hashFiles('Cargo.lock') }}
+      - name: Build
+        run: |
+          cargo build --locked --release --target=x86_64-unknown-linux-musl
+      - uses: actions/upload-artifact@v3
+        with:
+          name: bard
+          path: target/x86_64-unknown-linux-musl/release/bard
+
+  build-windows:
+    name: Windows build
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev'
+    needs:
+      - test
+      - msrv
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+      - name: Cache dependencies
+        uses: actions/cache@v2
+        env:
+          cache-name: cache-dependencies
+        with:
+          path: |
+            ~/.cargo/.crates.toml
+            ~/.cargo/.crates2.json
+            ~/.cargo/bin
+            ~/.cargo/registry/index
+            ~/.cargo/registry/cache
+            target
+          key: build-${{ runner.os }}-${{ env.cache-name }}-${{ hashFiles('Cargo.lock') }}
+      - name: Build
+        run: |
+          cargo build --locked --release
+      - uses: actions/upload-artifact@v3
+        with:
+          name: bard
+          path: target/release/bard.exe

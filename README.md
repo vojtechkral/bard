@@ -1,6 +1,6 @@
 # bard
 
-[![crates.io](https://img.shields.io/crates/v/bard.svg)](https://crates.io/crates/bard)
+[![CI](https://github.com/vojtechkral/bard/actions/workflows/CI.yaml/badge.svg)](https://github.com/vojtechkral/bard/actions/workflows/CI.yaml) [![crates.io](https://img.shields.io/crates/v/bard.svg)](https://crates.io/crates/bard)
 
 Markdown → songbooks.
 

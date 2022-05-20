@@ -1,12 +1,16 @@
 
 MSRV = 1.56
 
+.PHONY: msrv
+msrv:
+	cargo +$(MSRV) check --tests
+
 .PHONY: check
-check:
+check: msrv
 	cargo fmt -- --check
 	cargo clippy
-	cargo +$(MSRV) check --tests
-	cargo audit
+#	cargo audit
+#   ^ cargo-audit is currently broken on Arch
 
 .PHONY: release
 release: target/release/bard
