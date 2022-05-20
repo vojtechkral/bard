@@ -2,6 +2,9 @@ on: [push, pull_request]
 
 name: CI
 
+env:
+  CARGO_DEB: 1.37.0
+
 jobs:
   fmt:
     name: Format check
@@ -129,13 +132,29 @@ jobs:
             ~/.cargo/registry/cache
             target
           key: build-${{ runner.os }}-${{ env.cache-name }}-${{ hashFiles('Cargo.lock') }}
+      - name: Cache cargo tools
+        uses: actions/cache@v2
+        env:
+          cache-name: cache-cargo-tools
+        with:
+          path: cargo-tools
+          key: cargo-tools-${{ env.CARGO_DEB }}
+      - name: Install cargo tools
+        run: |
+          cargo install cargo-deb --version ${{ env.CARGO_DEB }} --root cargo-tools --target-dir cargo-tools-build
       - name: Build
         run: |
           cargo build --locked --release --target=x86_64-unknown-linux-musl
+          PATH="$PATH:$PWD/cargo-tools/bin" cargo deb --no-build --target=x86_64-unknown-linux-musl
+      # call upload-artifact twice to flatten resulting directory structure
       - uses: actions/upload-artifact@v3
         with:
           name: bard-linux
           path: target/x86_64-unknown-linux-musl/release/bard
+      - uses: actions/upload-artifact@v3
+        with:
+          name: bard-linux
+          path: target/x86_64-unknown-linux-musl/debian/*.deb  # should be one file
 
   build-windows:
     name: Windows build
