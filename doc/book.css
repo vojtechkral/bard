@@ -1,0 +1,54 @@
+
+/* Some customizations of the mdBook output */
+
+.rust {
+    --links: #a22b2b;
+    --table-header-bg: #d5cbc3;
+}
+
+/* Make font a bit larger on phones: */
+@media only screen and (max-width: 1380px) {
+    body { font-size: 2rem; }
+}
+
+body { font-family: Droid Serif, serif !important; }
+
+h1, h2, h3, h4, h5 { font-variant: small-caps; }
+h1, h2, h3, h4, h5, h6 { margin: 1rem 0 0.5rem 0; }
+h5, h6 { font-size: 1rem; }
+
+p { margin: 0.5rem 0; }
+
+li.part-title { font-variant: small-caps; }
+li.chapter-item { margin-left: 0.8rem; }
+
+img { vertical-align: middle; }
+
+code { white-space: pre; }
+
+.table-wrapper { overflow-x: visible; }
+.table-left table { margin: 0 1rem; }
+.table-no-thead thead { display: none; }
+.table-compact td, .table-compact th {
+    border: none;
+    padding: 0 1rem 0 0;
+    line-height: 1.5rem;
+}
+
+.hbs-reference h3 {
+    margin-top: 0.9rem;
+    padding-top: 0.4rem;
+    font-weight: normal;
+    font-variant: normal;
+}
+.hbs-reference h3:not(:first-child) {
+    border-top: 1px solid #bbb;
+}
+
+.hbs-reference p, .hbs-reference ul {
+    margin-left: 2rem;
+}
+
+.thin-code pre { margin: 0.8rem 0 0 0; }
+.thin-code pre + p { margin-top: 0.25rem; }
+.thin-code code { padding: 0.25rem 0.5rem; }

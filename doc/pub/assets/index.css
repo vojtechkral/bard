@@ -1,0 +1,77 @@
+
+html {
+    min-height: 100%;
+}
+
+body {
+    font-family: Droid Serif, serif;
+    line-height: 1.25;
+
+    color: #e9dec8;
+
+    background-color: black;
+    background-image: url('./bg.jpg');
+    /* Background picture credit:
+     * Joris Voeten
+     * https://unsplash.com/photos/gL84ogFsV6s
+     */
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-position-x: center;
+
+    margin: 0;
+}
+
+h1 { text-align: center; }
+
+bard {
+    display: block;
+    max-width: 40em;
+    margin: 7em auto;
+    border: 1pt solid black;
+    border-radius: 5pt;
+
+    background-image: url('./box-bg.png');
+    box-shadow: 5px 5px 8px 2px rgba(0,0,0,0.5);
+}
+
+bard p {
+    white-space: pre;
+}
+
+text {
+    display: block;
+    padding: 1em;
+}
+
+a:link, a:visited {
+    color: #d09446;
+    text-decoration: none;
+}
+
+a:hover, a:active { text-decoration: underline; }
+
+@media (max-width: 750px) {
+    body {
+        height: 100%;
+    }
+
+    bard {
+        width: 100%;
+        max-width: inherit;
+        margin: 0;
+        border: none;
+        border-radius: 0;
+        box-shadow: none;
+    }
+
+    bard p {
+        white-space: normal;
+    }
+}
+
+@media (-webkit-min-device-pixel-ratio: 2) {
+    body {
+        font-size: 1.25em;
+    }
+}

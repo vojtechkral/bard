@@ -1,0 +1,39 @@
+{{~ version_check "1.1.0" ~}}
+
+{{#*inline "i-text"}}{{ text }}{{/inline}}
+{{#*inline "i-break"}}<br>{{/inline}}
+
+{{#*inline "i-chord"~}}
+  <table style="display: inline-table; vertical-align: bottom; border-collapse: collapse;">
+  <tr><td style="color: red">{{ chord }}</td></tr>
+  <tr><td>{{#each inlines}}{{> (lookup this "type") }}{{/each}}</td></tr>
+</table>{{/inline}}
+
+{{#*inline "b-verse"}}
+  <h3>
+    {{~#with label}}
+      {{~#if verse}}{{verse}}.{{/if}}
+      {{~#if (contains this "chorus")}}{{@root.book.chorus_label}}{{chorus}}.{{/if}}
+      {{~#if custom}}{{custom}}{{/if}}
+    {{~/with~}}
+  </h3>
+
+  {{~#each paragraphs~}}
+    {{#each this}}{{> (lookup this "type") }}{{/each}}
+  {{~/each~}}
+{{/inline}}
+
+<html>
+<body>
+  <h1>{{ book.title }}</h1>
+  {{#if book.subtitle }}<h3>{{ book.subtitle }}</h3>{{/if }}
+
+  {{#each songs}}
+    <h2>{{ title }}</h2>
+
+    <div>
+      {{#each blocks}}{{> (lookup this "type") }}{{/each}}
+    </div>
+  {{/each}}
+</body>
+</html>

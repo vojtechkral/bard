@@ -1,0 +1,18 @@
+[book]
+authors = ["Vojtech Kral"]
+language = "en"
+multilingual = false
+src = "book"
+title = "Bard Book"
+
+[build]
+build-dir = "pub/book"
+
+[output.html]
+site-url = "/book/"
+default-theme = "rust"
+preferred-dark-theme = "ayu"
+curly-quotes = true
+git-repository-url = "https://github.com/vojtechkral/bard"
+git-repository-icon = "fa-github"
+additional-css = ["book.css"]

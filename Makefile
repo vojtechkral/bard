@@ -35,6 +35,22 @@ examples:
 	cd example && cargo run -- make
 	cd tests/test-projects/all-features && cargo run -- make
 
+.PHONY: book
+book:
+	$(MAKE) -C doc book
+
+.PHONY: serve-site
+serve-site:
+	$(MAKE) -C doc serve-site
+
+.PHONY: serve-book
+serve-book:
+	$(MAKE) -C doc serve-book
+
+.PHONY: book-clean
+book-clean:
+	$(MAKE) -C doc clean
+
 
 # tectonic embedding targets
 #

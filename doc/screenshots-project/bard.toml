@@ -1,0 +1,18 @@
+version = 2
+
+songs = [
+    "songs.md",
+    "transposition.md",
+    "images.md",
+]
+
+notation = "english"
+
+[[output]]
+file = "songbook.pdf"
+
+[book]
+title = "Examples for the book"
+subtitle = "Screenshots captured from here"
+chorus_label = "Ch"
+title_note = "(And this note too...)"
