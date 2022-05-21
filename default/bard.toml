@@ -1,12 +1,11 @@
 songs = [
-    "yippie.md"
+    "yippie.md",
 ]
 
 notation = "english"
 
 [[output]]
 file = "songbook.tex"
-font = "DejaVu Sans"
 process = "latexmk -xelatex -interaction=nonstopmode {{file}}"
 
 [[output]]

@@ -10,7 +10,6 @@ notation = "english"
 
 [[output]]
 file = "songbook.tex"
-font = "DejaVu Sans"
 dpi = 144
 process = "latexmk -xelatex -interaction=nonstopmode {{file}}"
 
