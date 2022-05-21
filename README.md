@@ -90,9 +90,6 @@ travel and outdoor situations as well as possible.
 This is why the font is fairly large, the chords in bold and color,
 and generally the page real estate tends to be used as much as possible.
 
-I've tried reading a songbook illuminated only by a campfire or a half-working flashlight
-over someone's shoulder way too many times to tolerate small fonts and overly empty pages.
-
 #### Was this software developed with <3 ?
 
 As a matter of fact, yes, this tool was made by less than three developers.
