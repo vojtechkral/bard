@@ -12,7 +12,7 @@ notation = "english"
 file = "songbook.tex"
 font = "DejaVu Sans"
 dpi = 144
-process = "latexmk -xelatex {{file}}"
+process = "latexmk -xelatex -interaction=nonstopmode {{file}}"
 
 [[output]]
 file = "songbook.html"

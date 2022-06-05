@@ -7,7 +7,7 @@ notation = "english"
 [[output]]
 file = "songbook.tex"
 font = "DejaVu Sans"
-process = "latexmk -xelatex {{file}}"
+process = "latexmk -xelatex -interaction=nonstopmode {{file}}"
 
 [[output]]
 file = "songbook.html"
