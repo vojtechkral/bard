@@ -168,7 +168,7 @@
 {{#*inline "i-chord"~}}
   \begin{tabular}[b]{l}
     {{> chord-style}}{ {{{~ (pre chord) ~}}} }}\\
-    {{~#if alt_chord}}{{> chord-style}}\color{blue}{ {{{~ (pre alt_chord) ~}}} }}\\{{/if~}}
+    {{~#if alt_chord}}{{> chord-style}}\color{blue}{ {{{~ (pre alt_chord) ~}}} }}\\ {{~/if~}}
     {{~#each inlines}}{{> (lookup this "type") }}{{/each~}}\mbox{}\end{tabular}
 {{~/inline}}
 
