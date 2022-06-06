@@ -1,5 +1,5 @@
 
-MSRV = 1.56
+MSRV = 1.57
 
 .PHONY: msrv
 msrv:
