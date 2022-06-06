@@ -1,0 +1,11 @@
+{
+  "name": "hbs-js",
+  "version": "1.0.0",
+  "description": "Test bard templates with reference Handlebars impl",
+  "main": "index.js",
+  "license": "MIT",
+  "private": true,
+  "dependencies": {
+    "handlebars": "^4.7.7"
+  }
+}

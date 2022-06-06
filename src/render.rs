@@ -12,7 +12,7 @@ pub mod template;
 pub mod xml;
 
 pub use self::json::RJson;
-pub use self::template::{DefaultTemaplate, RHovorka, RHtml, RTex};
+pub use self::template::*;
 pub use self::xml::RXml;
 
 #[derive(Serialize, Debug)]

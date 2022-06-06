@@ -21,10 +21,31 @@ lazy_static! {
     static ref REGEX_CACHE: Mutex<RegexCache> = Mutex::new(RegexCache::new());
 }
 
-pub trait DefaultTemaplate {
-    const TPL_NAME: &'static str;
-    const TPL_CONTENT: &'static str;
+pub struct DefaultTemaplate {
+    pub filename: &'static str,
+    pub content: &'static str,
 }
+
+macro_rules! declare_default_templates {
+    ($all_name:ident : [ $(($name:ident, $filename:expr),)+ ]) => {
+        $(pub static $name: DefaultTemaplate = DefaultTemaplate {
+            filename: $filename,
+            content: include_str!(concat!("./templates/", $filename)),
+        };)+
+
+        pub static $all_name: &'static [ &'static DefaultTemaplate ] = &[
+            $(&$name,)+
+        ];
+    };
+}
+
+declare_default_templates!(
+    DEFAULT_TEMPLATES: [
+        (DEFAULT_TEMPLATE_TEX, "pdf.hbs"),
+        (DEFAULT_TEMPLATE_HTML, "html.hbs"),
+        (DEFAULT_TEMPLATE_HOVORKA, "hovorka.hbs"),
+    ]
+);
 
 fn latex_escape(input: &str, pre_spaces: bool) -> String {
     let mut res = String::with_capacity(input.len());
@@ -250,7 +271,7 @@ impl<'a> HbRender<'a> {
     /// Version of the template to assume if it specifies none.
     const ASSUMED_FIRST_VERSION: Version = Version::new(1, 0, 0);
 
-    fn new<DT: DefaultTemaplate>(project: &'a Project, output: &'a Output) -> Self {
+    fn new(project: &'a Project, output: &'a Output, default: &DefaultTemaplate) -> Self {
         let mut hb = Handlebars::new();
         let (version_helper, version) = VersionCheckHelper::new();
         hb.register_helper("eq", Box::new(hb_eq));
@@ -266,14 +287,14 @@ impl<'a> HbRender<'a> {
             .template
             .as_ref()
             .map(|t| t.to_string())
-            .unwrap_or_else(|| DT::TPL_NAME.to_string());
+            .unwrap_or_else(|| default.filename.to_string());
 
         Self {
             hb,
             tpl_name,
             project,
             output,
-            default_content: DT::TPL_CONTENT,
+            default_content: default.content,
             version,
         }
     }
@@ -328,14 +349,9 @@ impl<'a> HbRender<'a> {
 
 pub struct RHtml<'a>(HbRender<'a>);
 
-impl<'a> DefaultTemaplate for RHtml<'a> {
-    const TPL_NAME: &'static str = "html.hbs";
-    const TPL_CONTENT: &'static str = include_str!("./templates/html.hbs");
-}
-
 impl<'a> Render<'a> for RHtml<'a> {
     fn new(project: &'a Project, output: &'a Output) -> Self {
-        Self(HbRender::new::<Self>(project, output))
+        Self(HbRender::new(project, output, &DEFAULT_TEMPLATE_HTML))
     }
 
     fn load(&mut self) -> Result<Option<Version>> {
@@ -349,14 +365,9 @@ impl<'a> Render<'a> for RHtml<'a> {
 
 pub struct RTex<'a>(HbRender<'a>);
 
-impl<'a> DefaultTemaplate for RTex<'a> {
-    const TPL_NAME: &'static str = "pdf.hbs";
-    const TPL_CONTENT: &'static str = include_str!("./templates/pdf.hbs");
-}
-
 impl<'a> Render<'a> for RTex<'a> {
     fn new(project: &'a Project, output: &'a Output) -> Self {
-        let mut render = HbRender::new::<Self>(project, output);
+        let mut render = HbRender::new(project, output, &DEFAULT_TEMPLATE_TEX);
 
         // Setup Latex escaping
         render.hb.register_escape_fn(hb_latex_escape);
@@ -376,14 +387,9 @@ impl<'a> Render<'a> for RTex<'a> {
 
 pub struct RHovorka<'a>(HbRender<'a>);
 
-impl<'a> DefaultTemaplate for RHovorka<'a> {
-    const TPL_NAME: &'static str = "hovorka.hbs";
-    const TPL_CONTENT: &'static str = include_str!("./templates/hovorka.hbs");
-}
-
 impl<'a> Render<'a> for RHovorka<'a> {
     fn new(project: &'a Project, output: &'a Output) -> Self {
-        Self(HbRender::new::<Self>(project, output))
+        Self(HbRender::new(project, output, &DEFAULT_TEMPLATE_HOVORKA))
     }
 
     fn load(&mut self) -> Result<Option<Version>> {

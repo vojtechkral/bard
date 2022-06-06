@@ -1,6 +1,6 @@
 use std::fs;
 
-use bard::render::{DefaultTemaplate, RHovorka, RHtml, RTex};
+use bard::render;
 
 mod util;
 pub use util::*;
@@ -26,11 +26,11 @@ fn project_default_templates_save() {
     let templates = build.dir.join("templates");
 
     let html = fs::read_to_string(templates.join("html.hbs")).unwrap();
-    assert_eq!(html, RHtml::TPL_CONTENT);
+    assert_eq!(html, render::DEFAULT_TEMPLATE_HTML.content);
 
     let tex = fs::read_to_string(templates.join("pdf.hbs")).unwrap();
-    assert_eq!(tex, RTex::TPL_CONTENT);
+    assert_eq!(tex, render::DEFAULT_TEMPLATE_TEX.content);
 
     let hovorka = fs::read_to_string(templates.join("hovorka.hbs")).unwrap();
-    assert_eq!(hovorka, RHovorka::TPL_CONTENT);
+    assert_eq!(hovorka, render::DEFAULT_TEMPLATE_HOVORKA.content);
 }
