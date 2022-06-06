@@ -2,11 +2,11 @@
  The content of all variables is by default escaped with a TeX
  escaping function similar to how special characters are escaped in HTML.
  The escaping function doesn't escape spaces.
- To preserve spaces, use {{{ (pre variable) }}}, which replaces spaces
+ To preserve spaces, use {{{ pre variable }}}, which replaces spaces
  with the non-breaking space TeX entity '~'.
 --}}
 
-{{~ (version_check "1.0.0") ~}}
+{{~ version_check "1.0.0" ~}}
 
 {{!-- Document header --}}
 
@@ -159,7 +159,7 @@
 
 {{!-- HB inlines: Inline types --}}
 
-{{#*inline "i-text"}}{{{(pre text)}}}{{/inline}}
+{{#*inline "i-text"}}{{{ pre text }}}{{/inline}}
 
 {{#*inline "chord-style"~}}
   {{!-- Helper for i-chord for setting styles based on ` vs `` chords --}}
@@ -167,8 +167,8 @@
 {{~/inline~}}
 {{#*inline "i-chord"~}}
   \begin{tabular}[b]{l}
-    {{> chord-style}}{ {{{~ (pre chord) ~}}} }}\\
-    {{~#if alt_chord}}{{> chord-style}}\color{blue}{ {{{~ (pre alt_chord) ~}}} }}\\ {{~/if~}}
+    {{> chord-style}}{ {{{~ pre chord ~}}} }}\\
+    {{~#if alt_chord}}{{> chord-style}}\color{blue}{ {{{~ pre alt_chord ~}}} }}\\ {{~/if~}}
     {{~#each inlines}}{{> (lookup this "type") }}{{/each~}}\mbox{}\end{tabular}
 {{~/inline}}
 
@@ -178,7 +178,7 @@
 {{/inline}}
 {{#*inline "i-emph"}}\emph{ {{~#each inlines}}{{> (lookup this "type") }}{{/each~}} }{{/inline}}
 {{#*inline "i-strong"}}\textbf{ {{~#each inlines}}{{> (lookup this "type") }}{{/each~}} }{{/inline}}
-{{#*inline "i-link"}}\href{ {{~ url ~}} }{ {{{~ (pre text) ~}}} }{{/inline}}
+{{#*inline "i-link"}}\href{ {{~ url ~}} }{ {{{~ pre text ~}}} }{{/inline}}
 {{#*inline "i-chorus-ref"}}{{ prefix_space }}\emph{ {{~ @root.book.chorus_label }}{{ num }}.}{{/inline}}
 
 {{#*inline "i-image"}}

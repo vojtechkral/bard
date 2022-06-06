@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <InetSongDb xmlns="http://zpevnik.net/InetSongDb.xsd">
 
-{{~ (version_check "1.0.0") ~}}
+{{~ version_check "1.0.0" ~}}
 
 {{!-- HB inlines: Block types --}}
 
@@ -11,14 +11,12 @@
   {{~#if custom}}{{custom}}{{/if}}
 {{/inline}}
 
+{{! Warn: Position and number of newlines is important in this one. }}
 {{#*inline "b-verse"}}
     {{~>verse-label label}}
-    {{~#each paragraphs~}}
-      {{#unless @first}}
+    {{~#each paragraphs}}{{#unless @first}}
 
-{{/unless~}}
-      {{#each this}}{{> (lookup this "type") }}{{/each}}
-    {{~/each}}
+{{/unless}}{{#each this}}{{> (lookup this "type") }}{{/each}}{{/each}}
 
 {{/inline}}
 
@@ -50,7 +48,6 @@ R{{ num }}:{{/inline}}
   <ID><![CDATA[song-{{ @index }}]]></ID>
   <title><![CDATA[{{ title }}]]></title>
   <author><![CDATA[{{ @root.book.title }}]]></author>
-  {{!-- <authorId><![CDATA[{{ book.title | slugify }}]]></authorId> --}}
   <groupname><![CDATA[[local]]]></groupname>
   <songtext><![CDATA[
 {{#each blocks}}{{> (lookup this "type") }}{{/each}}
