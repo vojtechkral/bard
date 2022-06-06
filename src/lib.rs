@@ -1,3 +1,9 @@
+//! `bard`, the Markdown-based songbook compiler.
+//!
+//! #### **This is not a public API.**
+//! This library is an implementation detail of the `bard` CLI tool.
+//! These APIs are internal and may break without notice.
+
 use std::convert::TryFrom;
 use std::env;
 use std::ffi::OsString;
