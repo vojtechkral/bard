@@ -9,8 +9,7 @@ msrv:
 check: msrv
 	cargo fmt -- --check
 	cargo clippy
-#	cargo audit
-#   ^ cargo-audit is currently broken on Arch
+	cargo audit
 
 .PHONY: release
 release: target/release/bard
