@@ -99,7 +99,7 @@ jobs:
 
   build-linux:
     name: Linux build
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev'
+    if: github.ref == 'refs/heads/main'
     needs:
       - test
       - msrv
@@ -139,7 +139,7 @@ jobs:
 
   build-windows:
     name: Windows build
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev'
+    if: github.ref == 'refs/heads/main'
     needs:
       - test
       - msrv
