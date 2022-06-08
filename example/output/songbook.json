@@ -1,10 +1,10 @@
 {
   "book": {
     "front_img": "guitar.jpg",
-    "title_note": "A set of a few non-copyrighted songs.",
     "chorus_label": "Ch",
     "title": "Bard Songbook",
-    "subtitle": "An example project"
+    "subtitle": "An example project",
+    "title_note": "A set of a few non-copyrighted songs."
   },
   "songs": [
     {
@@ -1301,7 +1301,7 @@
             [
               {
                 "type": "i-text",
-                "text": "O' the "
+                "text": "O the "
               },
               {
                 "type": "i-chord",

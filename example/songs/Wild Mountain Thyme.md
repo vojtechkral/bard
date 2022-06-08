@@ -1,7 +1,7 @@
 # Wild Mountain Thyme
 ## Irish & Scottish traditional
 
-1. O' the `G`summer `C`time `G`has come
+1. O the `G`summer `C`time `G`has come
 And the `C`trees are sweetly `G`bloomin'
 And the `C`wild `G`mountain `Em`thyme
 Grows `C`around the `Am`bloomin' `C`heather
