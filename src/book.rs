@@ -383,7 +383,7 @@ impl Book {
 
 #[cfg(test)]
 pub trait AssertJsonEq {
-    fn assert_eq(&self, value: serde_json::Value);
+    fn assert_json_eq(&self, value: serde_json::Value);
 }
 
 #[cfg(test)]
@@ -392,7 +392,7 @@ where
     T: Serialize,
 {
     #[track_caller]
-    fn assert_eq(&self, value: serde_json::Value) {
+    fn assert_json_eq(&self, value: serde_json::Value) {
         use assert_json_diff::{assert_json_matches_no_panic, CompareMode, Config};
 
         let config = Config::new(CompareMode::Strict);

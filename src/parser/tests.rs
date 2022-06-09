@@ -263,7 +263,7 @@ Second paragraph of the second verse.
 > Chorus.
 "#;
 
-    parse_one(input).assert_eq(song(
+    parse_one(input).assert_json_eq(song(
         "Song",
         [],
         "english",
@@ -317,7 +317,7 @@ More lyrics to the chorus 3.
 
 "#;
 
-    parse_one(input).assert_eq(song(
+    parse_one(input).assert_json_eq(song(
         "Song",
         [],
         "english",
@@ -376,7 +376,7 @@ fn parse_chords() {
 1. Sailing round `G`the ocean,
 Sailing round the ```D```sea.
 "#;
-    parse_one_para(input).assert_eq(json!([
+    parse_one_para(input).assert_json_eq(json!([
         i_text("Sailing round "),
         i_chord("G", Null, 1, [i_text("the ocean,")]),
         i_break(),
@@ -392,7 +392,7 @@ fn parse_inlines() {
 1. Sailing **round `G`the _ocean,
 Sailing_ round the `D`sea.**
 "#;
-    parse_one_para(input).assert_eq(json!([
+    parse_one_para(input).assert_json_eq(json!([
         i_text("Sailing "),
         i_strong([i_text("round ")]),
         i_chord(
@@ -434,7 +434,7 @@ Mixed !>> in text.
 
     let songs = parse(input, true);
 
-    songs[0].blocks.assert_eq(json!([
+    songs[0].blocks.assert_json_eq(json!([
         ver_none([p([
             i_xpose("t-transpose", 5),
             i_break(),
@@ -454,7 +454,7 @@ Mixed !>> in text.
         ),
     ]));
 
-    songs[1].blocks.assert_eq(json!([
+    songs[1].blocks.assert_json_eq(json!([
         ver_chorus(1, [p([i_text("Chorus.")])]),
         ver_chorus(2, [p([i_text("Chorus two.")])]),
         ver_verse(
@@ -489,7 +489,7 @@ fn transposition() {
 "#;
 
     let song = parse_one(input);
-    song.blocks.assert_eq(json!([ver_chorus(
+    song.blocks.assert_json_eq(json!([ver_chorus(
         Null,
         [p([
             i_chord("Em", "Hm", 1, [i_text("Yippie yea ")]),
@@ -565,7 +565,7 @@ fn parse_bullet_list() {
 * Item 4
 "#;
 
-    parse_one(input).assert_eq(song(
+    parse_one(input).assert_json_eq(song(
         "Song",
         [],
         "english",
@@ -589,7 +589,7 @@ fn parse_hr() {
 2. Second verse.
 "#;
 
-    parse_one(input).assert_eq(song(
+    parse_one(input).assert_json_eq(song(
         "Song",
         [],
         "english",
@@ -611,7 +611,7 @@ fn parse_link() {
 [Link 2](http://example.com "title")
 "#;
 
-    parse_one(input).assert_eq(song(
+    parse_one(input).assert_json_eq(song(
         "Song",
         [],
         "english",
@@ -638,7 +638,7 @@ fn parse_image() {
 ![Bar](bar.jpg "center")
 "#;
 
-    parse_one(input).assert_eq(song(
+    parse_one(input).assert_json_eq(song(
         "Song",
         [],
         "english",
@@ -675,7 +675,7 @@ Second paragraph of `C`the second verse.
 Trailing text.
 "#;
 
-    parse_one(input).assert_eq(song(
+    parse_one(input).assert_json_eq(song(
         "Song",
         [],
         "english",
@@ -718,7 +718,7 @@ fn parse_crlf() {
     let input = b"# Song\r\n\r\n1. First verse.\r\n\r\n```\r\npre1\r\npre2\r\n```";
 
     let input = str::from_utf8(input).unwrap();
-    parse_one(input).assert_eq(song(
+    parse_one(input).assert_json_eq(song(
         "Song",
         [],
         "english",
@@ -734,7 +734,7 @@ fn parse_crlf_html() {
     let input = b"# Song\r\n\r\n<foo>\r\nline1\r\nline2\r\n</foo>\r\n";
 
     let input = str::from_utf8(input).unwrap();
-    parse_one(input).assert_eq(song(
+    parse_one(input).assert_json_eq(song(
         "Song",
         [],
         "english",
