@@ -15,6 +15,9 @@ const INT_DIR: &str = "int-test-workdirs";
 pub const OPTS_NO_PS: MakeOpts = MakeOpts {
     no_postprocess: true,
 };
+pub const OPTS_PS: MakeOpts = MakeOpts {
+    no_postprocess: false,
+};
 
 /// Project source root (where `Cargo.toml` is)
 pub const ROOT: ProjectPath = ProjectPath { path: &[] };

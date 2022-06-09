@@ -27,3 +27,4 @@ test:
 examples:
 	cd default && cargo run -- make
 	cd example && cargo run -- make
+	cd tests/test-projects/all-features && cargo run -- make

@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<InetSongDb xmlns="http://zpevnik.net/InetSongDb.xsd">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<song>
+  <ID><![CDATA[song-0]]></ID>
+  <title><![CDATA[Danny Boy]]></title>
+  <author><![CDATA[Test Songbook]]></author>
+  <groupname><![CDATA[[local]]]></groupname>
+  <songtext><![CDATA[
+
+This is an unlabeled verse.
+
+1.
+[A7]Oh Danny [D]Boy, the pipes, the [D7]pipes are [G]calling
+From glen to [D]glen, and [F#m]down the [G]mountain [A7]side
+The summer’s [D]gone, and all the [D7]flowers are [G]dying
+‘Tis you, ’tis [D]you must [Em]go and [A7]I must [D]bide.
+
+R1:
+[6b7]But come ye [7bm]back when [4#]summer’s [6b7]in the [1#]meadow
+Or when the [7bm]valley’s [4#]hushed and [4m]white with [3b7]snow [6b7]
+‘Tis I’ll be [1#]here in [4#]sunshine or in [1#]sha[7bm]dow.
+Oh Danny [1#]Boy, oh Danny [4#]Boy, I [6b7]love you [1#]so.
+
+Second verse
+And if you come, 
+when all the flowers are dying
+And I am dead,
+As dead I well may be
+You’ll come and find
+The place where I am lying
+And kneel and say  an ”Ave” there for me.
+
+R2:
+And I shall hear, though soft you tread above me
+And all my dreams will warm and sweeter be
+
+
+If you’ll not fail to tell me that you love me
+I’ll sleep in peace until you come to me.
+
+
+
+
+]]></songtext>
+</song>
+
+<song>
+  <ID><![CDATA[song-1]]></ID>
+  <title><![CDATA[Wildcard 1]]></title>
+  <author><![CDATA[Test Songbook]]></author>
+  <groupname><![CDATA[[local]]]></groupname>
+  <songtext><![CDATA[
+R:
+[Am]Yippie yea [C]oh! Yippie yea [Am]yay!
+
+
+]]></songtext>
+</song>
+
+<song>
+  <ID><![CDATA[song-2]]></ID>
+  <title><![CDATA[Wildcard 2]]></title>
+  <author><![CDATA[Test Songbook]]></author>
+  <groupname><![CDATA[[local]]]></groupname>
+  <songtext><![CDATA[
+1.
+[Am]Yippie yea [C]oh! Yippie yea [Am]yay!
+
+
+]]></songtext>
+</song>
+
+<song>
+  <ID><![CDATA[song-3]]></ID>
+  <title><![CDATA[Multiple Songs 1]]></title>
+  <author><![CDATA[Test Songbook]]></author>
+  <groupname><![CDATA[[local]]]></groupname>
+  <songtext><![CDATA[
+1.
+[Am]Yippie yea [C]oh! Yippie yea [Am]yay!
+
+
+]]></songtext>
+</song>
+
+<song>
+  <ID><![CDATA[song-4]]></ID>
+  <title><![CDATA[Multiple Songs 2]]></title>
+  <author><![CDATA[Test Songbook]]></author>
+  <groupname><![CDATA[[local]]]></groupname>
+  <songtext><![CDATA[
+1.
+[Am]Yippie yea [C]oh! Yippie yea [Am]yay!
+
+
+]]></songtext>
+</song>
+
+
+</InetSongDb>

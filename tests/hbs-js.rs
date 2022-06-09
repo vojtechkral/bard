@@ -22,11 +22,12 @@ fn yarn(args: &[&str], dir: &Path) {
 /// This test calls the reference Handlebars JS implementation to parse
 /// our default templates. There were historically errors in them that
 /// the Rust implementation didn't reject.
-#[ignore]
 #[test]
+#[ignore = "requires node.js and yarn. Also at the moment blocked on https://github.com/sunng87/handlebars-rust/issues/509"]
 fn hbs_js_parse() {
     let dir = ROOT / "tests/hbs-js";
 
+    // FIXME: locked
     yarn(&["install"], &dir);
 
     // Parse each template with JS handlebars

@@ -47,3 +47,5 @@ fn project_postprocess() {
     assert_eq!(file.file_name().unwrap(), "extended.html");
     assert_file_contains(&file, "Yippie yea");
 }
+
+// TODO: test post-process failing cmd (bard --help)

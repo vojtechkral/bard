@@ -1,0 +1,44 @@
+songs = [
+    "md-all.md",
+    "wildcard/*.md",
+    "multiple.md",
+]
+
+notation = "german"
+
+[[output]]
+file = "songbook.tex"
+# verify latex can render and post-process multiple syntax
+process = [
+    "xelatex -interaction=nonstopmode {{file}}",
+    "{{bard}} util sort-lines numberline\\s+\\{[^}]*}([^}]+) {{file_stem}}.toc",
+    "xelatex -interaction=nonstopmode {{file}}",
+    "latexmk -c {{file}}",
+]
+
+[[output]]
+file = "songbook.html"
+# verify post-process simple syntax
+process = "{{bard}} util cp {{file}} cp1.html"
+
+[[output]]
+format = "hovorka"
+file = "songbook.hovorka.xml"
+
+[[output]]
+file = "songbook.json"
+# verify post-process extended syntax
+process = [
+    ["{{bard}}", "util", "cp", "{{file}}", "cp2.json"],
+    ["{{bard}}", "util", "cp", "{{file}}", "cp3.json"],
+]
+
+[[output]]
+file = "songbook.xml"
+
+[book]
+title = "Test Songbook"
+subtitle = "Exercising all features"
+title_note = "Hopefully all features"
+chorus_label = "Ch"
+front_img = "pipe.jpg"
