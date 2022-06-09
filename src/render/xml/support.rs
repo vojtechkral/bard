@@ -254,18 +254,14 @@ impl<'w> ContentBuilder<'w> {
 
     pub fn many_tags<I, T>(self, tag_name: &str, container: Field<T>) -> XmlResult<Self>
     where
-        I: AsRef<str>,
+        I: XmlWrite,
         T: AsRef<[I]>,
     {
-        for item in container.value.as_ref().iter() {
-            self.writer
-                .tag(tag_name)
-                .content()?
-                .text(item.as_ref())?
-                .finish()?;
-        }
-
-        Ok(self)
+        container
+            .value
+            .as_ref()
+            .iter()
+            .try_fold(self, |this, item| this.value_wrap(tag_name, item))
     }
 
     pub fn text(self, text: impl AsRef<str>) -> XmlResult<Self> {

@@ -114,7 +114,7 @@ xml_write!(struct Verse {
         .attr(("label-type", label_type))
         .attr_opt("label", &label)
         .content()?
-        .many(paragraphs)?
+        .many_tags("p", paragraphs)?
 });
 
 xml_write!(struct BulletList { items, } -> |w| {
