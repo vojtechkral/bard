@@ -42,3 +42,6 @@ toml = "0.5"
 [dev-dependencies]
 assert-json-diff = "2.0.1"
 fs_extra = "1.2.0"
+
+[package.metadata.docs.rs]
+features = ["docs_rs_pls_dont_build_these_docs_this_is_internal_stuff"]
