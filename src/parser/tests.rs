@@ -418,7 +418,7 @@ fn parse_extensions() {
 > Chorus.
 
 1. Lyrics !!> !!!english !+0
-!+2 More lyrics !>
+!+2 More lyrics !> !!none
 
 # Song two
 
@@ -450,6 +450,7 @@ Mixed !>> in text.
                 i_xpose("t-transpose", 2),
                 i_text(" More lyrics"),
                 i_chorus_ref(Null, " "),
+                i_xpose("t-alt-none", ()),
             ])]
         ),
     ]));
@@ -483,22 +484,39 @@ fn transposition() {
 !+5
 !!czech
 
-> 1. `Bm`Yippie yea `D`oh! !+0
+> `Bm`Yippie yea `D`oh! !+0
 !+0 Yippie yea `Bm`yay!
+
+!!none
+
+1. `Bm`Yippie yea `D`oh! !+0
+Yippie yea `Bm`yay!
 
 "#;
 
     let song = parse_one(input);
-    song.blocks.assert_json_eq(json!([ver_chorus(
-        Null,
-        [p([
-            i_chord("Em", "Hm", 1, [i_text("Yippie yea ")]),
-            i_chord("G", "D", 1, [i_text("oh!")]),
-            i_break(),
-            i_text("Yippie yea "),
-            i_chord("Bm", "Hm", 1, [i_text("yay!")]),
-        ])]
-    )]));
+    song.blocks.assert_json_eq(json!([
+        ver_chorus(
+            Null,
+            [p([
+                i_chord("Em", "Hm", 1, [i_text("Yippie yea ")]),
+                i_chord("G", "D", 1, [i_text("oh!")]),
+                i_break(),
+                i_text("Yippie yea "),
+                i_chord("Bm", "Hm", 1, [i_text("yay!")]),
+            ])]
+        ),
+        ver_verse(
+            1,
+            [p([
+                i_chord("Bm", Null, 1, [i_text("Yippie yea ")]),
+                i_chord("D", Null, 1, [i_text("oh!")]),
+                i_break(),
+                i_text("Yippie yea "),
+                i_chord("Bm", Null, 1, [i_text("yay!")]),
+            ])]
+        )
+    ]));
 }
 
 #[test]

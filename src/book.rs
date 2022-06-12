@@ -115,7 +115,9 @@ pub enum Inline {
     #[serde(rename = "i-tag")]
     HtmlTag(HtmlTag),
 
-    /// Only used internally by the parser to apply transposition
+    /// Only used internally by the parser to apply transposition.
+    /// Removed from the resulting AST, except in tests where this
+    /// is used to verify transposition extensions parsing.
     #[serde(rename = "i-transpose")]
     Transpose(Transpose),
 }
@@ -227,6 +229,7 @@ pub struct HtmlTag {
     pub attrs: HashMap<BStr, BStr>,
 }
 
+/// Transposition extensions. See Comment in `Inline`.
 #[derive(Serialize, Clone, Copy, Debug)]
 pub enum Transpose {
     #[serde(rename = "t-transpose")]
@@ -237,6 +240,9 @@ pub enum Transpose {
     AltTranspose(i32),
     #[serde(rename = "t-alt-notation")]
     AltNotation(Notation),
+    /// Turn off alt chords
+    #[serde(rename = "t-alt-none")]
+    AltNone,
 }
 
 #[derive(Serialize, Clone, PartialEq, Eq, Debug)]

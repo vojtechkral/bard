@@ -131,6 +131,10 @@ impl Extension {
             }
         }
 
+        if self.num_excls == 2 && self.content == "none" {
+            return Some(Transpose::AltNone);
+        }
+
         None
     }
 
@@ -193,6 +197,10 @@ impl Transposition {
             Transpose::Notation(nt) => self.notation = Some(nt),
             Transpose::AltTranspose(d) => self.alt_xpose = Some(d),
             Transpose::AltNotation(nt) => self.alt_notation = Some(nt),
+            Transpose::AltNone => {
+                self.alt_xpose = None;
+                self.alt_notation = None;
+            }
         }
     }
 
