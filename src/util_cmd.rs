@@ -1,12 +1,33 @@
-use std::fs::File;
+use std::fs::{self, File};
 use std::io::{self, BufRead, BufReader, BufWriter, Write};
 use std::str::FromStr;
 
 use camino::Utf8PathBuf as PathBuf;
 use regex::Regex;
+use structopt::StructOpt;
 
-use crate::error::*;
 use crate::util::sort_lexical_by;
+use crate::{cli, error::*};
+
+#[derive(StructOpt)]
+pub enum UtilCmd {
+    #[structopt(name = "cp", about = "Copy a file")]
+    Copy {
+        #[structopt(help = "Source path")]
+        src: String,
+        #[structopt(help = "Destination path")]
+        dest: String,
+    },
+    #[structopt(about = "Alphabetically sorts lines of a file in-place")]
+    SortLines {
+        #[structopt(
+            help = "Regular expression that extracts the sort key from each line via a capture group"
+        )]
+        regex: String,
+        #[structopt(help = "The file whose lines to sort, in-place")]
+        file: String,
+    },
+}
 
 #[derive(Debug)]
 struct Line {
@@ -34,7 +55,7 @@ fn line_read(mut lines: Vec<Line>, line: io::Result<String>, regex: &Regex) -> R
     Ok(lines)
 }
 
-pub fn sort_lines(path: &str, regex: &str) -> Result<usize> {
+pub fn sort_lines(regex: &str, path: &str) -> Result<usize> {
     let regex = Regex::from_str(regex).with_context(|| format!("Invalid regex: `{}`", regex))?;
 
     let path = PathBuf::from(path);
@@ -64,5 +85,23 @@ pub fn sort_lines(path: &str, regex: &str) -> Result<usize> {
     }
     file.flush().with_context(write_err)?;
 
+    if count == 0 {
+        cli::warning("sort-lines: No lines matched the regex.");
+    }
+
     Ok(count)
+}
+
+pub fn copy(src: &str, dest: &str) -> Result<()> {
+    fs::copy(src, dest)?;
+    Ok(())
+}
+
+pub fn util_cmd(cmd: UtilCmd) -> Result<()> {
+    use UtilCmd::*;
+
+    match cmd {
+        SortLines { regex, file } => sort_lines(&regex, &file).map(|_| ()),
+        Copy { src, dest } => copy(&src, &dest),
+    }
 }

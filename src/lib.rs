@@ -21,6 +21,7 @@ pub mod watch;
 
 use crate::error::*;
 use crate::project::Project;
+use crate::util_cmd::UtilCmd;
 use crate::watch::{Watch, WatchEvent};
 
 #[derive(Serialize, Clone, Debug)]
@@ -44,25 +45,6 @@ pub const PROGRAM_META: ProgramMeta = ProgramMeta {
 pub struct MakeOpts {
     #[structopt(short = "p", long, help = "Don't run outputs' postprocessing steps")]
     pub no_postprocess: bool,
-}
-
-#[derive(StructOpt, Clone, Default, Debug)]
-pub struct SortLinesOpts {
-    #[structopt(
-        help = "Regular expression that extracts the sort key from each line via a capture group"
-    )]
-    pub regex: String,
-    #[structopt(help = "The file whose lines to sort, in-place")]
-    pub file: String,
-}
-
-#[derive(StructOpt)]
-enum UtilCmd {
-    #[structopt(about = "Alphabetically sorts lines of a file in-place")]
-    SortLines {
-        #[structopt(flatten)]
-        opts: SortLinesOpts,
-    },
 }
 
 #[derive(StructOpt)]
@@ -97,7 +79,7 @@ impl Bard {
             Init => bard_init(),
             Make { opts } => bard_make(&opts),
             Watch { opts } => bard_watch(&opts),
-            Util(UtilCmd::SortLines { opts }) => bard_sort_lines(&opts),
+            Util(cmd) => bard_util(cmd),
         }
     }
 }
@@ -173,13 +155,8 @@ pub fn bard_watch(opts: &MakeOpts) -> Result<()> {
     bard_watch_at(opts, &cwd, watch)
 }
 
-pub fn bard_sort_lines(opts: &SortLinesOpts) -> Result<()> {
-    let count = util_cmd::sort_lines(&opts.file, &opts.regex)?;
-    if count == 0 {
-        cli::warning("sort-lines: No lines matched the regex.");
-    }
-
-    Ok(())
+pub fn bard_util(cmd: UtilCmd) -> Result<()> {
+    util_cmd::util_cmd(cmd)
 }
 
 pub fn bard(args: &[OsString]) -> Result<()> {
