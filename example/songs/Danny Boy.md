@@ -14,7 +14,7 @@ Oh Danny `C`Boy, oh Danny `F`Boy, I `G7`love you `C`so.
 2. And if you come, when all the flowers are dying
 And I am dead, as dead I well may be
 You’ll come and find the place where I am lying
-And kneel and say an ”Ave”  there for me.
+And kneel and say an ”Ave” there for me.
 
 >> And I shall hear, though soft you tread above me
 And all my dreams will warm and sweeter be 
