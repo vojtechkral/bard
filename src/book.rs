@@ -1,6 +1,6 @@
 //! AST of a bard songbook
 
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 use std::fs;
 use std::str;
 
@@ -226,7 +226,7 @@ impl ChorusRef {
 #[derive(Serialize, Debug)]
 pub struct HtmlTag {
     pub name: BStr,
-    pub attrs: HashMap<BStr, BStr>,
+    pub attrs: BTreeMap<BStr, BStr>,
 }
 
 /// Transposition extensions. See Comment in `Inline`.

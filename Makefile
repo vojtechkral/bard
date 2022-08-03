@@ -20,6 +20,7 @@ target/release/bard:
 .PHONY: test
 test:
 	cargo test
+	cargo test -- --ignored project_all_features
 #	cargo test -- --ignored
 # TODO: ^ run the ignored tests too once https://github.com/sunng87/handlebars-rust/issues/509 is solved
 

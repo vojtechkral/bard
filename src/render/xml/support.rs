@@ -5,7 +5,6 @@
 //!
 //! The code here was needed as no existing XML derive crate is complete enough to cover bard AST requirements.
 
-use std::collections::HashMap;
 use std::fmt::Display;
 use std::fs::File;
 
@@ -14,6 +13,8 @@ use quick_xml::events::{BytesEnd, BytesStart, BytesText, Event};
 use quick_xml::Result as XmlResult;
 
 pub type Writer = quick_xml::Writer<File>;
+
+type Map<K, V> = std::collections::BTreeMap<K, V>;
 
 pub trait XmlWrite {
     fn write(&self, writer: &mut Writer) -> XmlResult<()>;
@@ -61,7 +62,7 @@ where
     }
 }
 
-impl<K, V> XmlWrite for HashMap<K, V>
+impl<K, V> XmlWrite for Map<K, V>
 where
     K: AsRef<str>,
     V: XmlWrite,
@@ -163,7 +164,7 @@ where
 pub struct TagBuilder<'w> {
     writer: &'w mut Writer,
     name: String,
-    attrs: HashMap<String, String>,
+    attrs: Map<String, String>,
 }
 
 impl<'w> TagBuilder<'w> {
@@ -294,7 +295,7 @@ impl<'w> WriterExt<'w> for &'w mut Writer {
         TagBuilder {
             writer: self,
             name: name.to_string(),
-            attrs: HashMap::new(),
+            attrs: Map::new(),
         }
     }
 

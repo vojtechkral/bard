@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 use std::fs;
 use std::iter;
 use std::process::Command;
@@ -46,7 +46,7 @@ fn dir_output() -> PathBuf {
     DIR_OUTPUT.to_string().into()
 }
 
-pub type Metadata = HashMap<Box<str>, Value>;
+pub type Metadata = BTreeMap<Box<str>, Value>;
 
 #[derive(Deserialize, Clone, Copy, Debug)]
 #[serde(rename_all = "lowercase")]

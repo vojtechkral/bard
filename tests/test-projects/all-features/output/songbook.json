@@ -1,10 +1,10 @@
 {
   "book": {
+    "chorus_label": "Ch",
+    "front_img": "pipe.jpg",
     "subtitle": "Exercising all features",
     "title": "Test Songbook",
-    "front_img": "pipe.jpg",
-    "title_note": "Hopefully all features",
-    "chorus_label": "Ch"
+    "title_note": "Hopefully all features"
   },
   "songs": [
     {
