@@ -1,3 +1,4 @@
+use std::env;
 use std::process::{Command, Stdio};
 
 use camino::Utf8Path as Path;
@@ -8,7 +9,9 @@ mod util;
 pub use util::*;
 
 fn yarn(args: &[&str], dir: &Path) {
-    let success = Command::new("yarn")
+    let cmd_env = env::var("YARN_CMD");
+    let cmd = cmd_env.as_ref().map(|s| s.as_str()).unwrap_or("yarn");
+    let success = Command::new(cmd)
         .args(&*args)
         .current_dir(dir)
         .stdout(Stdio::null())
@@ -23,17 +26,23 @@ fn yarn(args: &[&str], dir: &Path) {
 /// our default templates. There were historically errors in them that
 /// the Rust implementation didn't reject.
 #[test]
-#[ignore = "requires node.js and yarn. Also at the moment blocked on https://github.com/sunng87/handlebars-rust/issues/509"]
+#[ignore = "requires node.js and yarn"]
 fn hbs_js_parse() {
     let dir = ROOT / "tests/hbs-js";
-
-    // FIXME: locked
-    yarn(&["install"], &dir);
 
     // Parse each template with JS handlebars
     for default in &DEFAULT_TEMPLATES[..] {
         let mut path = ROOT / "src/render/templates/";
         path.push(default.filename);
-        yarn(&["run", "handlebars", path.as_str()], &dir);
+        yarn(
+            &[
+                "--offline",
+                "--frozen-lockfile",
+                "run",
+                "handlebars",
+                path.as_str(),
+            ],
+            &dir,
+        );
     }
 }
