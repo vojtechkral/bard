@@ -1,102 +1,124 @@
 <book notation="german">
   <metadata>
     <subtitle>Exercising all features</subtitle>
-    <title>Test Songbook</title>
-    <front_img>pipe.jpg</front_img>
     <title_note>Hopefully all features</title_note>
     <chorus_label>Ch</chorus_label>
+    <title>Test Songbook</title>
+    <front_img>pipe.jpg</front_img>
   </metadata>
-  <song title="Danny Boy" notation="german">
+  <song notation="german" title="Danny Boy">
     <subtitle>English ballad</subtitle>
     <subtitle>Subtitle 2</subtitle>
-    <verse label-type="none">This is an unlabeled verse.</verse>
-    <verse label="1" label-type="verse">
-      <chord backticks="1" chord="A7" alt-chord="I7">Oh <strong>Danny</strong> </chord>
-      <chord alt-chord="IV" backticks="1" chord="D">Boy, the <emph>pipes</emph>, the </chord>
-      <chord chord="D7" backticks="2" alt-chord="IV7">pipes are </chord>
-      <chord chord="G" alt-chord="VIIb" backticks="1">calling</chord>
-      <br/>From <link title="" url="https://en.wikipedia.org/wiki/Glen">glen</link> to <chord chord="D" alt-chord="IV" backticks="1">glen, and </chord>
-      <chord chord="F#m" backticks="1" alt-chord="VIm">down the </chord>
-      <chord alt-chord="VIIb" chord="G" backticks="1">mountain </chord>
-      <chord backticks="1" chord="A7" alt-chord="I7">side</chord>
-      <br/>The summer’s <chord alt-chord="IV" backticks="1" chord="D">gone, and all the </chord>
-      <chord alt-chord="IV7" chord="D7" backticks="2">flowers are </chord>
-      <chord alt-chord="VIIb" chord="G" backticks="1">dying</chord>
-      <br/>
-      <emph>‘Tis you, <strong>’tis </strong>
-      </emph>
-      <chord chord="D" alt-chord="IV" backticks="1">
-        <emph>
-          <strong>you must</strong> </emph>
-      </chord>
-      <chord alt-chord="Vm" backticks="1" chord="Em">
-        <emph>go and </emph>
-      </chord>
-      <chord backticks="1" chord="A7" alt-chord="I7">
-        <emph>I must </emph>
-      </chord>
-      <chord chord="D" alt-chord="IV" backticks="1">
-        <emph>bide.</emph>
-      </chord>
+    <verse label-type="none">
+      <p>This is an unlabeled verse.</p>
+    </verse>
+    <verse label-type="verse" label="1">
+      <p>
+        <chord alt-chord="I7" chord="A7" backticks="1">Oh <strong>Danny</strong> </chord>
+        <chord chord="D" alt-chord="IV" backticks="1">Boy, the <emph>pipes</emph>, the </chord>
+        <chord backticks="2" chord="D7" alt-chord="IV7">pipes are </chord>
+        <chord chord="G" backticks="1" alt-chord="VIIb">calling</chord>
+        <br/>From <link title="" url="https://en.wikipedia.org/wiki/Glen">glen</link> to <chord chord="D" alt-chord="IV" backticks="1">glen, and </chord>
+        <chord backticks="1" alt-chord="VIm" chord="F#m">down the </chord>
+        <chord chord="G" alt-chord="VIIb" backticks="1">mountain </chord>
+        <chord alt-chord="I7" backticks="1" chord="A7">side</chord>
+        <br/>The summer’s <chord backticks="1" alt-chord="IV" chord="D">gone, and all the </chord>
+        <chord alt-chord="IV7" backticks="2" chord="D7">flowers are </chord>
+        <chord alt-chord="VIIb" chord="G" backticks="1">dying</chord>
+        <br/>
+        <emph>‘Tis you, <strong>’tis </strong>
+        </emph>
+        <chord chord="D" backticks="1" alt-chord="IV">
+          <emph>
+            <strong>you must</strong> </emph>
+        </chord>
+        <chord backticks="1" chord="Em" alt-chord="Vm">
+          <emph>go and </emph>
+        </chord>
+        <chord chord="A7" alt-chord="I7" backticks="1">
+          <emph>I must </emph>
+        </chord>
+        <chord chord="D" backticks="1" alt-chord="IV">
+          <emph>bide.</emph>
+        </chord>
+      </p>
     </verse>
     <verse label-type="chorus" label="1">
-      <chord backticks="1" chord="6b7">But come ye </chord>
-      <chord chord="7bm" backticks="1">back when </chord>
-      <chord chord="4#" backticks="1">summer’s </chord>
-      <chord chord="6b7" backticks="1">in the </chord>
-      <chord chord="1#" backticks="1">meadow</chord>
-      <br/>Or when the <chord chord="7bm" backticks="1">valley’s </chord>
-      <chord chord="4#" backticks="1">hushed and </chord>
-      <chord backticks="1" chord="4m">white with </chord>
-      <chord chord="3b7" backticks="1">snow </chord>
-      <chord chord="6b7" backticks="1">
-      </chord>
-      <br/>‘Tis I’ll be <chord chord="1#" backticks="1">here in </chord>
-      <chord chord="4#" backticks="1">sunshine or in </chord>
-      <chord chord="1#" backticks="1">sha</chord>
-      <chord backticks="1" chord="7bm">dow.</chord>
-      <br/>Oh Danny <chord chord="1#" backticks="1">Boy, oh Danny </chord>
-      <chord chord="4#" backticks="1">Boy, I </chord>
-      <chord backticks="1" chord="6b7">love you </chord>
-      <chord chord="1#" backticks="1">so.</chord>
+      <p>
+        <chord backticks="1" chord="6b7">But come ye </chord>
+        <chord backticks="1" chord="7bm">back when </chord>
+        <chord backticks="1" chord="4#">summer’s </chord>
+        <chord chord="6b7" backticks="1">in the </chord>
+        <chord backticks="1" chord="1#">meadow</chord>
+        <br/>Or when the <chord backticks="1" chord="7bm">valley’s </chord>
+        <chord chord="4#" backticks="1">hushed and </chord>
+        <chord chord="4m" backticks="1">white with </chord>
+        <chord chord="3b7" backticks="1">snow </chord>
+        <chord chord="6b7" backticks="1">
+        </chord>
+        <br/>‘Tis I’ll be <chord chord="1#" backticks="1">here in </chord>
+        <chord chord="4#" backticks="1">sunshine or in </chord>
+        <chord chord="1#" backticks="1">sha</chord>
+        <chord chord="7bm" backticks="1">dow.</chord>
+        <br/>Oh Danny <chord backticks="1" chord="1#">Boy, oh Danny </chord>
+        <chord backticks="1" chord="4#">Boy, I </chord>
+        <chord chord="6b7" backticks="1">love you </chord>
+        <chord chord="1#" backticks="1">so.</chord>
+      </p>
     </verse>
-    <verse label-type="custom" label="Second verse">And if you come, <image path="pipe.jpg" title="pipe" class="right"/>
-      <br/>when all the flowers are dying<br/>And I am dead,<br/>As dead I well may be<br/>You’ll come and find<br/>The place where I am lying<br/>And kneel and say <image path="box.png" class="" title="box"/> an ”Ave” there for me.</verse>
+    <verse label="Second verse" label-type="custom">
+      <p>And if you come, <image title="pipe" class="right" path="pipe.jpg"/>
+        <br/>when all the flowers are dying<br/>And I am dead,<br/>As dead I well may be<br/>You’ll come and find<br/>The place where I am lying<br/>And kneel and say <image title="box" class="" path="box.png"/> an ”Ave” there for me.</p>
+    </verse>
     <bullet-list>
       <item>Bullet list item 1</item>
       <item>Bullet list item 2</item>
     </bullet-list>
-    <verse label="2" label-type="chorus">And I shall hear, though soft you tread above me<br/>And all my dreams will warm and sweeter be</verse>
+    <verse label-type="chorus" label="2">
+      <p>And I shall hear, though soft you tread above me<br/>And all my dreams will warm and sweeter be</p>
+    </verse>
     <hr/>
-    <verse label-type="none">If you’ll not fail to tell me that you love me<br/>I’ll sleep in peace until you come to me.<image class="center" path="hills.jpg" title="hills"/>
+    <verse label-type="none">
+      <p>If you’ll not fail to tell me that you love me<br/>I’ll sleep in peace until you come to me.</p>
+      <p>
+        <image class="center" path="hills.jpg" title="hills"/>
+      </p>
     </verse>
   </song>
-  <song notation="german" title="Wildcard 1">
+  <song title="Wildcard 1" notation="german">
     <verse label-type="chorus">
-      <chord chord="Am" backticks="1">Yippie yea </chord>
-      <chord chord="C" backticks="1">oh! Yippie yea </chord>
-      <chord chord="Am" backticks="1">yay!</chord>
+      <p>
+        <chord chord="Am" backticks="1">Yippie yea </chord>
+        <chord backticks="1" chord="C">oh! Yippie yea </chord>
+        <chord backticks="1" chord="Am">yay!</chord>
+      </p>
     </verse>
   </song>
-  <song title="Wildcard 2" notation="german">
-    <verse label="1" label-type="verse">
-      <chord chord="Am" backticks="1">Yippie yea </chord>
-      <chord chord="C" backticks="1">oh! Yippie yea </chord>
-      <chord backticks="1" chord="Am">yay!</chord>
-    </verse>
-  </song>
-  <song notation="german" title="Multiple Songs 1">
+  <song notation="german" title="Wildcard 2">
     <verse label-type="verse" label="1">
-      <chord backticks="1" chord="Am">Yippie yea </chord>
-      <chord backticks="1" chord="C">oh! Yippie yea </chord>
-      <chord chord="Am" backticks="1">yay!</chord>
+      <p>
+        <chord backticks="1" chord="Am">Yippie yea </chord>
+        <chord backticks="1" chord="C">oh! Yippie yea </chord>
+        <chord backticks="1" chord="Am">yay!</chord>
+      </p>
+    </verse>
+  </song>
+  <song title="Multiple Songs 1" notation="german">
+    <verse label="1" label-type="verse">
+      <p>
+        <chord chord="Am" backticks="1">Yippie yea </chord>
+        <chord backticks="1" chord="C">oh! Yippie yea </chord>
+        <chord backticks="1" chord="Am">yay!</chord>
+      </p>
     </verse>
   </song>
   <song notation="german" title="Multiple Songs 2">
     <verse label="1" label-type="verse">
-      <chord chord="Am" backticks="1">Yippie yea </chord>
-      <chord chord="C" backticks="1">oh! Yippie yea </chord>
-      <chord chord="Am" backticks="1">yay!</chord>
+      <p>
+        <chord backticks="1" chord="Am">Yippie yea </chord>
+        <chord chord="C" backticks="1">oh! Yippie yea </chord>
+        <chord chord="Am" backticks="1">yay!</chord>
+      </p>
     </verse>
   </song>
   <output-meta>

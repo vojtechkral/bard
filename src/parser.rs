@@ -987,6 +987,7 @@ impl<'i> Parser<'i> {
                 width: 0,
                 unsafe_: false,
                 escape: false,
+                list_style: Default::default(),
             },
         }
     }
