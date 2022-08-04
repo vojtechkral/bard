@@ -167,8 +167,8 @@
 {{~/inline~}}
 {{#*inline "i-chord"~}}
   \begin{tabular}[b]{l}
-    {{> chord-style}}{ {{{~ pre chord ~}}} }}\\
-    {{~#if alt_chord}}{{> chord-style}}\color{blue}{ {{{~ pre alt_chord ~}}} }}\\ {{~/if~}}
+    {{> chord-style}}{ {{~{ pre chord }~}} }}\\
+    {{~#if alt_chord}}{{> chord-style}}\color{blue}{ {{~{ pre alt_chord }~}} }}\\ {{~/if~}}
     {{~#each inlines}}{{> (lookup this "type") }}{{/each~}}\mbox{}\end{tabular}
 {{~/inline}}
 
@@ -178,7 +178,7 @@
 {{/inline}}
 {{#*inline "i-emph"}}\emph{ {{~#each inlines}}{{> (lookup this "type") }}{{/each~}} }{{/inline}}
 {{#*inline "i-strong"}}\textbf{ {{~#each inlines}}{{> (lookup this "type") }}{{/each~}} }{{/inline}}
-{{#*inline "i-link"}}\href{ {{~ url ~}} }{ {{{~ pre text ~}}} }{{/inline}}
+{{#*inline "i-link"}}\href{ {{~ url ~}} }{ {{~{ pre text }~}} }{{/inline}}
 {{#*inline "i-chorus-ref"}}{{ prefix_space }}\emph{ {{~ @root.book.chorus_label }}{{ num }}.}{{/inline}}
 
 {{#*inline "i-image"}}
