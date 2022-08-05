@@ -3,9 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <title>Bard Songbook</title>
+    <link rel="stylesheet" href="fonts/fonts.css">
     <style type="text/css">
       body {
-          font-family: sans-serif;
+            font-family: 'DroidSerif';
 
           /* Background pattern from Toptal Subtle Patterns
            * https://www.toptal.com/designers/subtlepatterns/ecailles/ */
@@ -25,7 +26,7 @@
         #content { border: none; }
       }
 
-      h1, h2, h3 { font-variant: small-caps; }
+      h1 { font-variant: small-caps; }
 
       a, a:link , a:visited , a:hover , a:active {
         color: blue;
@@ -57,8 +58,16 @@
       section.song h2 { text-decoration: underline; }
       section.song h4 { margin: 0; }
       .song-header {
-        text-align: center;
+        text-align: left;
         margin: 1em 0;
+      }
+      .song-header h2 {
+        margin: 0.2em 0;
+      }
+
+      .song-header h4 {
+        font-weight: normal;
+        font-style: italic;
       }
 
       hr.separator {
@@ -99,22 +108,24 @@
         vertical-align: bottom;
       }
       table.chord tr, table.chord td {
-        margin: 0;
         padding: 0;
       }
 
-      tr.chord {
+      tr.chord td {
+        font-family: 'NotoSans';
         font-size: 85%;
         color: red;
+        position: relative;
+        top: 0.1em
       }
 
-      tr.chord-backticks-1 {
+      tr.chord-backticks-1 td {
         font-size: inherit;
         font-weight: bold;
         color: red;
       }
 
-      tr.chord-alt { color: blue; }
+      tr.chord-alt td { color: blue; }
 
       /* Bulletlist */
 
@@ -560,4 +571,3 @@
 </footer>
 </body>
 </html>
-

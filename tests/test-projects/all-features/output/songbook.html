@@ -3,9 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <title>Test Songbook</title>
+    <link rel="stylesheet" href="fonts/fonts.css">
     <style type="text/css">
       body {
-          font-family: sans-serif;
+            font-family: 'DroidSerif';
 
           /* Background pattern from Toptal Subtle Patterns
            * https://www.toptal.com/designers/subtlepatterns/ecailles/ */
@@ -25,7 +26,7 @@
         #content { border: none; }
       }
 
-      h1, h2, h3 { font-variant: small-caps; }
+      h1 { font-variant: small-caps; }
 
       a, a:link , a:visited , a:hover , a:active {
         color: blue;
@@ -57,8 +58,16 @@
       section.song h2 { text-decoration: underline; }
       section.song h4 { margin: 0; }
       .song-header {
-        text-align: center;
+        text-align: left;
         margin: 1em 0;
+      }
+      .song-header h2 {
+        margin: 0.2em 0;
+      }
+
+      .song-header h4 {
+        font-weight: normal;
+        font-style: italic;
       }
 
       hr.separator {
@@ -99,22 +108,24 @@
         vertical-align: bottom;
       }
       table.chord tr, table.chord td {
-        margin: 0;
         padding: 0;
       }
 
-      tr.chord {
+      tr.chord td {
+        font-family: 'NotoSans';
         font-size: 85%;
         color: red;
+        position: relative;
+        top: 0.1em
       }
 
-      tr.chord-backticks-1 {
+      tr.chord-backticks-1 td {
         font-size: inherit;
         font-weight: bold;
         color: red;
       }
 
-      tr.chord-alt { color: blue; }
+      tr.chord-alt td { color: blue; }
 
       /* Bulletlist */
 
@@ -197,63 +208,63 @@
           <li data-label="">This is an unlabeled verse.</li>
   <li data-label="1."><table class="chord">
   <tr class="chord chord-backticks-1"><td>A7</td></tr>
-  <tr class="chord chord-alt ws-pre"><td>I7</td></tr>
+  <tr class="chord chord-backticks-1 chord-alt ws-pre"><td>I7</td></tr>
   <tr><td>Oh <strong>Danny</strong> </td></tr>
 </table><table class="chord">
   <tr class="chord chord-backticks-1"><td>D</td></tr>
-  <tr class="chord chord-alt ws-pre"><td>IV</td></tr>
+  <tr class="chord chord-backticks-1 chord-alt ws-pre"><td>IV</td></tr>
   <tr><td>Boy, the <em>pipes</em>, the </td></tr>
 </table><table class="chord">
   <tr class="chord chord-backticks-2"><td>D7</td></tr>
-  <tr class="chord chord-alt ws-pre"><td>IV7</td></tr>
+  <tr class="chord chord-backticks-2 chord-alt ws-pre"><td>IV7</td></tr>
   <tr><td>pipes are </td></tr>
 </table><table class="chord">
   <tr class="chord chord-backticks-1"><td>G</td></tr>
-  <tr class="chord chord-alt ws-pre"><td>VIIb</td></tr>
+  <tr class="chord chord-backticks-1 chord-alt ws-pre"><td>VIIb</td></tr>
   <tr><td>calling</td></tr>
 </table><br>From <a href="https://en.wikipedia.org/wiki/Glen" title="">glen</a> to <table class="chord">
   <tr class="chord chord-backticks-1"><td>D</td></tr>
-  <tr class="chord chord-alt ws-pre"><td>IV</td></tr>
+  <tr class="chord chord-backticks-1 chord-alt ws-pre"><td>IV</td></tr>
   <tr><td>glen, and </td></tr>
 </table><table class="chord">
   <tr class="chord chord-backticks-1"><td>F#m</td></tr>
-  <tr class="chord chord-alt ws-pre"><td>VIm</td></tr>
+  <tr class="chord chord-backticks-1 chord-alt ws-pre"><td>VIm</td></tr>
   <tr><td>down the </td></tr>
 </table><table class="chord">
   <tr class="chord chord-backticks-1"><td>G</td></tr>
-  <tr class="chord chord-alt ws-pre"><td>VIIb</td></tr>
+  <tr class="chord chord-backticks-1 chord-alt ws-pre"><td>VIIb</td></tr>
   <tr><td>mountain </td></tr>
 </table><table class="chord">
   <tr class="chord chord-backticks-1"><td>A7</td></tr>
-  <tr class="chord chord-alt ws-pre"><td>I7</td></tr>
+  <tr class="chord chord-backticks-1 chord-alt ws-pre"><td>I7</td></tr>
   <tr><td>side</td></tr>
 </table><br>The summer’s <table class="chord">
   <tr class="chord chord-backticks-1"><td>D</td></tr>
-  <tr class="chord chord-alt ws-pre"><td>IV</td></tr>
+  <tr class="chord chord-backticks-1 chord-alt ws-pre"><td>IV</td></tr>
   <tr><td>gone, and all the </td></tr>
 </table><table class="chord">
   <tr class="chord chord-backticks-2"><td>D7</td></tr>
-  <tr class="chord chord-alt ws-pre"><td>IV7</td></tr>
+  <tr class="chord chord-backticks-2 chord-alt ws-pre"><td>IV7</td></tr>
   <tr><td>flowers are </td></tr>
 </table><table class="chord">
   <tr class="chord chord-backticks-1"><td>G</td></tr>
-  <tr class="chord chord-alt ws-pre"><td>VIIb</td></tr>
+  <tr class="chord chord-backticks-1 chord-alt ws-pre"><td>VIIb</td></tr>
   <tr><td>dying</td></tr>
 </table><br><em>‘Tis you, <strong>’tis </strong></em><table class="chord">
   <tr class="chord chord-backticks-1"><td>D</td></tr>
-  <tr class="chord chord-alt ws-pre"><td>IV</td></tr>
+  <tr class="chord chord-backticks-1 chord-alt ws-pre"><td>IV</td></tr>
   <tr><td><em><strong>you must</strong> </em></td></tr>
 </table><table class="chord">
   <tr class="chord chord-backticks-1"><td>Em</td></tr>
-  <tr class="chord chord-alt ws-pre"><td>Vm</td></tr>
+  <tr class="chord chord-backticks-1 chord-alt ws-pre"><td>Vm</td></tr>
   <tr><td><em>go and </em></td></tr>
 </table><table class="chord">
   <tr class="chord chord-backticks-1"><td>A7</td></tr>
-  <tr class="chord chord-alt ws-pre"><td>I7</td></tr>
+  <tr class="chord chord-backticks-1 chord-alt ws-pre"><td>I7</td></tr>
   <tr><td><em>I must </em></td></tr>
 </table><table class="chord">
   <tr class="chord chord-backticks-1"><td>D</td></tr>
-  <tr class="chord chord-alt ws-pre"><td>IV</td></tr>
+  <tr class="chord chord-backticks-1 chord-alt ws-pre"><td>IV</td></tr>
   <tr><td><em>bide.</em></td></tr>
 </table></li>
   <li data-label="Ch1."><table class="chord">
@@ -440,4 +451,3 @@
 </footer>
 </body>
 </html>
-

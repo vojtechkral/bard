@@ -1,53 +1,54 @@
-<book notation="english">
-  <metadata>
+<songbook notation="english">
+  <!-- this is the [book] section in bard.toml: -->
+  <book>
     <chorus_label>Ch</chorus_label>
     <front_img>guitar.jpg</front_img>
     <subtitle>An example project</subtitle>
     <title>Bard Songbook</title>
     <title_note>A set of a few non-copyrighted songs.</title_note>
-  </metadata>
+  </book>
   <song notation="english" title="Danny Boy">
     <subtitle>English ballad</subtitle>
     <verse label="1" label-type="verse">
       <p>
-        <chord backticks="1" chord="G7">Oh Danny </chord>
-        <chord backticks="1" chord="C">Boy, the pipes, the </chord>
-        <chord backticks="2" chord="C7">pipes are </chord>
-        <chord backticks="1" chord="F">calling</chord>
-        <br/>From glen to <chord backticks="1" chord="C">glen, and </chord>
-        <chord backticks="1" chord="Em">down the </chord>
-        <chord backticks="1" chord="F">mountain </chord>
-        <chord backticks="1" chord="G7">side</chord>
-        <br/>The summer’s <chord backticks="1" chord="C">gone, and all the </chord>
-        <chord backticks="2" chord="C7">flowers are </chord>
-        <chord backticks="1" chord="F">dying</chord>
-        <br/>‘Tis you, ’tis <chord backticks="1" chord="C">you must </chord>
-        <chord backticks="1" chord="Dm">go and </chord>
-        <chord backticks="1" chord="G7">I must </chord>
-        <chord backticks="1" chord="C">bide.</chord>
+        <chord backticks="1" baseline="false" chord="G7">Oh Danny </chord>
+        <chord backticks="1" baseline="false" chord="C">Boy, the pipes, the </chord>
+        <chord backticks="2" baseline="false" chord="C7">pipes are </chord>
+        <chord backticks="1" baseline="false" chord="F">calling</chord>
+        <br/>From glen to <chord backticks="1" baseline="false" chord="C">glen, and </chord>
+        <chord backticks="1" baseline="false" chord="Em">down the </chord>
+        <chord backticks="1" baseline="false" chord="F">mountain </chord>
+        <chord backticks="1" baseline="false" chord="G7">side</chord>
+        <br/>The summer’s <chord backticks="1" baseline="false" chord="C">gone, and all the </chord>
+        <chord backticks="2" baseline="false" chord="C7">flowers are </chord>
+        <chord backticks="1" baseline="false" chord="F">dying</chord>
+        <br/>‘Tis you, ’tis <chord backticks="1" baseline="false" chord="C">you must </chord>
+        <chord backticks="1" baseline="false" chord="Dm">go and </chord>
+        <chord backticks="1" baseline="false" chord="G7">I must </chord>
+        <chord backticks="1" baseline="false" chord="C">bide.</chord>
       </p>
     </verse>
     <verse label="1" label-type="chorus">
       <p>
-        <chord backticks="1" chord="G7">But come ye </chord>
-        <chord backticks="1" chord="Am">back when </chord>
-        <chord backticks="1" chord="F">summer’s </chord>
-        <chord backticks="1" chord="G7">in the </chord>
-        <chord backticks="1" chord="C">meadow</chord>
-        <br/>Or when the <chord backticks="1" chord="Am">valley’s </chord>
-        <chord backticks="1" chord="F">hushed and </chord>
-        <chord backticks="1" chord="Em">white with </chord>
-        <chord backticks="1" chord="D7">snow </chord>
-        <chord backticks="1" chord="G7">
+        <chord backticks="1" baseline="false" chord="G7">But come ye </chord>
+        <chord backticks="1" baseline="false" chord="Am">back when </chord>
+        <chord backticks="1" baseline="false" chord="F">summer’s </chord>
+        <chord backticks="1" baseline="false" chord="G7">in the </chord>
+        <chord backticks="1" baseline="false" chord="C">meadow</chord>
+        <br/>Or when the <chord backticks="1" baseline="false" chord="Am">valley’s </chord>
+        <chord backticks="1" baseline="false" chord="F">hushed and </chord>
+        <chord backticks="1" baseline="false" chord="Em">white with </chord>
+        <chord backticks="1" baseline="false" chord="D7">snow </chord>
+        <chord backticks="1" baseline="false" chord="G7">
         </chord>
-        <br/>‘Tis I’ll be <chord backticks="1" chord="C">here in </chord>
-        <chord backticks="1" chord="F">sunshine or in </chord>
-        <chord backticks="1" chord="C">sha</chord>
-        <chord backticks="1" chord="Am">dow.</chord>
-        <br/>Oh Danny <chord backticks="1" chord="C">Boy, oh Danny </chord>
-        <chord backticks="1" chord="F">Boy, I </chord>
-        <chord backticks="1" chord="G7">love you </chord>
-        <chord backticks="1" chord="C">so.</chord>
+        <br/>‘Tis I’ll be <chord backticks="1" baseline="false" chord="C">here in </chord>
+        <chord backticks="1" baseline="false" chord="F">sunshine or in </chord>
+        <chord backticks="1" baseline="false" chord="C">sha</chord>
+        <chord backticks="1" baseline="false" chord="Am">dow.</chord>
+        <br/>Oh Danny <chord backticks="1" baseline="false" chord="C">Boy, oh Danny </chord>
+        <chord backticks="1" baseline="false" chord="F">Boy, I </chord>
+        <chord backticks="1" baseline="false" chord="G7">love you </chord>
+        <chord backticks="1" baseline="false" chord="C">so.</chord>
       </p>
     </verse>
     <verse label="2" label-type="verse">
@@ -64,11 +65,11 @@
     <subtitle>U.S. Old-time</subtitle>
     <verse label="1" label-type="verse">
       <p>
-        <chord backticks="1" chord="G">I wish I was in London</chord>
-        <br/>Or some other seaport <chord backticks="1" chord="D">town</chord>
+        <chord backticks="1" baseline="false" chord="G">I wish I was in London</chord>
+        <br/>Or some other seaport <chord backticks="1" baseline="false" chord="D">town</chord>
         <br/>
-        <chord backticks="1" chord="D">I&apos;d step my foot on a steamboat</chord>
-        <br/>And sail the ocean <chord backticks="1" chord="G">round</chord>
+        <chord backticks="1" baseline="false" chord="D">I&apos;d step my foot on a steamboat</chord>
+        <br/>And sail the ocean <chord backticks="1" baseline="false" chord="G">round</chord>
       </p>
     </verse>
     <verse label="2" label-type="verse">
@@ -90,27 +91,27 @@
   <song notation="english" title="Whiskey in the Jar">
     <subtitle>Irish traditional</subtitle>
     <verse label="1" label-type="verse">
-      <p>As <chord backticks="1" chord="C">I was a goin&apos; over</chord>
-        <br/>The <chord backticks="1" chord="Am">far famed Kerry mountains</chord>
-        <br/>I <chord backticks="1" chord="F">met with Captain Farrell and his</chord>
+      <p>As <chord backticks="1" baseline="false" chord="C">I was a goin&apos; over</chord>
+        <br/>The <chord backticks="1" baseline="false" chord="Am">far famed Kerry mountains</chord>
+        <br/>I <chord backticks="1" baseline="false" chord="F">met with Captain Farrell and his</chord>
         <br/>
-        <chord backticks="1" chord="C">Money he was counting</chord>
+        <chord backticks="1" baseline="false" chord="C">Money he was counting</chord>
         <br/>
-        <chord backticks="1" chord="C">I first produced my pistol</chord>
-        <br/>And I <chord backticks="1" chord="Am"> then produced my rapier</chord>
-        <br/>Saying <chord backticks="1" chord="F"> &quot;Stand and deliver,</chord>
-        <br/>For <chord backticks="1" chord="C">you are a bold deceiver!&quot;</chord>
+        <chord backticks="1" baseline="false" chord="C">I first produced my pistol</chord>
+        <br/>And I <chord backticks="1" baseline="false" chord="Am"> then produced my rapier</chord>
+        <br/>Saying <chord backticks="1" baseline="false" chord="F"> &quot;Stand and deliver,</chord>
+        <br/>For <chord backticks="1" baseline="false" chord="C">you are a bold deceiver!&quot;</chord>
       </p>
     </verse>
     <verse label-type="chorus">
-      <p>Mush-a <chord backticks="1" chord="G">ring dum-a do dum-a da</chord>
+      <p>Mush-a <chord backticks="1" baseline="false" chord="G">ring dum-a do dum-a da</chord>
         <br/>
-        <chord backticks="1" chord="C">Whack for me daddy-o</chord>
+        <chord backticks="1" baseline="false" chord="C">Whack for me daddy-o</chord>
         <br/>
-        <chord backticks="1" chord="F">Whack for me daddy-o</chord>
-        <br/>There&apos;s <chord backticks="1" chord="C">whiskey </chord>
-        <chord backticks="1" chord="G">in the </chord>
-        <chord backticks="1" chord="C">jar</chord>
+        <chord backticks="1" baseline="false" chord="F">Whack for me daddy-o</chord>
+        <br/>There&apos;s <chord backticks="1" baseline="false" chord="C">whiskey </chord>
+        <chord backticks="1" baseline="false" chord="G">in the </chord>
+        <chord backticks="1" baseline="false" chord="C">jar</chord>
       </p>
     </verse>
     <verse label="2" label-type="verse">
@@ -135,34 +136,34 @@
   <song notation="english" title="Wild Mountain Thyme">
     <subtitle>Irish &amp; Scottish traditional</subtitle>
     <verse label="1" label-type="verse">
-      <p>O the <chord backticks="1" chord="G">summer </chord>
-        <chord backticks="1" chord="C">time </chord>
-        <chord backticks="1" chord="G">has come</chord>
-        <br/>And the <chord backticks="1" chord="C">trees are sweetly </chord>
-        <chord backticks="1" chord="G">bloomin&apos;</chord>
-        <br/>And the <chord backticks="1" chord="C">wild </chord>
-        <chord backticks="1" chord="G">mountain </chord>
-        <chord backticks="1" chord="Em">thyme</chord>
-        <br/>Grows <chord backticks="1" chord="C">around the </chord>
-        <chord backticks="1" chord="Am">bloomin&apos; </chord>
-        <chord backticks="1" chord="C">heather</chord>
-        <br/>Will ye <chord backticks="1" chord="G">go </chord>
-        <chord backticks="1" chord="C">lassie </chord>
-        <chord backticks="1" chord="G">go?</chord>
+      <p>O the <chord backticks="1" baseline="false" chord="G">summer </chord>
+        <chord backticks="1" baseline="false" chord="C">time </chord>
+        <chord backticks="1" baseline="false" chord="G">has come</chord>
+        <br/>And the <chord backticks="1" baseline="false" chord="C">trees are sweetly </chord>
+        <chord backticks="1" baseline="false" chord="G">bloomin&apos;</chord>
+        <br/>And the <chord backticks="1" baseline="false" chord="C">wild </chord>
+        <chord backticks="1" baseline="false" chord="G">mountain </chord>
+        <chord backticks="1" baseline="false" chord="Em">thyme</chord>
+        <br/>Grows <chord backticks="1" baseline="false" chord="C">around the </chord>
+        <chord backticks="1" baseline="false" chord="Am">bloomin&apos; </chord>
+        <chord backticks="1" baseline="false" chord="C">heather</chord>
+        <br/>Will ye <chord backticks="1" baseline="false" chord="G">go </chord>
+        <chord backticks="1" baseline="false" chord="C">lassie </chord>
+        <chord backticks="1" baseline="false" chord="G">go?</chord>
       </p>
     </verse>
     <verse label-type="chorus">
-      <p>And we&apos;ll <chord backticks="1" chord="C">all go </chord>
-        <chord backticks="1" chord="G">together to pull </chord>
-        <chord backticks="1" chord="C">wild </chord>
-        <chord backticks="1" chord="G">mountain </chord>
-        <chord backticks="1" chord="Em">thyme</chord>
-        <br/>All <chord backticks="1" chord="C">around the </chord>
-        <chord backticks="1" chord="Am">bloomin&apos; </chord>
-        <chord backticks="1" chord="C">heather, will ye </chord>
-        <chord backticks="1" chord="G">go </chord>
-        <chord backticks="1" chord="C">lassie </chord>
-        <chord backticks="1" chord="G">go?</chord>
+      <p>And we&apos;ll <chord backticks="1" baseline="false" chord="C">all go </chord>
+        <chord backticks="1" baseline="false" chord="G">together to pull </chord>
+        <chord backticks="1" baseline="false" chord="C">wild </chord>
+        <chord backticks="1" baseline="false" chord="G">mountain </chord>
+        <chord backticks="1" baseline="false" chord="Em">thyme</chord>
+        <br/>All <chord backticks="1" baseline="false" chord="C">around the </chord>
+        <chord backticks="1" baseline="false" chord="Am">bloomin&apos; </chord>
+        <chord backticks="1" baseline="false" chord="C">heather, will ye </chord>
+        <chord backticks="1" baseline="false" chord="G">go </chord>
+        <chord backticks="1" baseline="false" chord="C">lassie </chord>
+        <chord backticks="1" baseline="false" chord="G">go?</chord>
       </p>
     </verse>
     <verse label="2" label-type="verse">
@@ -179,8 +180,16 @@
       </p>
     </verse>
   </song>
-  <output-meta>
-  </output-meta>
+  <!-- these are references to <song> elements in alphabetically-sorted order: -->
+  <songs-sorted>
+    <song-ref idx="0" title="Danny Boy"/>
+    <song-ref idx="1" title="Handsome Molly"/>
+    <song-ref idx="2" title="Whiskey in the Jar"/>
+    <song-ref idx="3" title="Wild Mountain Thyme"/>
+  </songs-sorted>
+  <!-- this is the extra fields in the [[output]] section in bard.toml: -->
+  <output>
+  </output>
   <program>
     <name>bard</name>
     <version>1.3.0</version>
@@ -188,4 +197,4 @@
     <homepage>https://github.com/vojtechkral/bard</homepage>
     <authors>Vojtech Kral &lt;vojtech@kral.pm&gt;</authors>
   </program>
-</book>
+</songbook>

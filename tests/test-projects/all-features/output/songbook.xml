@@ -1,11 +1,12 @@
-<book notation="german">
-  <metadata>
+<songbook notation="german">
+  <!-- this is the [book] section in bard.toml: -->
+  <book>
     <chorus_label>Ch</chorus_label>
     <front_img>pipe.jpg</front_img>
     <subtitle>Exercising all features</subtitle>
     <title>Test Songbook</title>
     <title_note>Hopefully all features</title_note>
-  </metadata>
+  </book>
   <song notation="german" title="Danny Boy">
     <subtitle>English ballad</subtitle>
     <subtitle>Subtitle 2</subtitle>
@@ -14,56 +15,56 @@
     </verse>
     <verse label="1" label-type="verse">
       <p>
-        <chord alt-chord="I7" backticks="1" chord="A7">Oh <strong>Danny</strong> </chord>
-        <chord alt-chord="IV" backticks="1" chord="D">Boy, the <emph>pipes</emph>, the </chord>
-        <chord alt-chord="IV7" backticks="2" chord="D7">pipes are </chord>
-        <chord alt-chord="VIIb" backticks="1" chord="G">calling</chord>
-        <br/>From <link title="" url="https://en.wikipedia.org/wiki/Glen">glen</link> to <chord alt-chord="IV" backticks="1" chord="D">glen, and </chord>
-        <chord alt-chord="VIm" backticks="1" chord="F#m">down the </chord>
-        <chord alt-chord="VIIb" backticks="1" chord="G">mountain </chord>
-        <chord alt-chord="I7" backticks="1" chord="A7">side</chord>
-        <br/>The summer’s <chord alt-chord="IV" backticks="1" chord="D">gone, and all the </chord>
-        <chord alt-chord="IV7" backticks="2" chord="D7">flowers are </chord>
-        <chord alt-chord="VIIb" backticks="1" chord="G">dying</chord>
+        <chord alt-chord="I7" backticks="1" baseline="false" chord="A7">Oh <strong>Danny</strong> </chord>
+        <chord alt-chord="IV" backticks="1" baseline="false" chord="D">Boy, the <emph>pipes</emph>, the </chord>
+        <chord alt-chord="IV7" backticks="2" baseline="false" chord="D7">pipes are </chord>
+        <chord alt-chord="VIIb" backticks="1" baseline="false" chord="G">calling</chord>
+        <br/>From <link title="" url="https://en.wikipedia.org/wiki/Glen">glen</link> to <chord alt-chord="IV" backticks="1" baseline="false" chord="D">glen, and </chord>
+        <chord alt-chord="VIm" backticks="1" baseline="false" chord="F#m">down the </chord>
+        <chord alt-chord="VIIb" backticks="1" baseline="false" chord="G">mountain </chord>
+        <chord alt-chord="I7" backticks="1" baseline="false" chord="A7">side</chord>
+        <br/>The summer’s <chord alt-chord="IV" backticks="1" baseline="false" chord="D">gone, and all the </chord>
+        <chord alt-chord="IV7" backticks="2" baseline="false" chord="D7">flowers are </chord>
+        <chord alt-chord="VIIb" backticks="1" baseline="false" chord="G">dying</chord>
         <br/>
         <emph>‘Tis you, <strong>’tis </strong>
         </emph>
-        <chord alt-chord="IV" backticks="1" chord="D">
+        <chord alt-chord="IV" backticks="1" baseline="false" chord="D">
           <emph>
             <strong>you must</strong> </emph>
         </chord>
-        <chord alt-chord="Vm" backticks="1" chord="Em">
+        <chord alt-chord="Vm" backticks="1" baseline="false" chord="Em">
           <emph>go and </emph>
         </chord>
-        <chord alt-chord="I7" backticks="1" chord="A7">
+        <chord alt-chord="I7" backticks="1" baseline="false" chord="A7">
           <emph>I must </emph>
         </chord>
-        <chord alt-chord="IV" backticks="1" chord="D">
+        <chord alt-chord="IV" backticks="1" baseline="false" chord="D">
           <emph>bide.</emph>
         </chord>
       </p>
     </verse>
     <verse label="1" label-type="chorus">
       <p>
-        <chord backticks="1" chord="6b7">But come ye </chord>
-        <chord backticks="1" chord="7bm">back when </chord>
-        <chord backticks="1" chord="4#">summer’s </chord>
-        <chord backticks="1" chord="6b7">in the </chord>
-        <chord backticks="1" chord="1#">meadow</chord>
-        <br/>Or when the <chord backticks="1" chord="7bm">valley’s </chord>
-        <chord backticks="1" chord="4#">hushed and </chord>
-        <chord backticks="1" chord="4m">white with </chord>
-        <chord backticks="1" chord="3b7">snow </chord>
-        <chord backticks="1" chord="6b7">
+        <chord backticks="1" baseline="false" chord="6b7">But come ye </chord>
+        <chord backticks="1" baseline="false" chord="7bm">back when </chord>
+        <chord backticks="1" baseline="false" chord="4#">summer’s </chord>
+        <chord backticks="1" baseline="false" chord="6b7">in the </chord>
+        <chord backticks="1" baseline="false" chord="1#">meadow</chord>
+        <br/>Or when the <chord backticks="1" baseline="false" chord="7bm">valley’s </chord>
+        <chord backticks="1" baseline="false" chord="4#">hushed and </chord>
+        <chord backticks="1" baseline="false" chord="4m">white with </chord>
+        <chord backticks="1" baseline="false" chord="3b7">snow </chord>
+        <chord backticks="1" baseline="false" chord="6b7">
         </chord>
-        <br/>‘Tis I’ll be <chord backticks="1" chord="1#">here in </chord>
-        <chord backticks="1" chord="4#">sunshine or in </chord>
-        <chord backticks="1" chord="1#">sha</chord>
-        <chord backticks="1" chord="7bm">dow.</chord>
-        <br/>Oh Danny <chord backticks="1" chord="1#">Boy, oh Danny </chord>
-        <chord backticks="1" chord="4#">Boy, I </chord>
-        <chord backticks="1" chord="6b7">love you </chord>
-        <chord backticks="1" chord="1#">so.</chord>
+        <br/>‘Tis I’ll be <chord backticks="1" baseline="false" chord="1#">here in </chord>
+        <chord backticks="1" baseline="false" chord="4#">sunshine or in </chord>
+        <chord backticks="1" baseline="false" chord="1#">sha</chord>
+        <chord backticks="1" baseline="false" chord="7bm">dow.</chord>
+        <br/>Oh Danny <chord backticks="1" baseline="false" chord="1#">Boy, oh Danny </chord>
+        <chord backticks="1" baseline="false" chord="4#">Boy, I </chord>
+        <chord backticks="1" baseline="false" chord="6b7">love you </chord>
+        <chord backticks="1" baseline="false" chord="1#">so.</chord>
       </p>
     </verse>
     <verse label="Second verse" label-type="custom">
@@ -88,41 +89,50 @@
   <song notation="german" title="Wildcard 1">
     <verse label-type="chorus">
       <p>
-        <chord backticks="1" chord="Am">Yippie yea </chord>
-        <chord backticks="1" chord="C">oh! Yippie yea </chord>
-        <chord backticks="1" chord="Am">yay!</chord>
+        <chord backticks="1" baseline="false" chord="Am">Yippie yea </chord>
+        <chord backticks="1" baseline="false" chord="C">oh! Yippie yea </chord>
+        <chord backticks="1" baseline="false" chord="Am">yay!</chord>
       </p>
     </verse>
   </song>
   <song notation="german" title="Wildcard 2">
     <verse label="1" label-type="verse">
       <p>
-        <chord backticks="1" chord="Am">Yippie yea </chord>
-        <chord backticks="1" chord="C">oh! Yippie yea </chord>
-        <chord backticks="1" chord="Am">yay!</chord>
+        <chord backticks="1" baseline="false" chord="Am">Yippie yea </chord>
+        <chord backticks="1" baseline="false" chord="C">oh! Yippie yea </chord>
+        <chord backticks="1" baseline="false" chord="Am">yay!</chord>
       </p>
     </verse>
   </song>
   <song notation="german" title="Multiple Songs 1">
     <verse label="1" label-type="verse">
       <p>
-        <chord backticks="1" chord="Am">Yippie yea </chord>
-        <chord backticks="1" chord="C">oh! Yippie yea </chord>
-        <chord backticks="1" chord="Am">yay!</chord>
+        <chord backticks="1" baseline="false" chord="Am">Yippie yea </chord>
+        <chord backticks="1" baseline="false" chord="C">oh! Yippie yea </chord>
+        <chord backticks="1" baseline="false" chord="Am">yay!</chord>
       </p>
     </verse>
   </song>
   <song notation="german" title="Multiple Songs 2">
     <verse label="1" label-type="verse">
       <p>
-        <chord backticks="1" chord="Am">Yippie yea </chord>
-        <chord backticks="1" chord="C">oh! Yippie yea </chord>
-        <chord backticks="1" chord="Am">yay!</chord>
+        <chord backticks="1" baseline="false" chord="Am">Yippie yea </chord>
+        <chord backticks="1" baseline="false" chord="C">oh! Yippie yea </chord>
+        <chord backticks="1" baseline="false" chord="Am">yay!</chord>
       </p>
     </verse>
   </song>
-  <output-meta>
-  </output-meta>
+  <!-- these are references to <song> elements in alphabetically-sorted order: -->
+  <songs-sorted>
+    <song-ref idx="0" title="Danny Boy"/>
+    <song-ref idx="3" title="Multiple Songs 1"/>
+    <song-ref idx="4" title="Multiple Songs 2"/>
+    <song-ref idx="1" title="Wildcard 1"/>
+    <song-ref idx="2" title="Wildcard 2"/>
+  </songs-sorted>
+  <!-- this is the extra fields in the [[output]] section in bard.toml: -->
+  <output>
+  </output>
   <program>
     <name>bard</name>
     <version>1.3.0</version>
@@ -130,4 +140,4 @@
     <homepage>https://github.com/vojtechkral/bard</homepage>
     <authors>Vojtech Kral &lt;vojtech@kral.pm&gt;</authors>
   </program>
-</book>
+</songbook>
