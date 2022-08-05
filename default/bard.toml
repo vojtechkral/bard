@@ -6,10 +6,12 @@ notation = "english"
 
 [[output]]
 file = "songbook.tex"
+sans_font = false
 process = "latexmk -xelatex -interaction=nonstopmode {{file}}"
 
 [[output]]
 file = "songbook.html"
+sans_font = false
 
 [book]
 title = "My Songbook"

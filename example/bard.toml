@@ -10,11 +10,13 @@ notation = "english"
 
 [[output]]
 file = "songbook.tex"
+sans_font = false
 dpi = 144
 process = "latexmk -xelatex -interaction=nonstopmode {{file}}"
 
 [[output]]
 file = "songbook.html"
+sans_font = false
 
 [[output]]
 file = "songbook.hovorka.xml"
