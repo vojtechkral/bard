@@ -26,24 +26,19 @@ use postprocess::{CmdSpec, PostProcessCtx};
 mod output;
 pub use output::Output;
 
-pub const PROJECT_FILE: &str = "bard.toml";
-pub const DIR_SONGS: &str = "songs";
-pub const DIR_TEMPLATES: &str = "templates";
-pub const DIR_OUTPUT: &str = "output";
-
 const CHORUS_LABEL_KEY: &str = "chorus_label";
 const CHORUS_LABEL_DEFAULT: &str = "Ch";
 
 fn dir_songs() -> PathBuf {
-    DIR_SONGS.to_string().into()
+    "songs".into()
 }
 
 fn dir_templates() -> PathBuf {
-    DIR_TEMPLATES.to_string().into()
+    "templates".into()
 }
 
 fn dir_output() -> PathBuf {
-    DIR_OUTPUT.to_string().into()
+    "output".into()
 }
 
 pub type Metadata = BTreeMap<Box<str>, Value>;
@@ -142,8 +137,7 @@ impl Project {
         let cwd = cwd.as_ref();
         let (project_file, project_dir) = Self::find_in_parents(cwd).ok_or_else(|| {
             anyhow!(
-                "Could not find {} in current or parent directories\nCurrent directory: '{}'",
-                PROJECT_FILE,
+                "Could not find bard.toml file in current or parent directories\nCurrent directory: '{}'",
                 cwd
             )
         })?;
@@ -176,7 +170,7 @@ impl Project {
 
         let mut parent = start_dir;
         loop {
-            let project_file = parent.join(PROJECT_FILE);
+            let project_file = parent.join("bard.toml");
             if project_file.exists() {
                 return Some((project_file, parent.into()));
             }

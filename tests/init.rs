@@ -6,7 +6,13 @@ pub use util::*;
 
 #[test]
 fn init_and_build() {
-    let _build = Builder::init_and_build("init").unwrap();
+    let _build = Builder::init_and_build("init", &OPTS_NO_PS).unwrap();
+}
+
+#[test]
+#[ignore = "requires TeX distribution due to post-processing"]
+fn init_and_build_postprocess() {
+    let _build = Builder::init_and_build("init-postprocess", &OPTS_PS).unwrap();
 }
 
 #[test]

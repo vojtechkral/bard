@@ -2,15 +2,47 @@ use std::fs;
 use std::path::MAIN_SEPARATOR;
 
 use camino::{Utf8Path as Path, Utf8PathBuf as PathBuf};
-use lazy_static::lazy_static;
 
 use crate::error::*;
-use crate::project::{DIR_SONGS, PROJECT_FILE};
 use crate::util::PathBufExt as _;
 
 /// A filesystem node, either a file (with content), or a directory.
 #[derive(Debug)]
 enum Node {
+    File {
+        path: &'static str,
+        content: &'static [u8],
+    },
+    Dir {
+        path: &'static str,
+    },
+}
+
+impl Node {
+    const fn dir(path: &'static str) -> Self {
+        Self::Dir { path }
+    }
+
+    fn path_buf(&self) -> PathBuf {
+        match self {
+            Self::File { path, .. } => path,
+            Self::Dir { path } => path,
+        }
+        .replace('/', &String::from(MAIN_SEPARATOR))
+        .into() // MAIN_SEPARATOR_STR isn't stable :-|
+    }
+
+    fn resolve(&self, base: &Path) -> NodeResolved {
+        let mut path = self.path_buf();
+        path.resolve(base);
+        match self {
+            Self::File { content, .. } => NodeResolved::File { path, content },
+            Self::Dir { .. } => NodeResolved::Dir { path },
+        }
+    }
+}
+
+enum NodeResolved {
     File {
         path: PathBuf,
         content: &'static [u8],
@@ -20,38 +52,11 @@ enum Node {
     },
 }
 
-impl Node {
-    fn file(path: impl Into<PathBuf>, content: &'static str) -> Self {
-        Self::File {
-            path: path.into(),
-            content: content.as_bytes(),
-        }
-    }
-
-    fn dir(path: impl Into<PathBuf>) -> Self {
-        Self::Dir { path: path.into() }
-    }
-
+impl NodeResolved {
     fn path(&self) -> &Path {
         match self {
-            Self::File { path, .. } => path,
-            Self::Dir { path } => path,
-        }
-    }
-
-    fn exists(&self) -> bool {
-        self.path().exists()
-    }
-
-    fn resolved(&self, base: &Path) -> Self {
-        match self {
-            Self::File { path, content } => Self::File {
-                path: path.clone().resolved(base),
-                content,
-            },
-            Self::Dir { path } => Self::Dir {
-                path: path.clone().resolved(base),
-            },
+            Self::File { path, .. } => path.as_ref(),
+            Self::Dir { path } => path.as_ref(),
         }
     }
 
@@ -74,50 +79,63 @@ impl Node {
     }
 }
 
+macro_rules! node_file {
+    ($path:literal) => {
+        Node::File {
+            path: $path,
+            content: include_bytes!(concat!("../default/", $path)),
+        }
+    };
+}
+
 #[derive(Debug)]
 pub struct DefaultProject {
-    nodes: Vec<Node>,
+    nodes: &'static [Node],
 }
 
 impl DefaultProject {
-    fn new() -> Self {
-        let nodes = vec![
-            // Project file:
-            Node::file(PROJECT_FILE, include_str!("../default/bard.toml")),
-            // Song:
-            Node::file(
-                format!("{}{}yippie.md", DIR_SONGS, MAIN_SEPARATOR),
-                include_str!("../default/songs/yippie.md"),
-            ),
-            // Output dir:
-            Node::dir("output"),
-        ];
-
-        Self { nodes }
-    }
-
     pub fn resolve(&self, project_dir: &Path) -> DefaultProjectResolved {
-        let nodes = self.nodes.iter().map(|f| f.resolved(project_dir)).collect();
-
-        DefaultProjectResolved(Self { nodes })
-    }
-
-    fn any_exists(&self) -> Option<&Node> {
-        self.nodes.iter().find(|&f| f.exists())
+        let nodes = self.nodes.iter().map(|n| n.resolve(project_dir)).collect();
+        DefaultProjectResolved { nodes }
     }
 }
 
-pub struct DefaultProjectResolved(DefaultProject);
+pub const DEFAULT_PROJECT: DefaultProject = DefaultProject {
+    nodes: &[
+        // Project file:
+        node_file!("bard.toml"),
+        // Song:
+        node_file!("songs/yippie.md"),
+        // Output dir:
+        Node::dir("output"),
+        // Fonts:
+        Node::dir("output/fonts"),
+        node_file!("output/fonts/DroidSerif-Regular.ttf"),
+        node_file!("output/fonts/DroidSerif-BoldItalic.ttf"),
+        node_file!("output/fonts/DroidSerif-Bold.ttf"),
+        node_file!("output/fonts/DroidSerif-Italic.ttf"),
+        node_file!("output/fonts/DroidSerif-Regular.ttf"),
+        node_file!("output/fonts/fonts.css"),
+        node_file!("output/fonts/fonts.tex"),
+        node_file!("output/fonts/NotoSans-BoldItalic.ttf"),
+        node_file!("output/fonts/NotoSans-Bold.ttf"),
+        node_file!("output/fonts/NotoSans-Italic.ttf"),
+        node_file!("output/fonts/NotoSans-Regular.ttf"),
+    ],
+};
+
+pub struct DefaultProjectResolved {
+    nodes: Vec<NodeResolved>,
+}
 
 impl DefaultProjectResolved {
     pub fn create(self) -> Result<()> {
-        let project = self.0;
-
-        if let Some(existing) = project.any_exists() {
+        let existing = self.nodes.iter().find(|n| n.path().exists());
+        if let Some(existing) = existing {
             bail!("File already exists: '{}'", existing.path());
         }
 
-        for node in &project.nodes[..] {
+        for node in &self.nodes[..] {
             node.create()?;
         }
 
@@ -125,20 +143,16 @@ impl DefaultProjectResolved {
     }
 
     pub fn files(&self) -> impl Iterator<Item = &Path> {
-        self.0.nodes.iter().filter_map(|node| match node {
-            Node::File { path, .. } => Some(path.as_path()),
-            Node::Dir { .. } => None,
+        self.nodes.iter().filter_map(|node| match node {
+            NodeResolved::File { path, .. } => Some(path.as_path()),
+            NodeResolved::Dir { .. } => None,
         })
     }
 
     pub fn dirs(&self) -> impl Iterator<Item = &Path> {
-        self.0.nodes.iter().filter_map(|node| match node {
-            Node::Dir { path } => Some(path.as_path()),
-            Node::File { .. } => None,
+        self.nodes.iter().filter_map(|node| match node {
+            NodeResolved::Dir { path } => Some(path.as_path()),
+            NodeResolved::File { .. } => None,
         })
     }
-}
-
-lazy_static! {
-    pub static ref DEFAULT_PROJECT: DefaultProject = DefaultProject::new();
 }

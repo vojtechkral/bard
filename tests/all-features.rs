@@ -2,7 +2,7 @@ mod util;
 pub use util::*;
 
 #[test]
-#[ignore = "requires LaTeX due to post-processing"]
+#[ignore = "requires TeX distribution due to post-processing"]
 fn project_all_features() {
     let build =
         Builder::build_opts(TEST_PROJECTS / "all-features", "all-features", &OPTS_PS).unwrap();

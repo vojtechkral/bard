@@ -1,0 +1,45 @@
+/* This CSS is linked by the generated HTML file for font settings. */
+
+/* Droid Serif */
+@font-face {
+    font-family: 'DroidSerif';
+    src: url('DroidSerif-Regular.ttf')  format('truetype');
+}
+@font-face {
+    font-family: 'DroidSerif';
+    font-weight: bold;
+    src: url('DroidSerif-Bold.ttf')  format('truetype');
+}
+@font-face {
+    font-family: 'DroidSerif';
+    font-style: italic;
+    src: url('DroidSerif-Italic.ttf')  format('truetype');
+}
+@font-face {
+    font-family: 'DroidSerif';
+    font-weight: bold;
+    font-style: italic;
+    src: url('DroidSerif-BoldItalic.ttf')  format('truetype');
+}
+
+/* Noto Sans */
+@font-face {
+    font-family: 'NotoSans';
+    src: url('NotoSans-Regular.ttf')  format('truetype');
+}
+@font-face {
+    font-family: 'NotoSans';
+    font-weight: bold;
+    src: url('NotoSans-Bold.ttf')  format('truetype');
+}
+@font-face {
+    font-family: 'NotoSans';
+    font-style: italic;
+    src: url('NotoSans-Italic.ttf')  format('truetype');
+}
+@font-face {
+    font-family: 'NotoSans';
+    font-weight: bold;
+    font-style: italic;
+    src: url('NotoSans-BoldItalic.ttf')  format('truetype');
+}

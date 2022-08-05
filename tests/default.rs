@@ -11,8 +11,20 @@ fn project_default() {
 }
 
 #[test]
+#[ignore = "requires TeX distribution due to post-processing"]
+fn project_default_postproess() {
+    let _build = Builder::build_opts(ROOT / "default", "default-postprocess", &OPTS_PS).unwrap();
+}
+
+#[test]
 fn project_example() {
     let _build = Builder::build(ROOT / "example").unwrap();
+}
+
+#[test]
+#[ignore = "requires TeX distribution due to post-processing"]
+fn project_example_postproess() {
+    let _build = Builder::build_opts(ROOT / "example", "example-postprocess", &OPTS_PS).unwrap();
 }
 
 #[test]

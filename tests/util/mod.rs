@@ -130,7 +130,7 @@ impl Builder {
         })
     }
 
-    pub fn init_and_build(name: &str) -> Result<Self> {
+    pub fn init_and_build(name: &str, opts: &MakeOpts) -> Result<Self> {
         cli::use_stderr(true);
 
         let work_dir = Self::work_dir(name.as_ref(), true)?;
@@ -138,7 +138,7 @@ impl Builder {
             .with_context(|| format!("Could create directory: `{}`", work_dir))?;
 
         bard::bard_init_at(&work_dir).context("Failed to initialize")?;
-        let project = bard::bard_make_at(&OPTS_NO_PS, &work_dir)?;
+        let project = bard::bard_make_at(opts, &work_dir)?;
 
         Ok(Self {
             project,
