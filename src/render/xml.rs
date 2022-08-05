@@ -1,22 +1,23 @@
 //! XML Renderer.
 //!
-//! This module defines `RXml` and also defines how AST from `book` is serialized into XML.
+//! This module defines `RXml` and how AST from `book` is serialized into XML.
 
 use std::fs::File;
 use std::io::Write;
 
 use super::Render;
 use crate::book::{
-    Block, BulletList, Chord, ChorusRef, HtmlTag, Image, Inline, Link, Song, Verse, VerseLabel,
+    Block, BulletList, Chord, ChorusRef, HtmlTag, Image, Inline, Link, Song, SongRef, Verse,
+    VerseLabel,
 };
 use crate::error::*;
-use crate::project::{Output, Project};
+use crate::project::{BookSection, Output, Project};
 use crate::render::RenderContext;
 use crate::ProgramMeta;
 
-mod support;
+mod xml_support;
 use crate::xml_write;
-use support::*;
+use xml_support::*;
 
 xml_write!(struct Chord {
     chord,
@@ -159,6 +160,25 @@ xml_write!(struct ProgramMeta {
         .field(authors)?
 });
 
+xml_write!(struct BookSection {
+    chorus_label,
+    metadata,
+} -> |w| {
+    w.tag("book")
+        .content()?
+        .field(chorus_label)?
+        .value(metadata)?
+});
+
+xml_write!(struct SongRef {
+    title,
+    idx,
+} -> |w| {
+    w.tag("song-ref")
+        .attr(title)
+        .attr(idx)
+});
+
 xml_write!(struct RenderContext<'a> {
     book,
     songs,
@@ -167,13 +187,16 @@ xml_write!(struct RenderContext<'a> {
     output,
     program,
 } -> |w| {
-    w.tag("book")
+    w.tag("songbook")
         .attr(notation)
         .content()?
-        .value_wrap("metadata", book)?
+        .comment("this is the [book] section in bard.toml:")?
+        .value(book)?
         .many(songs)?
-        .skip(songs_sorted)
-        .value_wrap("output-meta", output)?
+        .comment("these are references to <song> elements in alphabetically-sorted order:")?
+        .value_wrap("songs-sorted", songs_sorted)?
+        .comment("this is the extra fields in the [[output]] section in bard.toml:")?
+        .value_wrap("output", output)?
         .value(program)?
 });
 

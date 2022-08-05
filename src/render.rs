@@ -4,7 +4,7 @@ use serde::Serialize;
 
 use crate::book::{Song, SongRef};
 use crate::music::Notation;
-use crate::project::{Format, Metadata, Output, Project};
+use crate::project::{BookSection, Format, Metadata, Output, Project};
 use crate::{ProgramMeta, PROGRAM_META};
 
 pub mod json;
@@ -17,7 +17,7 @@ pub use self::xml::RXml;
 
 #[derive(Serialize, Debug)]
 pub struct RenderContext<'a> {
-    book: &'a Metadata,
+    book: &'a BookSection,
     songs: &'a [Song],
     songs_sorted: &'a [SongRef],
     notation: Notation,
@@ -28,7 +28,7 @@ pub struct RenderContext<'a> {
 impl<'a> RenderContext<'a> {
     fn new(project: &'a Project, output: &'a Output) -> Self {
         RenderContext {
-            book: project.metadata(),
+            book: project.book_section(),
             songs: project.songs(),
             songs_sorted: project.songs_sorted(),
             notation: project.settings.notation,

@@ -7,6 +7,7 @@ use std::str;
 use camino::{Utf8Path as Path, Utf8PathBuf as PathBuf};
 use handlebars::Handlebars;
 use serde::Deserialize;
+use serde::Serialize;
 
 use crate::book::AST_VERSION;
 use crate::book::{Book, Song, SongRef};
@@ -26,9 +27,6 @@ use postprocess::{CmdSpec, PostProcessCtx};
 mod output;
 pub use output::Output;
 
-const CHORUS_LABEL_KEY: &str = "chorus_label";
-const CHORUS_LABEL_DEFAULT: &str = "Ch";
-
 fn dir_songs() -> PathBuf {
     "songs".into()
 }
@@ -39,6 +37,10 @@ fn dir_templates() -> PathBuf {
 
 fn dir_output() -> PathBuf {
     "output".into()
+}
+
+fn default_chorus_label() -> String {
+    "Ch".into()
 }
 
 pub type Metadata = BTreeMap<Box<str>, Value>;
@@ -66,6 +68,15 @@ impl Default for Format {
     }
 }
 
+#[derive(Serialize, Deserialize, Debug)]
+pub struct BookSection {
+    #[serde(default = "default_chorus_label")]
+    pub chorus_label: String,
+
+    #[serde(flatten)]
+    pub metadata: Metadata,
+}
+
 #[derive(Deserialize, Debug)]
 pub struct Settings {
     #[serde(default = "dir_songs")]
@@ -81,8 +92,7 @@ pub struct Settings {
     #[serde(default)]
     pub notation: Notation,
 
-    #[serde(rename = "book")]
-    pub metadata: Metadata,
+    pub book: BookSection,
 }
 
 impl Settings {
@@ -94,13 +104,6 @@ impl Settings {
             .with_context(|| format!("Could not parse project file '{}'", path))?;
 
         settings.resolve(project_dir)?;
-
-        if !settings.metadata.contains_key(CHORUS_LABEL_KEY) {
-            settings
-                .metadata
-                .insert(CHORUS_LABEL_KEY.into(), CHORUS_LABEL_DEFAULT.into());
-        }
-
         Ok(settings)
     }
 
@@ -193,8 +196,8 @@ impl Project {
             .finalize()
     }
 
-    pub fn metadata(&self) -> &Metadata {
-        &self.settings.metadata
+    pub fn book_section(&self) -> &BookSection {
+        &self.settings.book
     }
 
     pub fn songs(&self) -> &[Song] {

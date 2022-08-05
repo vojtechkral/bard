@@ -7,36 +7,57 @@
 
 use std::fmt::Display;
 use std::fs::File;
+use std::io;
 
 use quick_xml::events::attributes::Attribute;
 use quick_xml::events::{BytesEnd, BytesStart, BytesText, Event};
 use quick_xml::Result as XmlResult;
 
-pub type Writer = quick_xml::Writer<File>;
+pub type Writer<W = File> = quick_xml::Writer<W>;
 
 type Map<K, V> = std::collections::BTreeMap<K, V>;
 
 pub trait XmlWrite {
-    fn write(&self, writer: &mut Writer) -> XmlResult<()>;
+    fn write<W>(&self, writer: &mut Writer<W>) -> XmlResult<()>
+    where
+        W: io::Write;
 }
 
 impl<'a, T> XmlWrite for &'a T
 where
-    T: XmlWrite,
+    T: XmlWrite + ?Sized,
 {
-    fn write(&self, writer: &mut Writer) -> XmlResult<()> {
+    fn write<W>(&self, writer: &mut Writer<W>) -> XmlResult<()>
+    where
+        W: io::Write,
+    {
         XmlWrite::write(*self, writer)
     }
 }
 
 impl<'a> XmlWrite for &'a str {
-    fn write(&self, mut writer: &mut Writer) -> XmlResult<()> {
+    fn write<W>(&self, mut writer: &mut Writer<W>) -> XmlResult<()>
+    where
+        W: io::Write,
+    {
         writer.write_text(self)
     }
 }
 
 impl XmlWrite for Box<str> {
-    fn write(&self, mut writer: &mut Writer) -> XmlResult<()> {
+    fn write<W>(&self, mut writer: &mut Writer<W>) -> XmlResult<()>
+    where
+        W: io::Write,
+    {
+        writer.write_text(self)
+    }
+}
+
+impl XmlWrite for String {
+    fn write<W>(&self, mut writer: &mut Writer<W>) -> XmlResult<()>
+    where
+        W: io::Write,
+    {
         writer.write_text(self)
     }
 }
@@ -45,7 +66,10 @@ impl<I> XmlWrite for [I]
 where
     I: XmlWrite,
 {
-    fn write(&self, writer: &mut Writer) -> XmlResult<()> {
+    fn write<W>(&self, writer: &mut Writer<W>) -> XmlResult<()>
+    where
+        W: io::Write,
+    {
         for item in self.iter() {
             XmlWrite::write(item, writer)?;
         }
@@ -57,7 +81,10 @@ impl<I> XmlWrite for Box<[I]>
 where
     I: XmlWrite,
 {
-    fn write(&self, writer: &mut Writer) -> XmlResult<()> {
+    fn write<W>(&self, writer: &mut Writer<W>) -> XmlResult<()>
+    where
+        W: io::Write,
+    {
         XmlWrite::write(&**self, writer)
     }
 }
@@ -67,7 +94,10 @@ where
     K: AsRef<str>,
     V: XmlWrite,
 {
-    fn write(&self, writer: &mut Writer) -> XmlResult<()> {
+    fn write<W>(&self, writer: &mut Writer<W>) -> XmlResult<()>
+    where
+        W: io::Write,
+    {
         for (k, v) in self.iter() {
             writer.tag(k.as_ref()).content()?.value(v)?.finish()?;
         }
@@ -76,7 +106,10 @@ where
 }
 
 impl XmlWrite for toml::Value {
-    fn write(&self, mut w: &mut Writer) -> XmlResult<()> {
+    fn write<W>(&self, mut w: &mut Writer<W>) -> XmlResult<()>
+    where
+        W: io::Write,
+    {
         use toml::Value::*;
 
         match self {
@@ -156,18 +189,27 @@ impl<T> XmlWrite for Field<T>
 where
     T: XmlWrite,
 {
-    fn write(&self, writer: &mut Writer) -> XmlResult<()> {
+    fn write<W>(&self, writer: &mut Writer<W>) -> XmlResult<()>
+    where
+        W: io::Write,
+    {
         XmlWrite::write(&self.value, writer)
     }
 }
 
-pub struct TagBuilder<'w> {
-    writer: &'w mut Writer,
+pub struct TagBuilder<'w, W = File>
+where
+    W: io::Write,
+{
+    writer: &'w mut Writer<W>,
     name: String,
     attrs: Map<String, String>,
 }
 
-impl<'w> TagBuilder<'w> {
+impl<'w, W> TagBuilder<'w, W>
+where
+    W: io::Write,
+{
     pub fn attr(mut self, attr: impl Into<Attr>) -> Self {
         let Attr(name, value) = attr.into();
         self.attrs.insert(name, value);
@@ -182,7 +224,7 @@ impl<'w> TagBuilder<'w> {
         }
     }
 
-    pub fn content(self) -> XmlResult<ContentBuilder<'w>> {
+    pub fn content(self) -> XmlResult<ContentBuilder<'w, W>> {
         let name = self.name.as_bytes();
         let attrs = self
             .attrs
@@ -197,7 +239,7 @@ impl<'w> TagBuilder<'w> {
         })
     }
 
-    /// Creates and `<empty/>` tag.
+    /// Creates an `<empty/>` tag.
     pub fn finish(self) -> XmlResult<()> {
         let name = self.name.as_bytes();
         let attrs = self
@@ -209,12 +251,18 @@ impl<'w> TagBuilder<'w> {
     }
 }
 
-pub struct ContentBuilder<'w> {
-    writer: &'w mut Writer,
+pub struct ContentBuilder<'w, W = File>
+where
+    W: io::Write,
+{
+    writer: &'w mut Writer<W>,
     parent_name: String,
 }
 
-impl<'w> ContentBuilder<'w> {
+impl<'w, W> ContentBuilder<'w, W>
+where
+    W: io::Write,
+{
     pub fn value(mut self, value: impl XmlWrite) -> XmlResult<Self> {
         self.writer.write_value(&value)?;
         Ok(self)
@@ -271,9 +319,13 @@ impl<'w> ContentBuilder<'w> {
         Ok(self)
     }
 
-    /// Just for convenience and visiblity.
-    pub fn skip<T>(self, _: T) -> Self {
-        self
+    pub fn comment(self, comment: impl AsRef<str>) -> XmlResult<Self> {
+        let mut comment = comment.as_ref().replace("--", "- "); // extra space so that we don't get "--" out of "----"
+        comment.insert(0, ' ');
+        comment.push(' ');
+        let comment = BytesText::from_escaped_str(comment);
+        self.writer.write_event(Event::Comment(comment))?;
+        Ok(self)
     }
 
     pub fn finish(self) -> XmlResult<()> {
@@ -284,14 +336,20 @@ impl<'w> ContentBuilder<'w> {
     }
 }
 
-pub trait WriterExt<'w> {
-    fn tag(self, name: &str) -> TagBuilder<'w>;
+pub trait WriterExt<'w, W = File>
+where
+    W: io::Write,
+{
+    fn tag(self, name: &str) -> TagBuilder<'w, W>;
     fn write_value(&mut self, value: &impl XmlWrite) -> XmlResult<()>;
     fn write_text(&mut self, text: &impl Display) -> XmlResult<()>;
 }
 
-impl<'w> WriterExt<'w> for &'w mut Writer {
-    fn tag(self, name: &str) -> TagBuilder<'w> {
+impl<'w, W> WriterExt<'w, W> for &'w mut Writer<W>
+where
+    W: io::Write,
+{
+    fn tag(self, name: &str) -> TagBuilder<'w, W> {
         TagBuilder {
             writer: self,
             name: name.to_string(),
@@ -313,7 +371,10 @@ impl<'w> WriterExt<'w> for &'w mut Writer {
 macro_rules! xml_write {
     (struct $ty:ident $(<$life:lifetime>)? { $($field:ident ,)+ } -> |$writer:ident| $block:block) => {
         impl $(<$life>)? XmlWrite for $ty $(<$life>)? {
-            fn write(&self, $writer: &mut Writer) -> quick_xml::Result<()> {
+            fn write<W>(&self, $writer: &mut Writer<W>) -> quick_xml::Result<()>
+            where
+                W: ::std::io::Write
+            {
                 let $ty { $($field,)+ } = self;
                 $( let $field = Field::new(stringify!($field), $field); )+
                 $block.finish()
@@ -323,7 +384,10 @@ macro_rules! xml_write {
 
     (enum $ty:ident |$writer:ident| { $($var:pat => $block:block ,)+ } ) => {
         impl XmlWrite for $ty {
-            fn write(&self, mut $writer: &mut Writer) -> quick_xml::Result<()> {
+            fn write<W>(&self, mut $writer: &mut Writer<W>) -> quick_xml::Result<()>
+            where
+                W: ::std::io::Write
+            {
                 use $ty::*;
                 match self {
                     $($var => { $block })+
@@ -333,4 +397,30 @@ macro_rules! xml_write {
             }
         }
     };
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn xml_comment() {
+        let buffer = vec![];
+        let mut writer = Writer::new(buffer);
+
+        writer
+            .tag("test")
+            .content()
+            .unwrap()
+            .comment("double dashes are illegal -- ---- -------- xml is pretty weird")
+            .unwrap()
+            .finish()
+            .unwrap();
+
+        let buffer = writer.into_inner();
+        let xml = String::from_utf8(buffer).unwrap();
+        let xml = xml.replace("!--", "").replace("-->", "");
+        assert!(xml.contains("double dashes are illegal"));
+        assert!(!xml.contains("--"));
+    }
 }
