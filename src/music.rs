@@ -4,8 +4,6 @@ use std::str::FromStr;
 
 use serde::{Deserialize, Serialize};
 
-pub type Time = (u32, u32);
-
 #[derive(Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Debug)]
 #[serde(rename_all = "lowercase")]
 /// Musical note notation convention
@@ -241,33 +239,30 @@ impl Chromatic {
         Self::parse_span(from, notation).map(|(chromatic, _)| chromatic)
     }
 
-    fn as_string_western(&self, german: bool, uppercase: bool) -> String {
-        let res = match self.0 {
-            0 => "C",
-            1 => "C#",
-            2 => "D",
-            3 => "Eb",
-            4 => "E",
-            5 => "F",
-            6 => "F#",
-            7 => "G",
-            8 => "Ab",
-            9 => "A",
-            10 if german => "B",
-            10 if !german => "Bb",
-            11 if german => "H",
-            11 if !german => "B",
-            _ => unreachable!(),
-        };
+    fn as_str_western(&self, german: bool, uppercase: bool) -> &'static str {
+        const TONES_UPPER: &[&str] = &[
+            "C", "C#", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B",
+        ];
+        const TONES_UPPER_G: &[&str] = &[
+            "C", "C#", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "B", "H",
+        ];
+        const TONES_LOWER: &[&str] = &[
+            "c", "c#", "d", "eb", "e", "f", "f#", "g", "ab", "a", "bb", "b",
+        ];
+        const TONES_LOWER_G: &[&str] = &[
+            "c", "c#", "d", "eb", "e", "f", "f#", "g", "ab", "a", "b", "h",
+        ];
 
-        if uppercase {
-            res.into()
-        } else {
-            res.to_lowercase()
+        let i = self.0 as usize;
+        match (german, uppercase) {
+            (false, true) => TONES_UPPER[i],
+            (true, true) => TONES_UPPER_G[i],
+            (false, false) => TONES_LOWER[i],
+            (true, false) => TONES_LOWER_G[i],
         }
     }
 
-    fn as_string_nashville(&self) -> String {
+    fn as_str_nashville(&self) -> &'static str {
         match self.0 {
             0 => "1",
             1 => "1#",
@@ -283,40 +278,31 @@ impl Chromatic {
             11 => "7",
             _ => unreachable!(),
         }
-        .into()
     }
 
-    fn as_string_roman(&self, uppercase: bool) -> String {
-        let res = match self.0 {
-            0 => "I",
-            1 => "I#",
-            2 => "II",
-            3 => "IIIb",
-            4 => "III",
-            5 => "IV",
-            6 => "IV#",
-            7 => "V",
-            8 => "VIb",
-            9 => "VI",
-            10 => "VIIb",
-            11 => "VII",
-            _ => unreachable!(),
-        };
+    fn as_str_roman(&self, uppercase: bool) -> &'static str {
+        const TONES_UPPER: &[&str] = &[
+            "I", "I#", "II", "IIIb", "III", "IV", "IV#", "V", "VIb", "VI", "VIIb", "VII",
+        ];
+        const TONES_LOWER: &[&str] = &[
+            "i", "i#", "ii", "iiib", "iii", "iv", "iv#", "v", "vib", "vi", "viib", "vii",
+        ];
 
+        let i = self.0 as usize;
         if uppercase {
-            res.into()
+            TONES_UPPER[i]
         } else {
-            res.to_lowercase()
+            TONES_LOWER[i]
         }
     }
 
-    pub fn as_string(&self, notation: Notation, uppercase: bool) -> String {
+    fn as_str(&self, notation: Notation, uppercase: bool) -> &'static str {
         use self::Notation::*;
         match notation {
-            English => self.as_string_western(false, uppercase),
-            German => self.as_string_western(true, uppercase),
-            Nashville => self.as_string_nashville(),
-            Roman => self.as_string_roman(uppercase),
+            English => self.as_str_western(false, uppercase),
+            German => self.as_str_western(true, uppercase),
+            Nashville => self.as_str_nashville(),
+            Roman => self.as_str_roman(uppercase),
         }
     }
 
@@ -330,140 +316,134 @@ impl Chromatic {
 
 impl fmt::Display for Chromatic {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self.as_string(Notation::English, true))
+        write!(f, "{}", self.as_str(Notation::English, true))
     }
 }
 
-#[derive(Clone, Debug)]
-pub struct Chord {
+#[derive(Debug)]
+struct Chord<'s> {
     base: Chromatic,
     uppercase: bool,
-    suffix: String,
-    /// Linked-list of more chords, used for slash chords etc.:
-    next: Option<Box<Chord>>,
+    suffix: &'s str,
 }
 
-impl Chord {
-    fn is_separator(c: char) -> bool {
-        match c {
-            '/' | ',' | '\\' | '|' => true,
-            c if c.is_whitespace() => true,
-            _ => false,
+impl<'s> Chord<'s> {
+    fn parse(src: &'s str, notation: Notation) -> Result<Self, &'s str> {
+        let (base, base_size) = Chromatic::parse_span(src, notation).ok_or(src)?;
+
+        Ok(Self {
+            base,
+            uppercase: src.chars().next().unwrap().is_uppercase(),
+            suffix: &src[base_size..],
+        })
+    }
+
+    fn transposed(self, by: impl Into<Chromatic>) -> Self {
+        Self {
+            base: self.base.transposed(by),
+            uppercase: self.uppercase,
+            suffix: self.suffix,
         }
     }
 
-    /// Parse one chord from the input, return the `Chord` and its size (in
-    /// bytes) til separator position (if any). Returns `None` if the chord
-    /// can't be parsed.
-    fn parse_one(from: &str, notation: Notation) -> Option<(Chord, usize)> {
-        if from.is_empty() {
+    fn str_len(&self, notation: Notation) -> usize {
+        self.base.as_str(notation, self.uppercase).len() + self.suffix.len()
+    }
+
+    fn write_string(&self, mut to: String, notation: Notation) -> String {
+        let base = self.base.as_str(notation, self.uppercase);
+        to.push_str(base);
+        to.push_str(self.suffix);
+        to
+    }
+}
+
+fn is_chord_separator(c: char) -> bool {
+    match c {
+        '/' | ',' | '\\' | '|' => true,
+        c if c.is_whitespace() => true,
+        _ => false,
+    }
+}
+
+#[derive(Debug)]
+struct ChordIter<'s> {
+    rest: &'s str,
+    notation: Notation,
+}
+
+impl<'s> ChordIter<'s> {
+    fn new(src: &'s str, src_notation: Notation) -> Self {
+        Self {
+            rest: src,
+            notation: src_notation,
+        }
+    }
+}
+
+impl<'s> Iterator for ChordIter<'s> {
+    type Item = Result<Chord<'s>, &'s str>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.rest.is_empty() {
             return None;
         }
 
-        let (base, base_size) = Chromatic::parse_span(from, notation)?;
-        let first_char = from.chars().next().unwrap();
-        let uppercase = first_char.is_uppercase() || first_char.is_numeric();
-
-        let mut sep_found = false;
-        let len = from.len();
-        let end = from[base_size..]
-            .char_indices()
-            .find(|(_, c)| {
-                let is_sep = Self::is_separator(*c);
-                if !is_sep && sep_found {
-                    return true;
+        let mut split_found = false;
+        // Find split such that multiple consecutive split chars are all
+        // added as suffix to its preceiding chord.
+        let split = self
+            .rest
+            .find(|c| {
+                if !split_found {
+                    split_found = is_chord_separator(c);
+                    false
+                } else {
+                    !is_chord_separator(c)
                 }
-                sep_found = is_sep;
-                false
             })
-            .map(|(idx, _)| idx + base_size)
-            .unwrap_or(len);
+            .unwrap_or(self.rest.len());
 
-        let chord = Chord {
-            base,
-            uppercase,
-            suffix: from.get(base_size..end).unwrap_or("").into(),
-            next: None,
-        };
+        let (next, rest) = self.rest.split_at(split);
+        self.rest = rest;
 
-        Some((chord, end))
-    }
-
-    fn append(&mut self, chord: Self) {
-        let mut this = self;
-        while this.next.is_some() {
-            this = this.next.as_mut().unwrap();
-        }
-
-        this.next = Some(Box::new(chord));
-    }
-
-    pub fn parse(from: &str, notation: Notation) -> Option<Chord> {
-        let (mut first, mut index) = Self::parse_one(from, notation)?;
-
-        while index < from.len() {
-            let next = Self::parse_one(&from[index..], notation)?;
-            index += next.1;
-            first.append(next.0);
-        }
-
-        Some(first)
-    }
-
-    fn as_string_inner(&self, res: &mut String, notation: Notation) {
-        let base = self.base.as_string(notation, self.uppercase);
-        res.push_str(&base);
-        res.push_str(&self.suffix);
-    }
-
-    pub fn as_string(&self, notation: Notation) -> String {
-        // Try to target the typical case:
-        let mut res = String::with_capacity(self.suffix.len() + 5);
-
-        let mut this = self;
-        this.as_string_inner(&mut res, notation);
-        while let Some(next) = this.next.as_ref() {
-            this = next;
-            this.as_string_inner(&mut res, notation);
-        }
-
-        res
-    }
-
-    pub fn transpose<C>(&mut self, by: C)
-    where
-        C: Into<Chromatic>,
-    {
-        let by = by.into();
-
-        let mut this = self;
-        this.base += by;
-        while this.next.is_some() {
-            this = this.next.as_mut().unwrap();
-            this.base += by;
-        }
-    }
-
-    pub fn transposed<C>(&self, by: C) -> Chord
-    where
-        C: Into<Chromatic>,
-    {
-        let by = by.into();
-        let mut res = self.clone();
-        res.transpose(by);
-        res
+        Some(Chord::parse(next, self.notation))
     }
 }
 
-impl fmt::Display for Chord {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self.as_string(Notation::English))
+pub fn transpose(
+    chord_set: &str,
+    by: impl Into<Chromatic>,
+    src_notation: Notation,
+    to_notation: Notation,
+) -> Result<String, &str> {
+    let by = by.into();
+
+    // Split the leading prefix, if any, from the chord set
+    let prefix_at = chord_set
+        .find(|c: char| !is_chord_separator(c))
+        .unwrap_or(0);
+    let (prefix, rest) = chord_set.split_at(prefix_at);
+
+    // Compute the resulting string's length
+    let mut transposed_len = prefix.len();
+    for chord in ChordIter::new(rest, src_notation) {
+        transposed_len += chord?.transposed(by).str_len(to_notation);
     }
+
+    // Render the resulting string
+    let mut res = String::with_capacity(transposed_len);
+    res.push_str(prefix);
+    Ok(ChordIter::new(rest, src_notation).fold(res, |res, chord| {
+        chord.unwrap().transposed(by).write_string(res, to_notation)
+    }))
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    use Notation::*;
 
     #[test]
     fn notation_parse() {
@@ -475,14 +455,7 @@ mod tests {
             "nashville",
             "roman",
         ];
-        let expected = vec![
-            Notation::English,
-            Notation::English,
-            Notation::English,
-            Notation::German,
-            Notation::Nashville,
-            Notation::Roman,
-        ];
+        let expected = vec![English, English, English, German, Nashville, Roman];
 
         // Test from_str:
         let parsed: Vec<_> = names
@@ -512,146 +485,166 @@ mod tests {
 
     #[test]
     fn chromatic_basic() {
-        let c = Chromatic::parse("C", Notation::English).unwrap();
+        let c = Chromatic::parse("C", English).unwrap();
         assert_eq!(format!("{}", c), "C");
 
-        assert_eq!(Chromatic::parse("", Notation::English), None);
-        assert_eq!(Chromatic::parse("", Notation::German), None);
-        assert_eq!(Chromatic::parse("", Notation::Nashville), None);
-        assert_eq!(Chromatic::parse("", Notation::Roman), None);
+        assert_eq!(Chromatic::parse("", English), None);
+        assert_eq!(Chromatic::parse("", German), None);
+        assert_eq!(Chromatic::parse("", Nashville), None);
+        assert_eq!(Chromatic::parse("", Roman), None);
     }
 
     #[test]
     fn chromatic_transposition() {
         let c: Chromatic = 0.into();
         let transposed = c.transposed(-1);
-        assert_eq!(transposed.as_string(Notation::German, false), "h");
+        assert_eq!(transposed.as_str(German, false), "h");
 
         let transposed = c.transposed(3);
-        assert_eq!(transposed.as_string(Notation::German, true), "Eb");
+        assert_eq!(transposed.as_str(German, true), "Eb");
     }
 
     #[test]
     fn chromatic_english() {
         let c: Chromatic = 0.into();
         let fsharp: Chromatic = 6.into();
-        assert_eq!(Chromatic::parse("C", Notation::English).unwrap(), c);
-        assert_eq!(Chromatic::parse("F#", Notation::English).unwrap(), fsharp);
-        assert_eq!(Chromatic::parse("F♯", Notation::English).unwrap(), fsharp);
-        assert_eq!(Chromatic::parse("Gb", Notation::English).unwrap(), fsharp);
-        assert_eq!(Chromatic::parse("G♭", Notation::English).unwrap(), fsharp);
-        assert_eq!(Chromatic::parse("X", Notation::English), None);
+        assert_eq!(Chromatic::parse("C", English).unwrap(), c);
+        assert_eq!(Chromatic::parse("F#", English).unwrap(), fsharp);
+        assert_eq!(Chromatic::parse("F♯", English).unwrap(), fsharp);
+        assert_eq!(Chromatic::parse("Gb", English).unwrap(), fsharp);
+        assert_eq!(Chromatic::parse("G♭", English).unwrap(), fsharp);
+        assert_eq!(Chromatic::parse("X", English), None);
     }
 
     #[test]
     fn chromatic_german() {
         let c: Chromatic = 0.into();
         let fsharp: Chromatic = 6.into();
-        assert_eq!(Chromatic::parse("C", Notation::German).unwrap(), c);
+        assert_eq!(Chromatic::parse("C", German).unwrap(), c);
         assert_eq!(
-            Chromatic::parse("H", Notation::German).unwrap(),
-            Chromatic::parse("B", Notation::English).unwrap()
+            Chromatic::parse("H", German).unwrap(),
+            Chromatic::parse("B", English).unwrap()
         );
         assert_eq!(
-            Chromatic::parse("B", Notation::German).unwrap(),
-            Chromatic::parse("Bb", Notation::English).unwrap()
+            Chromatic::parse("B", German).unwrap(),
+            Chromatic::parse("Bb", English).unwrap()
         );
-        assert_eq!(Chromatic::parse("F#", Notation::German).unwrap(), fsharp);
-        assert_eq!(Chromatic::parse("F♯", Notation::German).unwrap(), fsharp);
-        assert_eq!(Chromatic::parse("Gb", Notation::German).unwrap(), fsharp);
-        assert_eq!(Chromatic::parse("G♭", Notation::German).unwrap(), fsharp);
-        assert_eq!(Chromatic::parse("X", Notation::German), None);
+        assert_eq!(Chromatic::parse("F#", German).unwrap(), fsharp);
+        assert_eq!(Chromatic::parse("F♯", German).unwrap(), fsharp);
+        assert_eq!(Chromatic::parse("Gb", German).unwrap(), fsharp);
+        assert_eq!(Chromatic::parse("G♭", German).unwrap(), fsharp);
+        assert_eq!(Chromatic::parse("X", German), None);
     }
 
     #[test]
     fn chromatic_nashville() {
         let c: Chromatic = 0.into();
         let fsharp: Chromatic = 6.into();
-        assert_eq!(Chromatic::parse("1", Notation::Nashville).unwrap(), c);
+        assert_eq!(Chromatic::parse("1", Nashville).unwrap(), c);
         assert_eq!(
-            Chromatic::parse("2", Notation::Nashville).unwrap(),
-            Chromatic::parse("D", Notation::German).unwrap()
+            Chromatic::parse("2", Nashville).unwrap(),
+            Chromatic::parse("D", German).unwrap()
         );
-        assert_eq!(Chromatic::parse("4#", Notation::Nashville).unwrap(), fsharp);
-        assert_eq!(Chromatic::parse("4♯", Notation::Nashville).unwrap(), fsharp);
-        assert_eq!(Chromatic::parse("5b", Notation::Nashville).unwrap(), fsharp);
-        assert_eq!(Chromatic::parse("5♭", Notation::Nashville).unwrap(), fsharp);
-        assert_eq!(Chromatic::parse("0", Notation::Nashville), None);
-        assert_eq!(Chromatic::parse("8", Notation::Nashville), None);
-        assert_eq!(Chromatic::parse("X", Notation::Nashville), None);
+        assert_eq!(Chromatic::parse("4#", Nashville).unwrap(), fsharp);
+        assert_eq!(Chromatic::parse("4♯", Nashville).unwrap(), fsharp);
+        assert_eq!(Chromatic::parse("5b", Nashville).unwrap(), fsharp);
+        assert_eq!(Chromatic::parse("5♭", Nashville).unwrap(), fsharp);
+        assert_eq!(Chromatic::parse("0", Nashville), None);
+        assert_eq!(Chromatic::parse("8", Nashville), None);
+        assert_eq!(Chromatic::parse("X", Nashville), None);
     }
 
     #[test]
     fn chromatic_roman() {
         let c: Chromatic = 0.into();
         let fsharp: Chromatic = 6.into();
-        assert_eq!(Chromatic::parse("I", Notation::Roman).unwrap(), c);
+        assert_eq!(Chromatic::parse("I", Roman).unwrap(), c);
         assert_eq!(
-            Chromatic::parse("II", Notation::Roman).unwrap(),
-            Chromatic::parse("D", Notation::German).unwrap()
+            Chromatic::parse("II", Roman).unwrap(),
+            Chromatic::parse("D", German).unwrap()
         );
-        assert_eq!(Chromatic::parse("IV#", Notation::Roman).unwrap(), fsharp);
-        assert_eq!(Chromatic::parse("IV♯", Notation::Roman).unwrap(), fsharp);
-        assert_eq!(Chromatic::parse("Vb", Notation::Roman).unwrap(), fsharp);
-        assert_eq!(Chromatic::parse("V♭", Notation::Roman).unwrap(), fsharp);
-        assert_eq!(Chromatic::parse("C", Notation::Roman), None);
-        assert_eq!(Chromatic::parse("X", Notation::Roman), None);
+        assert_eq!(Chromatic::parse("IV#", Roman).unwrap(), fsharp);
+        assert_eq!(Chromatic::parse("IV♯", Roman).unwrap(), fsharp);
+        assert_eq!(Chromatic::parse("Vb", Roman).unwrap(), fsharp);
+        assert_eq!(Chromatic::parse("V♭", Roman).unwrap(), fsharp);
+        assert_eq!(Chromatic::parse("C", Roman), None);
+        assert_eq!(Chromatic::parse("X", Roman), None);
     }
 
     #[test]
     fn chromatic_span() {
-        assert_eq!(Chromatic::parse_span("A", Notation::English).unwrap().1, 1);
-        assert_eq!(Chromatic::parse_span("D#", Notation::English).unwrap().1, 2);
-        assert_eq!(Chromatic::parse_span("H#", Notation::German).unwrap().1, 2);
-        assert_eq!(
-            Chromatic::parse_span("1#", Notation::Nashville).unwrap().1,
-            2
-        );
+        assert_eq!(Chromatic::parse_span("A", English).unwrap().1, 1);
+        assert_eq!(Chromatic::parse_span("D#", English).unwrap().1, 2);
+        assert_eq!(Chromatic::parse_span("H#", German).unwrap().1, 2);
+        assert_eq!(Chromatic::parse_span("1#", Nashville).unwrap().1, 2);
     }
 
     #[test]
-    fn chord_basic() {
-        let chord = Chord::parse("C", Notation::English).unwrap();
-        assert_eq!(format!("{}", chord), "C");
+    fn transpose_basic() {
+        let t = transpose("C", 2, English, English).unwrap();
+        assert_eq!(t, "D");
     }
 
     #[test]
-    fn chord_notations() {
-        let chord = Chord::parse("bb", Notation::English).unwrap();
-        assert_eq!(chord.as_string(Notation::German), "b");
+    fn transpose_multiple() {
+        let t = transpose("C/D,E", 2, English, English).unwrap();
+        assert_eq!(t, "D/E,F#");
 
-        let chord = Chord::parse("F#mi", Notation::English).unwrap();
-        assert_eq!(format!("{}", chord), "F#mi");
-
-        let chord = Chord::parse("1°", Notation::Nashville).unwrap();
-        assert_eq!(format!("{}", chord), "C°");
-        assert_eq!(chord.as_string(Notation::Nashville), "1°");
-
-        let chord = Chord::parse("ivm", Notation::Roman).unwrap();
-        assert_eq!(format!("{}", chord), "fm");
-        assert_eq!(chord.as_string(Notation::Roman), "ivm");
-
-        // Slash chords:
-        let chord = Chord::parse("B / A", Notation::German).unwrap();
-        assert_eq!(chord.as_string(Notation::English), "Bb / A");
-
-        let chord = Chord::parse("I/IV7/V°", Notation::Roman).unwrap();
-        assert_eq!(chord.as_string(Notation::English), "C/F7/G°");
+        let t = transpose("C / D , E", 2, English, English).unwrap();
+        assert_eq!(t, "D / E , F#");
     }
 
     #[test]
-    fn chord_transposition() {
-        let chord = Chord::parse("F#mi", Notation::English).unwrap();
-        let transposed = chord.transposed(1);
-        assert_eq!(format!("{}", transposed), "Gmi");
+    fn transpose_suffixes() {
+        let t = transpose("Cm/D°,Emaj7", 2, English, English).unwrap();
+        assert_eq!(t, "Dm/E°,F#maj7");
+    }
 
-        // Slash chords:
-        let chord = Chord::parse("F / C", Notation::English).unwrap();
-        let transposed = chord.transposed(1);
-        assert_eq!(format!("{}", transposed), "F# / C#");
+    #[test]
+    fn transpose_multiple_separators() {
+        let t = transpose("C/|\\/D,,   ,,E,,,", 2, English, English).unwrap();
+        assert_eq!(t, "D/|\\/E,,   ,,F#,,,");
+    }
 
-        let chord = Chord::parse("I,IV7|V°", Notation::Roman).unwrap();
-        let transposed = chord.transposed(14);
-        assert_eq!(format!("{}", transposed), "D,G7|A°");
+    #[test]
+    fn transpose_leading_separators() {
+        let t = transpose(",C", 2, English, English).unwrap();
+        assert_eq!(t, ",D");
+    }
+
+    #[test]
+    fn transpose_whitespace() {
+        let t = transpose("   /C  ", 2, English, English).unwrap();
+        assert_eq!(t, "   /D  ");
+    }
+
+    #[test]
+    fn transpose_german() {
+        let t = transpose("H/B", 0, German, English).unwrap();
+        assert_eq!(t, "B/Bb");
+    }
+
+    #[test]
+    fn transpose_roman() {
+        let t = transpose("C/D,E", 5, English, Roman).unwrap();
+        assert_eq!(t, "IV/V,VI");
+
+        let t = transpose("C/D,E", 5, English, Roman).unwrap();
+        assert_eq!(t, "IV/V,VI");
+    }
+
+    #[test]
+    fn transpose_nashville() {
+        let t = transpose("I/II,III", 0, Roman, Nashville).unwrap();
+        assert_eq!(t, "1/2,3");
+    }
+
+    #[test]
+    fn transpose_lowercase() {
+        let t = transpose("c", 2, English, Roman).unwrap();
+        assert_eq!(t, "ii");
+
+        let t = transpose("c,d,e,", 2, English, Roman).unwrap();
+        assert_eq!(t, "ii,iii,iv#,");
     }
 }

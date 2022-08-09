@@ -449,18 +449,18 @@ impl ChordBuilder {
         }
 
         let src_nt = xp.src_notation;
-        let chord = music::Chord::parse(&self.chord, src_nt).ok_or_else(|| self.chord.clone())?;
+
+        // alt_xpose needs to be done first, because self.chord may be overwritten
+        if xp.alt_xpose.is_some() || xp.alt_notation.is_some() {
+            let delta = xp.alt_xpose.unwrap_or(0);
+            let to_nt = xp.alt_notation.unwrap_or(src_nt);
+            self.alt_chord = Some(music::transpose(&self.chord, delta, src_nt, to_nt)?.into());
+        }
 
         if xp.xpose.is_some() || xp.notation.is_some() {
             let delta = xp.xpose.unwrap_or(0);
-            let notation = xp.notation.unwrap_or(src_nt);
-            self.chord = chord.transposed(delta).as_string(notation).into();
-        }
-
-        if xp.alt_xpose.is_some() || xp.alt_notation.is_some() {
-            let delta = xp.alt_xpose.unwrap_or(0);
-            let notation = xp.alt_notation.unwrap_or(src_nt);
-            self.alt_chord = Some(chord.transposed(delta).as_string(notation).into());
+            let to_nt = xp.notation.unwrap_or(src_nt);
+            self.chord = music::transpose(&self.chord, delta, src_nt, to_nt)?.into();
         }
 
         Ok(())
