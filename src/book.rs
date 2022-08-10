@@ -14,7 +14,7 @@ use crate::parser::{Parser, ParserConfig};
 use crate::project::Settings;
 use crate::util::{sort_lexical_by, BStr};
 
-pub const AST_VERSION: Version = Version::new(1, 0, 0);
+pub const AST_VERSION: Version = Version::new(1, 1, 0);
 
 #[derive(Serialize, Debug)]
 #[serde(tag = "type")]
@@ -158,6 +158,7 @@ pub struct Chord {
     pub chord: BStr,
     pub alt_chord: Option<BStr>,
     pub backticks: usize,
+    pub baseline: bool,
     pub inlines: Box<[Inline]>,
 }
 
@@ -166,12 +167,14 @@ impl Chord {
         chord: BStr,
         alt_chord: Option<BStr>,
         backticks: usize,
+        baseline: bool,
         inlines: Vec<Inline>,
     ) -> Self {
         Self {
             chord,
             alt_chord,
             backticks,
+            baseline,
             inlines: inlines.into(),
         }
     }

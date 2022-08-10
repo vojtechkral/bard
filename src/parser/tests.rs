@@ -126,18 +126,49 @@ fn i_break() -> Json {
     json!({ "type": "i-break" })
 }
 
+trait TestChordInlines {
+    fn baseline(&self) -> bool;
+    fn inlines(self) -> Vec<Json>;
+}
+
+impl<T> TestChordInlines for T
+where
+    T: IntoIterator<Item = Json>,
+{
+    fn baseline(&self) -> bool {
+        false
+    }
+
+    fn inlines(self) -> Vec<Json> {
+        self.into_iter().collect()
+    }
+}
+
+struct Baseline;
+
+impl TestChordInlines for Baseline {
+    fn baseline(&self) -> bool {
+        true
+    }
+
+    fn inlines(self) -> Vec<Json> {
+        vec![]
+    }
+}
+
 fn i_chord(
     chord: &str,
     alt_chord: impl Serialize,
     backticks: u32,
-    inlines: impl IntoIterator<Item = Json>,
+    inlines: impl TestChordInlines,
 ) -> Json {
     json!({
         "type": "i-chord",
         "chord": chord,
         "alt_chord": alt_chord,
         "backticks": backticks,
-        "inlines": inlines.into_iter().collect::<Vec<_>>(),
+        "baseline": inlines.baseline(),
+        "inlines": inlines.inlines(),
     })
 }
 
@@ -374,7 +405,7 @@ fn parse_chords() {
     let input = r#"
 # Song
 1. Sailing round `G`the ocean,
-Sailing round the ```D```sea.
+Sailing round the ``` D ```sea.
 "#;
     parse_one_para(input).assert_json_eq(json!([
         i_text("Sailing round "),
@@ -382,6 +413,25 @@ Sailing round the ```D```sea.
         i_break(),
         i_text("Sailing round the "),
         i_chord("D", Null, 3, [i_text("sea.")]),
+    ]));
+}
+
+#[test]
+fn parse_chords_baseline() {
+    let input = r#"
+# Song
+1. `D_` abc `_D` `  G_  ` `   _D_G_  ` `  __ __ C_D __ __  `
+"#;
+    parse_one_para(input).assert_json_eq(json!([
+        i_chord("D", Null, 1, Baseline),
+        i_text(" abc "),
+        i_chord("D", Null, 1, Baseline),
+        i_text(" "),
+        i_chord(" G ", Null, 1, Baseline),
+        i_text(" "),
+        i_chord("  D G ", Null, 1, Baseline),
+        i_text(" "),
+        i_chord("   C D   ", Null, 1, Baseline),
     ]));
 }
 

@@ -23,12 +23,14 @@ xml_write!(struct Chord {
     chord,
     alt_chord,
     backticks,
+    baseline,
     inlines,
 } -> |w| {
     w.tag("chord")
         .attr(chord)
         .attr_opt("alt-chord", alt_chord.unwrap())
         .attr(backticks)
+        .attr(baseline)
         .content()?
         .many(inlines)?
 });

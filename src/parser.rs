@@ -426,17 +426,60 @@ struct ChordBuilder {
     chord: BStr,
     alt_chord: Option<BStr>,
     backticks: usize,
+    baseline: bool,
     inlines: Vec<Inline>,
 }
 
 impl ChordBuilder {
     fn new(code: &NodeCode) -> Self {
+        let (chord, baseline) = Self::preprocess_chord_set(&code.literal);
+
         Self {
-            chord: code.literal.as_bstr(),
+            chord,
             alt_chord: None,
             backticks: code.num_backticks,
+            baseline,
             inlines: vec![],
         }
+    }
+
+    /// Converts a chord set from bytes from the MD parser to a string,
+    /// filtering/replacing underscores as needed. The bool result indicates
+    /// whether there was an underscore (ie. whether this is a baseline chord).
+    fn preprocess_chord_set(src: &[u8]) -> (BStr, bool) {
+        let src = String::from_utf8_lossy(src);
+        let baseline = src.contains('_');
+        let mut res = String::with_capacity(src.len());
+
+        // Find prefix and suffix parts, which consist of only whitespace or underscores:
+        let prefix_end = src
+            .find(|c: char| !c.is_whitespace() && c != '_')
+            .unwrap_or(src.len());
+        let suffix_start = src
+            .char_indices()
+            .rev()
+            .take_while(|(_, c)| c.is_whitespace() || *c == '_')
+            .last()
+            .map(|(i, _)| i)
+            .unwrap_or(src.len());
+
+        // Copy all three parts into resulting string.
+        // In the prefix and suffix, omit underscores entirely,
+        // in the middle part, replace them with spaces:
+        src[0..prefix_end]
+            .chars()
+            .filter(|&c| c != '_')
+            .for_each(|c| res.push(c));
+        src[prefix_end..suffix_start]
+            .chars()
+            .map(|c| if c == '_' { ' ' } else { c })
+            .for_each(|c| res.push(c));
+        src[suffix_start..]
+            .chars()
+            .filter(|&c| c != '_')
+            .for_each(|c| res.push(c));
+
+        (res.into(), baseline)
     }
 
     fn inlines_mut(&mut self) -> &mut Vec<Inline> {
@@ -467,7 +510,13 @@ impl ChordBuilder {
     }
 
     fn finalize(self, inlines: &mut Vec<Inline>) {
-        let chord = Chord::new(self.chord, self.alt_chord, self.backticks, self.inlines);
+        let chord = Chord::new(
+            self.chord,
+            self.alt_chord,
+            self.backticks,
+            self.baseline,
+            self.inlines,
+        );
         inlines.push(Inline::Chord(chord));
     }
 }
@@ -627,7 +676,13 @@ impl<'a> VerseBuilder<'a> {
                         .transpose(&self.xp)
                         .map_err(|chord| Error::transposition(self.src_file, c, chord))?;
                 }
-                cb = Some(new_cb);
+
+                if new_cb.baseline {
+                    // Baseline chords don't take any inlines, finalize right away...
+                    new_cb.finalize(&mut para);
+                } else {
+                    cb = Some(new_cb);
+                }
             } else if c.ends_chord() {
                 if let Some(cb) = cb.take() {
                     cb.finalize(&mut para);
