@@ -91,22 +91,20 @@
 
       ul.blocks {
         list-style-type: none;
-        padding-left: 1em;
-      }
-
-      ul.blocks li::before {
-        display: inline-block;
-        min-width: 0.5em;
-        content: attr(data-label);
-        font-weight: bold;
-        font-size: 0.9em;
-        margin-right: 0.5em;
+        padding-left: 3em;
       }
 
       ul.blocks li {
-        padding-left: 1em;
-        text-indent: -1em;
         margin: 1em 0;
+      }
+
+      ul.blocks .label {
+        margin: 0 0.5em 0 -3em;
+        display: inline-block;
+        min-width: 2.5em;
+        text-align: center;
+        font-weight: bold;
+        font-size: 0.9em;
       }
 
       /* Chords, done with inline tables */
@@ -175,7 +173,8 @@
 {{!-- HB inlines: Block types --}}
 
 {{#*inline "b-verse"}}
-  <li data-label="{{>verse-label label}}">
+  <li>
+    <span class="label">{{>verse-label label}}</span>
     {{~#each paragraphs~}}
       {{#unless @first}}<br><br>{{/unless~}}
       {{#each this}}{{> (lookup this "type") }}{{/each}}
