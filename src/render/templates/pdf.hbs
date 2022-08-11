@@ -101,7 +101,7 @@
 \newlength\verse@labelsep
 \newlength\verse@vskip
 \AtBeginDocument{% setting AtBeginDocument since earlier we can't rely on em being correct
-  \verse@indent=8mm
+  \verse@indent=9mm
   \verse@labelsep=1mm
   \verse@vskip=\smallskipamount
 }
@@ -113,7 +113,7 @@
     \ifdim\wd0>\dimexpr\verse@indent-\verse@labelsep\relax
       \usebox0\kern\verse@labelsep
     \else
-      \makebox[\verse@indent][l]{\usebox0}%
+      \makebox[\verse@indent]{\usebox0}%
     \fi
     \ignorespaces
 }
@@ -123,7 +123,7 @@
 
 {{#*inline "verse-label"}}
   {{~#if verse}}{{verse}}.{{/if~}}
-  {{~#if (contains this "chorus")}}{{@root.book.chorus_label}}{{chorus}}.{{/if~}}
+  {{~#if (contains this "chorus")}}{{@root.book.chorus_label}}{{chorus}}.{{/if~}} {{!-- contains, because .chords may be falsy --}}
   {{~#if custom}}{{custom}}{{/if~}}
 {{/inline}}
 
