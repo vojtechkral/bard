@@ -210,7 +210,7 @@
 {{#*inline "i-chord"}}<table class="chord">
   <tr class="chord chord-backticks-{{ backticks }}"><td>{{ chord }}</td></tr>
   {{#if alt_chord}}<tr class="chord chord-backticks-{{ backticks }} chord-alt ws-pre"><td>{{ alt_chord }}</td></tr>{{/if}}
-  <tr><td>{{#each inlines}}{{> (lookup this "type") }}{{/each}}</td></tr>
+  {{#unless baseline}}<tr><td>{{#each inlines}}{{> (lookup this "type") }}{{/each}}</td></tr>{{/unless}}
 </table>{{/inline}}
 
 {{#*inline "i-break"}}<br>{{/inline}}

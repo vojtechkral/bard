@@ -166,9 +166,9 @@
 {{~/inline~}}
 {{#*inline "i-chord"~}}
   \begin{tabular}[b]{l}
-    {{> chord-style}}{ {{~{ pre chord }~}} }}\\
-    {{~#if alt_chord}}{{> chord-style}}\color{blue}{ {{~{ pre alt_chord }~}} }}\\ {{~/if~}}
-    {{~#each inlines}}{{> (lookup this "type") }}{{/each~}}\mbox{}\end{tabular}
+    {{> chord-style}}{ {{~{ pre chord }~}} }}{{#if alt_chord}}\\
+    {{> chord-style}}\color{blue}{ {{~{ pre alt_chord }~}} }}{{/if}}{{#unless baseline}}\\
+    {{~#each inlines}}{{> (lookup this "type") }}{{/each~}}{{/unless}}\mbox{}\end{tabular}
 {{~/inline}}
 
 {{!-- Nb. the i-break element is a line separator, not terminator,
