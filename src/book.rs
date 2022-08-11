@@ -5,7 +5,6 @@ use std::fs;
 use std::str;
 
 use camino::Utf8Path as Path;
-use semver::Version;
 use serde::Serialize;
 
 use crate::error::*;
@@ -14,7 +13,7 @@ use crate::parser::{Parser, ParserConfig};
 use crate::project::Settings;
 use crate::util::{sort_lexical_by, BStr};
 
-pub const AST_VERSION: Version = Version::new(1, 1, 0);
+pub mod version;
 
 #[derive(Serialize, Debug)]
 #[serde(tag = "type")]

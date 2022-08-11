@@ -9,8 +9,7 @@ use handlebars::Handlebars;
 use serde::Deserialize;
 use serde::Serialize;
 
-use crate::book::AST_VERSION;
-use crate::book::{Book, Song, SongRef};
+use crate::book::{self, Book, Song, SongRef};
 use crate::cli;
 use crate::default_project::DEFAULT_PROJECT;
 use crate::error::*;
@@ -288,33 +287,26 @@ impl Project {
             let context = || format!("Could not render output file '{}'", output.file);
 
             let mut renderer = Renderer::new(self, output);
-            if let Some(version) = renderer.load().with_context(&context)? {
-                // This Render uses versioned templates, check the compatibility
-                if AST_VERSION < version {
-                    cli::warning(
-                        format!("The version of template `{}` is {}, which is newer than what this bard uses ({}).
-    Maybe this project was created with a newer bard version.
-    This may cause errors while rendering...",
-                        output.template.as_ref().unwrap(), version, AST_VERSION,
-                    ))
-                } else if AST_VERSION.major > version.major {
-                    cli::warning(
-                        format!("The version of template `{}` is {}, which is from an older generation than what this bard uses ({}).
-    This may cause errors while rendering. It may be needed to convert the template to the newer format.",
-                        output.template.as_ref().unwrap(), version, AST_VERSION,
-                    ))
+            let tpl_version = renderer.load().with_context(&context)?;
+
+            let res = renderer.render().with_context(&context).and_then(|_| {
+                if self.post_process {
+                    self.post_process(output).with_context(|| {
+                        format!("Could not postprocess output file '{}'", output.file)
+                    })
+                } else {
+                    Ok(())
                 }
+            });
+
+            // Perform version check of the template (if the Render supports it and there is a template file).
+            // This is done after rendering and preprocessing so that the CLI messages are at the bottom of the log.
+            // Otherwise they tend to be far behind eg. TeX output etc.
+            if let Some((tpl_version, tpl_path)) = tpl_version.zip(output.template.as_ref()) {
+                book::version::compat_check(tpl_path, &tpl_version);
             }
 
-            renderer.render().with_context(&context)?;
-
-            if self.post_process {
-                self.post_process(output).with_context(|| {
-                    format!("Could not postprocess output file '{}'", output.file)
-                })?;
-            }
-
-            Ok(())
+            res
         })
     }
 
