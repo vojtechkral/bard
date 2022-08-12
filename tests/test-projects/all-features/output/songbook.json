@@ -31,6 +31,24 @@
         {
           "type": "b-verse",
           "label": {
+            "custom": "Intro"
+          },
+          "paragraphs": [
+            [
+              {
+                "type": "i-chord",
+                "chord": "G7 C C7 F",
+                "alt_chord": null,
+                "backticks": 1,
+                "baseline": true,
+                "inlines": []
+              }
+            ]
+          ]
+        },
+        {
+          "type": "b-verse",
+          "label": {
             "verse": 1
           },
           "paragraphs": [
@@ -254,25 +272,24 @@
                 "chord": "D",
                 "alt_chord": "IV",
                 "backticks": 1,
-                "baseline": false,
+                "baseline": true,
+                "inlines": []
+              },
+              {
+                "type": "i-emph",
                 "inlines": [
                   {
-                    "type": "i-emph",
+                    "type": "i-strong",
                     "inlines": [
                       {
-                        "type": "i-strong",
-                        "inlines": [
-                          {
-                            "type": "i-text",
-                            "text": "you must"
-                          }
-                        ]
-                      },
-                      {
                         "type": "i-text",
-                        "text": " "
+                        "text": " you must"
                       }
                     ]
+                  },
+                  {
+                    "type": "i-text",
+                    "text": " "
                   }
                 ]
               },
@@ -497,13 +514,12 @@
                 "chord": "4#",
                 "alt_chord": null,
                 "backticks": 1,
-                "baseline": false,
-                "inlines": [
-                  {
-                    "type": "i-text",
-                    "text": "sunshine or in "
-                  }
-                ]
+                "baseline": true,
+                "inlines": []
+              },
+              {
+                "type": "i-text",
+                "text": " sunshine or in "
               },
               {
                 "type": "i-chord",
@@ -600,6 +616,9 @@
           },
           "paragraphs": [
             [
+              {
+                "type": "i-break"
+              },
               {
                 "type": "i-text",
                 "text": "And if you come, "

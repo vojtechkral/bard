@@ -4,6 +4,9 @@
 
 This is an unlabeled verse.
 
+### Intro
+`G7_C_C7_F`
+
 !+2
 !!+5
 !!roman
@@ -11,7 +14,7 @@ This is an unlabeled verse.
 1. `G7`Oh **Danny** `C`Boy, the _pipes_, the ``C7``pipes are `F`calling
 From [glen](https://en.wikipedia.org/wiki/Glen) to `C`glen, and `Em`down the `F`mountain `G7`side
 The summer’s `C`gone, and all the ``C7``flowers are `F`dying
-_‘Tis you, **’tis `C`you must** `Dm`go and `G7`I must `C`bide._
+_‘Tis you, **’tis `C_` you must** `Dm`go and `G7`I must `C`bide._
 
 !!none
 !+1
@@ -19,10 +22,11 @@ _‘Tis you, **’tis `C`you must** `Dm`go and `G7`I must `C`bide._
 
 > `G7`But come ye `Am`back when `F`summer’s `G7`in the `C`meadow
 Or when the `Am`valley’s `F`hushed and `Em`white with `D7`snow `G7`
-‘Tis I’ll be `C`here in `F`sunshine or in `C`sha`Am`dow.
+‘Tis I’ll be `C`here in `F_` sunshine or in `C`sha`Am`dow.
 Oh Danny `C`Boy, oh Danny `F`Boy, I `G7`love you `C`so.
 
 ### Second verse
+\
 And if you come, ![pipe](pipe.jpg "right")
 when all the flowers are dying
 And I am dead,

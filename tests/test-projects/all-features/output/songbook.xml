@@ -13,6 +13,12 @@
     <verse label-type="none">
       <p>This is an unlabeled verse.</p>
     </verse>
+    <verse label="Intro" label-type="custom">
+      <p>
+        <chord backticks="1" baseline="true" chord="G7 C C7 F">
+        </chord>
+      </p>
+    </verse>
     <verse label="1" label-type="verse">
       <p>
         <chord alt-chord="I7" backticks="1" baseline="false" chord="A7">Oh <strong>Danny</strong> </chord>
@@ -29,10 +35,10 @@
         <br/>
         <emph>‘Tis you, <strong>’tis </strong>
         </emph>
-        <chord alt-chord="IV" backticks="1" baseline="false" chord="D">
-          <emph>
-            <strong>you must</strong> </emph>
+        <chord alt-chord="IV" backticks="1" baseline="true" chord="D">
         </chord>
+        <emph>
+          <strong> you must</strong> </emph>
         <chord alt-chord="Vm" backticks="1" baseline="false" chord="Em">
           <emph>go and </emph>
         </chord>
@@ -58,8 +64,8 @@
         <chord backticks="1" baseline="false" chord="6b7">
         </chord>
         <br/>‘Tis I’ll be <chord backticks="1" baseline="false" chord="1#">here in </chord>
-        <chord backticks="1" baseline="false" chord="4#">sunshine or in </chord>
-        <chord backticks="1" baseline="false" chord="1#">sha</chord>
+        <chord backticks="1" baseline="true" chord="4#">
+        </chord> sunshine or in <chord backticks="1" baseline="false" chord="1#">sha</chord>
         <chord backticks="1" baseline="false" chord="7bm">dow.</chord>
         <br/>Oh Danny <chord backticks="1" baseline="false" chord="1#">Boy, oh Danny </chord>
         <chord backticks="1" baseline="false" chord="4#">Boy, I </chord>
@@ -68,7 +74,8 @@
       </p>
     </verse>
     <verse label="Second verse" label-type="custom">
-      <p>And if you come, <image class="right" path="pipe.jpg" title="pipe"/>
+      <p>
+        <br/>And if you come, <image class="right" path="pipe.jpg" title="pipe"/>
         <br/>when all the flowers are dying<br/>And I am dead,<br/>As dead I well may be<br/>You’ll come and find<br/>The place where I am lying<br/>And kneel and say <image class="" path="box.png" title="box"/> an ”Ave” there for me.</p>
     </verse>
     <bullet-list>
