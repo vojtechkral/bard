@@ -6,6 +6,6 @@ RUN apk add texlive-xetex
 RUN apk add texmf-dist-latexextra
 RUN apk add ttf-droid
 
-COPY --chmod=0755 target/x86_64-unknown-linux-musl/release/bard /usr/local/bin/bard
+COPY --chmod=0755 bard-linux/bard /usr/local/bin/bard
 
 WORKDIR /workdir

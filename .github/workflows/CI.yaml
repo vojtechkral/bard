@@ -102,7 +102,7 @@ jobs:
 
   build-linux:
     name: Linux build
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/ci'
+    if: startsWith(github.ref, 'refs/tags/') || github.ref == 'refs/heads/main' || github.ref == 'refs/heads/ci'
     needs:
       - test
       - msrv
@@ -146,6 +146,8 @@ jobs:
         run: |
           cargo build --locked --release --target=x86_64-unknown-linux-musl
           PATH="$PATH:$PWD/cargo-tools/bin" cargo deb --no-build --target=x86_64-unknown-linux-musl
+      - name: Remove version & arch suffix from .deb file
+        run: cp target/x86_64-unknown-linux-musl/debian/*.deb target/x86_64-unknown-linux-musl/debian/bard.deb
       # call upload-artifact twice to flatten resulting directory structure
       - uses: actions/upload-artifact@v3
         with:
@@ -154,11 +156,11 @@ jobs:
       - uses: actions/upload-artifact@v3
         with:
           name: bard-linux
-          path: target/x86_64-unknown-linux-musl/debian/*.deb  # should be one file
+          path: target/x86_64-unknown-linux-musl/debian/bard.deb
 
   build-windows:
     name: Windows build
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/ci'
+    if: startsWith(github.ref, 'refs/tags/') || github.ref == 'refs/heads/main' || github.ref == 'refs/heads/ci'
     needs:
       - test
       - msrv
@@ -198,11 +200,11 @@ jobs:
       - build-linux
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v2 # need the Dockerfile
       - uses: actions/download-artifact@v3
         with:
           name: bard-linux
-          path: target/x86_64-unknown-linux-musl/release
+          path: bard-linux
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
         with:
@@ -228,3 +230,24 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+
+  daft-release:
+    name: Draf Release
+    if: startsWith(github.ref, 'refs/tags/')
+    needs:
+      - build-linux
+      - build-windows
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v3
+        # no options -> gets all the artifacts
+      - name: Create a Release draft
+        uses: softprops/action-gh-release@v1
+        with:
+          draft: true
+          name: ${{ github.event.head_commit.message }}
+          files: |
+            ./bard-linux/bard
+            ./bard-linux/bard.deb
+            ./bard-windows/bard.exe
