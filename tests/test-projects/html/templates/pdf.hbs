@@ -6,7 +6,7 @@
  with the non-breaking space TeX entity '~'.
 --}}
 
-{{~ version_check "1.0.0" ~}}
+{{~ version_check "1.1.0" ~}}
 
 {{!-- Document header --}}
 
@@ -44,8 +44,7 @@
 \renewcommand\cleardoublepage{\clearpage}
 
 %% Fonts and colours
-\setmainfont[Ligatures=TeX]{Droid Serif}
-\setsansfont[Ligatures=TeX]{Droid Sans}
+\input{./fonts/fonts.tex}
 \colorlet{LightRed}{red!65!}
 \colorlet{DarkGray}{black!70!}
 
@@ -102,7 +101,7 @@
 \newlength\verse@labelsep
 \newlength\verse@vskip
 \AtBeginDocument{% setting AtBeginDocument since earlier we can't rely on em being correct
-  \verse@indent=8mm
+  \verse@indent=9mm
   \verse@labelsep=1mm
   \verse@vskip=\smallskipamount
 }
@@ -114,26 +113,28 @@
     \ifdim\wd0>\dimexpr\verse@indent-\verse@labelsep\relax
       \usebox0\kern\verse@labelsep
     \else
-      \makebox[\verse@indent][l]{\usebox0}%
+      \makebox[\verse@indent]{\usebox0}%
     \fi
     \ignorespaces
 }
 \makeatother
 
-{{!-- HB inlines: User-defined --}}
+{{!-- HB inlines: HTML snippets. You can add your own - see documentation. --}}
+
+\newenvironment{foo}{}{}
+{{#*inline "h-foo"}}\begin{foo}{{/inline}}
+{{#*inline "h-/foo"}}\end{foo}{{/inline}}
+
+{{#*inline "h-bar"}}{\color{ {{~ color ~}} }{{/inline}}
+{{#*inline "h-/bar"}}}{{/inline}}
+
+{{!-- HB inlines: Helpers --}}
 
 {{#*inline "verse-label"}}
   {{~#if verse}}{{verse}}.{{/if~}}
-  {{~#if (contains this "chorus")}}{{@root.book.chorus_label}}{{chorus}}.{{/if~}}
+  {{~#if (contains this "chorus")}}{{@root.book.chorus_label}}{{chorus}}.{{/if~}} {{!-- contains, because .chords may be falsy --}}
   {{~#if custom}}{{custom}}{{/if~}}
 {{/inline}}
-
-\newenvironment{foo}{}{}
-{{#*inline "foo"}}\begin{foo}{{/inline}}
-{{#*inline "/foo"}}\end{foo}{{/inline}}
-
-{{#*inline "bar"}}{\color{ {{~ color ~}} }{{/inline}}
-{{#*inline "/bar"}}}{{/inline}}
 
 {{!-- HB inlines: Block types --}}
 
@@ -166,7 +167,7 @@
 
 {{!-- HB inlines: Inline types --}}
 
-{{#*inline "i-text"}}{{{(pre text)}}}{{/inline}}
+{{#*inline "i-text"}}{{{ pre text }}}{{/inline}}
 
 {{#*inline "chord-style"~}}
   {{!-- Helper for i-chord for setting styles based on ` vs `` chords --}}
@@ -174,9 +175,9 @@
 {{~/inline~}}
 {{#*inline "i-chord"~}}
   \begin{tabular}[b]{l}
-    {{> chord-style}}{ {{~{ pre chord }~}} }}\\
-    {{~#if alt_chord}}{{> chord-style}}\color{blue}{ {{~{ pre alt_chord }~}} }}\\{{/if~}}
-    {{~#each inlines}}{{> (lookup this "type") }}{{/each~}}\mbox{}\end{tabular}
+    {{> chord-style}}{ {{~{ pre chord }~}} }}{{#if alt_chord}}\\
+    {{> chord-style}}\color{blue}{ {{~{ pre alt_chord }~}} }}{{/if}}{{#unless baseline}}\\
+    {{~#each inlines}}{{> (lookup this "type") }}{{/each~}}{{/unless}}\mbox{}\end{tabular}
 {{~/inline}}
 
 {{!-- Nb. the i-break element is a line separator, not terminator,
@@ -209,7 +210,8 @@
   {{~#unless class }}\includegraphics[width={{ px2mm (img_w path) }}mm]{ {{~ path ~}} }{{/unless~}}
 {{/inline}}
 
-{{#*inline "i-tag"}}{{> (lookup this "name") attrs }}{{/inline}}
+{{#*inline "i-tag"}}{{> (cat "h-" (lookup this "name")) attrs }}{{/inline}}
+{{!-- {{#*inline "i-tag"}}test: {{ cat "h-" (lookup this "name") }}{{/inline}} --}}
 
 {{!-- Main content --}}
 
@@ -218,6 +220,8 @@
 
 % Document
 \begin{document}
+
+{{~#if output.sans_font }}\sffamily{{/if}}
 
 %% Title page
 \frontmatter*

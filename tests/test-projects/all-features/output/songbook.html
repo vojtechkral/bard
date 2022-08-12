@@ -81,22 +81,20 @@
 
       ul.blocks {
         list-style-type: none;
-        padding-left: 1em;
-      }
-
-      ul.blocks li::before {
-        display: inline-block;
-        min-width: 0.5em;
-        content: attr(data-label);
-        font-weight: bold;
-        font-size: 0.9em;
-        margin-right: 0.5em;
+        padding-left: 3em;
       }
 
       ul.blocks li {
-        padding-left: 1em;
-        text-indent: -1em;
         margin: 1em 0;
+      }
+
+      ul.blocks .label {
+        margin: 0 0.5em 0 -3em;
+        display: inline-block;
+        min-width: 2.5em;
+        text-align: center;
+        font-weight: bold;
+        font-size: 0.9em;
       }
 
       /* Chords, done with inline tables */
@@ -176,6 +174,8 @@
 
 
 
+
+
 <body>
 <div id="content">
   <header class="pad">
@@ -205,8 +205,10 @@
       </div>
 
       <ul class="blocks">
-          <li data-label="">This is an unlabeled verse.</li>
-  <li data-label="1."><table class="chord">
+          <li>
+    <span class="label"></span>This is an unlabeled verse.</li>
+  <li>
+    <span class="label">1.</span><table class="chord">
   <tr class="chord chord-backticks-1"><td>A7</td></tr>
   <tr class="chord chord-backticks-1 chord-alt ws-pre"><td>I7</td></tr>
   <tr><td>Oh <strong>Danny</strong> </td></tr>
@@ -267,7 +269,8 @@
   <tr class="chord chord-backticks-1 chord-alt ws-pre"><td>IV</td></tr>
   <tr><td><em>bide.</em></td></tr>
 </table></li>
-  <li data-label="Ch1."><table class="chord">
+  <li>
+    <span class="label">Ch1.</span><table class="chord">
   <tr class="chord chord-backticks-1"><td>6b7</td></tr>
   
   <tr><td>But come ye </td></tr>
@@ -340,11 +343,14 @@
   
   <tr><td>so.</td></tr>
 </table></li>
-  <li data-label="Second verse">And if you come, <img class="right" src="pipe.jpg" title="pipe" /><br>when all the flowers are dying<br>And I am dead,<br>As dead I well may be<br>You’ll come and find<br>The place where I am lying<br>And kneel and say <img class="" src="box.png" title="box" /> an ”Ave” there for me.</li>
+  <li>
+    <span class="label">Second verse</span>And if you come, <img class="right" src="pipe.jpg" title="pipe" /><br>when all the flowers are dying<br>And I am dead,<br>As dead I well may be<br>You’ll come and find<br>The place where I am lying<br>And kneel and say <img class="" src="box.png" title="box" /> an ”Ave” there for me.</li>
   <ul class="bullet-list"><li>Bullet list item 1</li><li>Bullet list item 2</li></ul>
-  <li data-label="Ch2.">And I shall hear, though soft you tread above me<br>And all my dreams will warm and sweeter be</li>
+  <li>
+    <span class="label">Ch2.</span>And I shall hear, though soft you tread above me<br>And all my dreams will warm and sweeter be</li>
   <hr>
-  <li data-label="">If you’ll not fail to tell me that you love me<br>I’ll sleep in peace until you come to me.<br><br><img class="center" src="hills.jpg" title="hills" /></li>
+  <li>
+    <span class="label"></span>If you’ll not fail to tell me that you love me<br>I’ll sleep in peace until you come to me.<br><br><img class="center" src="hills.jpg" title="hills" /></li>
 
       </ul>
     </section>
@@ -356,7 +362,8 @@
       </div>
 
       <ul class="blocks">
-          <li data-label="Ch."><table class="chord">
+          <li>
+    <span class="label">Ch.</span><table class="chord">
   <tr class="chord chord-backticks-1"><td>Am</td></tr>
   
   <tr><td>Yippie yea </td></tr>
@@ -380,7 +387,8 @@
       </div>
 
       <ul class="blocks">
-          <li data-label="1."><table class="chord">
+          <li>
+    <span class="label">1.</span><table class="chord">
   <tr class="chord chord-backticks-1"><td>Am</td></tr>
   
   <tr><td>Yippie yea </td></tr>
@@ -404,7 +412,8 @@
       </div>
 
       <ul class="blocks">
-          <li data-label="1."><table class="chord">
+          <li>
+    <span class="label">1.</span><table class="chord">
   <tr class="chord chord-backticks-1"><td>Am</td></tr>
   
   <tr><td>Yippie yea </td></tr>
@@ -428,7 +437,8 @@
       </div>
 
       <ul class="blocks">
-          <li data-label="1."><table class="chord">
+          <li>
+    <span class="label">1.</span><table class="chord">
   <tr class="chord chord-backticks-1"><td>Am</td></tr>
   
   <tr><td>Yippie yea </td></tr>

@@ -1,12 +1,16 @@
 
 MSRV = 1.57
 
+fmt:
+	cargo check --tests
+	cargo fmt
+
 .PHONY: msrv
 msrv:
 	cargo +$(MSRV) check --tests
 
-.PHONY: check
-check: msrv
+.PHONY: lint
+lint: msrv
 	cargo fmt -- --check
 	cargo clippy
 	cargo audit

@@ -1,4 +1,4 @@
-{{~ version_check "1.0.0" ~}}
+{{~ version_check "1.1.0" ~}}
 
 {{!-- Header with CSS --}}
 
@@ -7,9 +7,16 @@
 <head>
     <meta charset="UTF-8">
     <title>{{ book.title }}</title>
+    <link rel="stylesheet" href="fonts/fonts.css">
     <style type="text/css">
       body {
-          font-family: sans-serif;
+          {{#if output.sans_font}}
+            font-family: 'NotoSans';
+            line-height: 1.25;
+            font-size: 1.05em;
+          {{else}}
+            font-family: 'DroidSerif';
+          {{/if}}
 
           /* Background pattern from Toptal Subtle Patterns
            * https://www.toptal.com/designers/subtlepatterns/ecailles/ */
@@ -29,7 +36,7 @@
         #content { border: none; }
       }
 
-      h1, h2, h3 { font-variant: small-caps; }
+      h1 { font-variant: small-caps; }
 
       a, a:link , a:visited , a:hover , a:active {
         color: blue;
@@ -61,8 +68,16 @@
       section.song h2 { text-decoration: underline; }
       section.song h4 { margin: 0; }
       .song-header {
-        text-align: center;
+        text-align: left;
         margin: 1em 0;
+      }
+      .song-header h2 {
+        margin: 0.2em 0;
+      }
+
+      .song-header h4 {
+        font-weight: normal;
+        font-style: italic;
       }
 
       hr.separator {
@@ -76,22 +91,20 @@
 
       ul.blocks {
         list-style-type: none;
-        padding-left: 1em;
-      }
-
-      ul.blocks li::before {
-        display: inline-block;
-        min-width: 0.5em;
-        content: attr(data-label);
-        font-weight: bold;
-        font-size: 0.9em;
-        margin-right: 0.5em;
+        padding-left: 3em;
       }
 
       ul.blocks li {
-        padding-left: 1em;
-        text-indent: -1em;
         margin: 1em 0;
+      }
+
+      ul.blocks .label {
+        margin: 0 0.5em 0 -3em;
+        display: inline-block;
+        min-width: 2.5em;
+        text-align: center;
+        font-weight: bold;
+        font-size: 0.9em;
       }
 
       /* Chords, done with inline tables */
@@ -103,22 +116,24 @@
         vertical-align: bottom;
       }
       table.chord tr, table.chord td {
-        margin: 0;
         padding: 0;
       }
 
-      tr.chord {
+      tr.chord td {
+        font-family: 'NotoSans';
         font-size: 85%;
         color: red;
+        position: relative;
+        top: 0.1em
       }
 
-      tr.chord-backticks-1 {
+      tr.chord-backticks-1 td {
         font-size: inherit;
         font-weight: bold;
         color: red;
       }
 
-      tr.chord-alt { color: blue; }
+      tr.chord-alt td { color: blue; }
 
       /* Bulletlist */
 
@@ -147,7 +162,15 @@
     </style>
 </head>
 
-{{!-- HB inlines: User-defined --}}
+{{!-- HB inlines: HTML snippets. You can add your own - see documentation. --}}
+
+{{#*inline "h-foo"}}<foo>{{/inline}}
+{{#*inline "h-/foo"}}</foo>{{/inline}}
+
+{{#*inline "h-bar"}}<span style="color:{{ color }};">{{/inline}}
+{{#*inline "h-/bar"}}</span>{{/inline}}
+
+{{!-- HB inlines: Helpers --}}
 
 {{#*inline "verse-label"}}
   {{~#if verse}}{{verse}}.{{/if~}}
@@ -155,16 +178,11 @@
   {{~#if custom}}{{custom}}{{/if~}}
 {{/inline}}
 
-{{#*inline "foo"}}<foo>{{/inline}}
-{{#*inline "/foo"}}</foo>{{/inline}}
-
-{{#*inline "bar"}}<span style="color:{{ color }};">{{/inline}}
-{{#*inline "/bar"}}</span>{{/inline}}
-
 {{!-- HB inlines: Block types --}}
 
 {{#*inline "b-verse"}}
-  <li data-label="{{>verse-label label}}">
+  <li>
+    <span class="label">{{>verse-label label}}</span>
     {{~#each paragraphs~}}
       {{#unless @first}}<br><br>{{/unless~}}
       {{#each this}}{{> (lookup this "type") }}{{/each}}
@@ -198,8 +216,8 @@
   ensures that chords are always on top nesting level. --}}
 {{#*inline "i-chord"}}<table class="chord">
   <tr class="chord chord-backticks-{{ backticks }}"><td>{{ chord }}</td></tr>
-  {{#if alt_chord}}<tr class="chord chord-alt ws-pre"><td>{{ alt_chord }}</td></tr>{{/if}}
-  <tr><td>{{#each inlines}}{{> (lookup this "type") }}{{/each}}</td></tr>
+  {{#if alt_chord}}<tr class="chord chord-backticks-{{ backticks }} chord-alt ws-pre"><td>{{ alt_chord }}</td></tr>{{/if}}
+  {{#unless baseline}}<tr><td>{{#each inlines}}{{> (lookup this "type") }}{{/each}}</td></tr>{{/unless}}
 </table>{{/inline}}
 
 {{#*inline "i-break"}}<br>{{/inline}}
@@ -208,7 +226,8 @@
 {{#*inline "i-link"}}<a href="{{ url }}" title="{{ title }}">{{ text }}</a>{{/inline}}
 {{#*inline "i-chorus-ref"}}<em>{{ prefix_space }}{{ @root.book.chorus_label }}{{ num }}.</em>{{/inline}}
 {{#*inline "i-image"}}<img class="{{ class }}" src="{{ path }}" title="{{ title }}" />{{/inline}}
-{{#*inline "i-tag"}}{{> (lookup this "name") attrs }}{{/inline}}
+{{!-- {{#*inline "i-tag"}}{{> (lookup this "name") attrs }}{{/inline}} --}}
+{{#*inline "i-tag"}}{{> (cat "h-" (lookup this "name")) attrs }}{{/inline}}
 
 {{!-- Body - main structure --}}
 
@@ -258,4 +277,3 @@
 </footer>
 </body>
 </html>
-

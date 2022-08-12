@@ -81,22 +81,20 @@
 
       ul.blocks {
         list-style-type: none;
-        padding-left: 1em;
-      }
-
-      ul.blocks li::before {
-        display: inline-block;
-        min-width: 0.5em;
-        content: attr(data-label);
-        font-weight: bold;
-        font-size: 0.9em;
-        margin-right: 0.5em;
+        padding-left: 3em;
       }
 
       ul.blocks li {
-        padding-left: 1em;
-        text-indent: -1em;
         margin: 1em 0;
+      }
+
+      ul.blocks .label {
+        margin: 0 0.5em 0 -3em;
+        display: inline-block;
+        min-width: 2.5em;
+        text-align: center;
+        font-weight: bold;
+        font-size: 0.9em;
       }
 
       /* Chords, done with inline tables */
@@ -176,6 +174,8 @@
 
 
 
+
+
 <body>
 <div id="content">
   <header class="pad">
@@ -200,7 +200,8 @@
       </div>
 
       <ul class="blocks">
-          <li data-label="1."><table class="chord">
+          <li>
+    <span class="label">1.</span><table class="chord">
   <tr class="chord chord-backticks-1"><td>Am</td></tr>
   
   <tr><td>Yippie yea </td></tr>

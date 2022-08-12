@@ -81,22 +81,20 @@
 
       ul.blocks {
         list-style-type: none;
-        padding-left: 1em;
-      }
-
-      ul.blocks li::before {
-        display: inline-block;
-        min-width: 0.5em;
-        content: attr(data-label);
-        font-weight: bold;
-        font-size: 0.9em;
-        margin-right: 0.5em;
+        padding-left: 3em;
       }
 
       ul.blocks li {
-        padding-left: 1em;
-        text-indent: -1em;
         margin: 1em 0;
+      }
+
+      ul.blocks .label {
+        margin: 0 0.5em 0 -3em;
+        display: inline-block;
+        min-width: 2.5em;
+        text-align: center;
+        font-weight: bold;
+        font-size: 0.9em;
       }
 
       /* Chords, done with inline tables */
@@ -176,6 +174,8 @@
 
 
 
+
+
 <body>
 <div id="content">
   <header class="pad">
@@ -204,7 +204,8 @@
       </div>
 
       <ul class="blocks">
-          <li data-label="1."><table class="chord">
+          <li>
+    <span class="label">1.</span><table class="chord">
   <tr class="chord chord-backticks-1"><td>G7</td></tr>
   
   <tr><td>Oh Danny </td></tr>
@@ -265,7 +266,8 @@
   
   <tr><td>bide.</td></tr>
 </table></li>
-  <li data-label="Ch1."><table class="chord">
+  <li>
+    <span class="label">Ch1.</span><table class="chord">
   <tr class="chord chord-backticks-1"><td>G7</td></tr>
   
   <tr><td>But come ye </td></tr>
@@ -338,8 +340,10 @@
   
   <tr><td>so.</td></tr>
 </table></li>
-  <li data-label="2.">And if you come, when all the flowers are dying<br>And I am dead, as dead I well may be<br>You’ll come and find the place where I am lying<br>And kneel and say an ”Ave” there for me.</li>
-  <li data-label="Ch2.">And I shall hear, though soft you tread above me<br>And all my dreams will warm and sweeter be<br>If you’ll not fail to tell me that you love me<br>I’ll sleep in peace until you come to me.<br><br><img class="center" src="hills.jpg" title="hills" /></li>
+  <li>
+    <span class="label">2.</span>And if you come, when all the flowers are dying<br>And I am dead, as dead I well may be<br>You’ll come and find the place where I am lying<br>And kneel and say an ”Ave” there for me.</li>
+  <li>
+    <span class="label">Ch2.</span>And I shall hear, though soft you tread above me<br>And all my dreams will warm and sweeter be<br>If you’ll not fail to tell me that you love me<br>I’ll sleep in peace until you come to me.<br><br><img class="center" src="hills.jpg" title="hills" /></li>
 
       </ul>
     </section>
@@ -351,7 +355,8 @@
       </div>
 
       <ul class="blocks">
-          <li data-label="1."><table class="chord">
+          <li>
+    <span class="label">1.</span><table class="chord">
   <tr class="chord chord-backticks-1"><td>G</td></tr>
   
   <tr><td>I wish I was in London</td></tr>
@@ -368,11 +373,16 @@
   
   <tr><td>round</td></tr>
 </table></li>
-  <li data-label="2.">While sailing round the ocean<br>While sailing round the sea<br>I’d think of Handsome Molly<br>Wherever she may be</li>
-  <li data-label="3.">I went to church last Sunday<br>She passed me on by<br>I knew her mind was changing<br>By the roving of her eye</li>
-  <li data-label="4.">Her hair as black as a Raven’s<br>Her eyes were black as coal<br>Her teeth just like lilies<br>Out in the morning cold</li>
-  <li data-label="5.">Now do you remember Molly<br>When you gave me your right hand<br>Said if you ever married<br>Then I’d be the man</li>
-  <li data-label="6.">Now you’ve broke your promise<br>Go marry whom you please<br>My heart is broken<br>‘Til I get some ease</li>
+  <li>
+    <span class="label">2.</span>While sailing round the ocean<br>While sailing round the sea<br>I’d think of Handsome Molly<br>Wherever she may be</li>
+  <li>
+    <span class="label">3.</span>I went to church last Sunday<br>She passed me on by<br>I knew her mind was changing<br>By the roving of her eye</li>
+  <li>
+    <span class="label">4.</span>Her hair as black as a Raven’s<br>Her eyes were black as coal<br>Her teeth just like lilies<br>Out in the morning cold</li>
+  <li>
+    <span class="label">5.</span>Now do you remember Molly<br>When you gave me your right hand<br>Said if you ever married<br>Then I’d be the man</li>
+  <li>
+    <span class="label">6.</span>Now you’ve broke your promise<br>Go marry whom you please<br>My heart is broken<br>‘Til I get some ease</li>
 
       </ul>
     </section>
@@ -384,7 +394,8 @@
       </div>
 
       <ul class="blocks">
-          <li data-label="1.">As <table class="chord">
+          <li>
+    <span class="label">1.</span>As <table class="chord">
   <tr class="chord chord-backticks-1"><td>C</td></tr>
   
   <tr><td>I was a goin&#x27; over</td></tr>
@@ -417,7 +428,8 @@
   
   <tr><td>you are a bold deceiver!&quot;</td></tr>
 </table></li>
-  <li data-label="Ch.">Mush-a <table class="chord">
+  <li>
+    <span class="label">Ch.</span>Mush-a <table class="chord">
   <tr class="chord chord-backticks-1"><td>G</td></tr>
   
   <tr><td>ring dum-a do dum-a da</td></tr>
@@ -442,9 +454,12 @@
   
   <tr><td>jar</td></tr>
 </table></li>
-  <li data-label="2.">I counted out his money<br>And it made a pretty penny<br>I put it in me pocket<br>And I took it home to Jenny<br>She sighed and she swore<br>That she never would deceive me<br>But the devil take the women<br>For they never can be easy<br><em>Ch.</em></li>
-  <li data-label="3.">I went up to my chamber<br>All for to take a slumber<br>I dreamt of gold and jewels<br>And for sure &#x27;t was no wonder<br>But Jenny drew me charges<br>And she filled them up with water<br>Then sent for captain Farrell<br>To be ready for the slaughter<br><em>Ch.</em></li>
-  <li data-label="4.">&#x27;Twas early in the morning<br>Just before I rose to travel<br>Up comes a band of footmen<br>And likewise captain Farrell<br>I first produced me pistol<br>For she stole away me rapier<br>I couldn&#x27;t shoot the water<br>So a prisoner I was taken<br><em>Ch.</em><br><br><img class="center" src="chest.jpg" title="chest" /></li>
+  <li>
+    <span class="label">2.</span>I counted out his money<br>And it made a pretty penny<br>I put it in me pocket<br>And I took it home to Jenny<br>She sighed and she swore<br>That she never would deceive me<br>But the devil take the women<br>For they never can be easy<br><em>Ch.</em></li>
+  <li>
+    <span class="label">3.</span>I went up to my chamber<br>All for to take a slumber<br>I dreamt of gold and jewels<br>And for sure &#x27;t was no wonder<br>But Jenny drew me charges<br>And she filled them up with water<br>Then sent for captain Farrell<br>To be ready for the slaughter<br><em>Ch.</em></li>
+  <li>
+    <span class="label">4.</span>&#x27;Twas early in the morning<br>Just before I rose to travel<br>Up comes a band of footmen<br>And likewise captain Farrell<br>I first produced me pistol<br>For she stole away me rapier<br>I couldn&#x27;t shoot the water<br>So a prisoner I was taken<br><em>Ch.</em><br><br><img class="center" src="chest.jpg" title="chest" /></li>
 
       </ul>
     </section>
@@ -456,7 +471,8 @@
       </div>
 
       <ul class="blocks">
-          <li data-label="1.">O the <table class="chord">
+          <li>
+    <span class="label">1.</span>O the <table class="chord">
   <tr class="chord chord-backticks-1"><td>G</td></tr>
   
   <tr><td>summer </td></tr>
@@ -513,7 +529,8 @@
   
   <tr><td>go?</td></tr>
 </table></li>
-  <li data-label="Ch.">And we&#x27;ll <table class="chord">
+  <li>
+    <span class="label">Ch.</span>And we&#x27;ll <table class="chord">
   <tr class="chord chord-backticks-1"><td>C</td></tr>
   
   <tr><td>all go </td></tr>
@@ -558,9 +575,12 @@
   
   <tr><td>go?</td></tr>
 </table></li>
-  <li data-label="2.">I will build my love a bower<br>By yon cool crystal fountain <img class="right" src="thyme.png" title="thyme" /><br>And round it I will pile<br>All the wild flowers o&#x27; the mountain.<br>Will ye go lassie go?<em> Ch.</em></li>
-  <li data-label="3.">I will range through the wilds<br>And the deep glen sae dreamy<br>And return wi&#x27; their spoils<br>Tae the bower o&#x27; my dearie.<br>Will ye go lassie go?<em> Ch.</em></li>
-  <li data-label="4.">If my true love she&#x27;ll not come<br>Then I&#x27;ll surely find another<br>To pull wild mountain thyme<br>All around the bloomin&#x27; heather.<br>Will ye go lassie go?<em> Ch.</em></li>
+  <li>
+    <span class="label">2.</span>I will build my love a bower<br>By yon cool crystal fountain <img class="right" src="thyme.png" title="thyme" /><br>And round it I will pile<br>All the wild flowers o&#x27; the mountain.<br>Will ye go lassie go?<em> Ch.</em></li>
+  <li>
+    <span class="label">3.</span>I will range through the wilds<br>And the deep glen sae dreamy<br>And return wi&#x27; their spoils<br>Tae the bower o&#x27; my dearie.<br>Will ye go lassie go?<em> Ch.</em></li>
+  <li>
+    <span class="label">4.</span>If my true love she&#x27;ll not come<br>Then I&#x27;ll surely find another<br>To pull wild mountain thyme<br>All around the bloomin&#x27; heather.<br>Will ye go lassie go?<em> Ch.</em></li>
 
       </ul>
     </section>
