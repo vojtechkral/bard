@@ -564,7 +564,7 @@ impl<'a> VerseBuilder<'a> {
         };
 
         let mut pos = 0;
-        for caps in EXTENSION.captures_iter(&*text) {
+        for caps in EXTENSION.captures_iter(text) {
             let hit = caps.get(0).unwrap();
 
             // Try parsing an extension
