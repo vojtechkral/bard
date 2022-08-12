@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::fmt;
 use std::fs;
 use std::io;
 use std::sync::{Arc, Mutex};
@@ -89,6 +90,28 @@ handlebars_helper!(hb_default: |value: Json, def: Json| {
 
 handlebars_helper!(hb_pre: |input: str| {
     latex_escape(input, true)
+});
+
+struct Cat<'a>(Vec<&'a JsonValue>);
+
+impl<'a> fmt::Display for Cat<'a> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        for arg in self.0.iter() {
+            match arg {
+                JsonValue::Null => write!(f, "[null]")?,
+                JsonValue::Bool(b) => write!(f, "{}", b)?,
+                JsonValue::Number(n) => write!(f, "{}", n)?,
+                JsonValue::String(s) => write!(f, "{}", s)?,
+                JsonValue::Array(..) => write!(f, "[array]")?,
+                JsonValue::Object(..) => write!(f, "[object]")?,
+            }
+        }
+        Ok(())
+    }
+}
+
+handlebars_helper!(hb_cat: |*args| {
+    format!("{}", Cat(args))
 });
 
 handlebars_helper!(hb_matches: |value: str, regex: str| {
@@ -276,6 +299,7 @@ impl<'a> HbRender<'a> {
         let (version_helper, version) = VersionCheckHelper::new();
         hb.register_helper("eq", Box::new(hb_eq));
         hb.register_helper("contains", Box::new(hb_contains));
+        hb.register_helper("cat", Box::new(hb_cat));
         hb.register_helper("default", Box::new(hb_default));
         hb.register_helper("matches", Box::new(hb_matches));
         hb.register_helper("px2mm", DpiHelper::new(output));
