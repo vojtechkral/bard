@@ -10,14 +10,18 @@ jobs:
     name: Format check
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions-rs/toolchain@v1
+      - name: Checkout sources
+        uses: actions/checkout@v2
+      - name: Setup Rust toolchain
+        uses: actions-rs/toolchain@v1
         with:
           profile: minimal
           toolchain: stable
           override: true
-      - run: rustup component add rustfmt
-      - uses: actions-rs/cargo@v1
+      - name: Install rustfmt
+        run: rustup component add rustfmt
+      - name: Perform format check
+        uses: actions-rs/cargo@v1
         with:
           command: fmt
           args: --all -- --check
@@ -26,13 +30,16 @@ jobs:
     name: Clippy lints
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions-rs/toolchain@v1
+      - name: Checkout sources
+        uses: actions/checkout@v2
+      - name: Setup Rust toolchain
+        uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
           components: clippy
           override: true
-      - uses: actions-rs/clippy-check@v1
+      - name: Perform clippy check
+        uses: actions-rs/clippy-check@v1
         with:
           name: Clippy Output
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -48,8 +55,10 @@ jobs:
         - windows-latest
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions-rs/toolchain@v1
+      - name: Checkout sources
+        uses: actions/checkout@v2
+      - name: Setup Rust toolchain
+        uses: actions-rs/toolchain@v1
         with:
           profile: minimal
           toolchain: stable
@@ -76,8 +85,10 @@ jobs:
     needs: fmt
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions-rs/toolchain@v1
+      - name: Checkout sources
+        uses: actions/checkout@v2
+      - name: Setup Rust toolchain
+        uses: actions-rs/toolchain@v1
         with:
           profile: minimal
           toolchain: 1.57.0
@@ -95,7 +106,8 @@ jobs:
             ~/.cargo/registry/cache
             target
           key: msrv-${{ runner.os }}-${{ env.cache-name }}-${{ hashFiles('Cargo.lock') }}
-      - uses: actions-rs/cargo@v1
+      - name: Perform MSRV check
+        uses: actions-rs/cargo@v1
         with:
           command: check
           args: --locked --tests
@@ -108,14 +120,17 @@ jobs:
       - msrv
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions-rs/toolchain@v1
+      - name: Checkout sources
+        uses: actions/checkout@v2
+      - name: Setup Rust toolchain
+        uses: actions-rs/toolchain@v1
         with:
           profile: minimal
           toolchain: stable
           target: x86_64-unknown-linux-musl
           override: true
-      - uses: awalsh128/cache-apt-pkgs-action@v1
+      - name: Install APT packages
+        uses: awalsh128/cache-apt-pkgs-action@v1
         with:
           packages: musl-tools # provides musl-gcc
           version: 1.0
@@ -139,7 +154,7 @@ jobs:
         with:
           path: cargo-tools
           key: cargo-tools-${{ env.CARGO_DEB }}
-      - name: Install cargo tools
+      - name: Install cargo tools # FIXME: caching doesn't work
         run: |
           cargo install cargo-deb --version ${{ env.CARGO_DEB }} --root cargo-tools --target-dir cargo-tools-build
       - name: Build
@@ -149,11 +164,13 @@ jobs:
       - name: Remove version & arch suffix from .deb file
         run: cp target/x86_64-unknown-linux-musl/debian/*.deb target/x86_64-unknown-linux-musl/debian/bard.deb
       # call upload-artifact twice to flatten resulting directory structure
-      - uses: actions/upload-artifact@v3
+      - name: Upload linux binary
+        uses: actions/upload-artifact@v3
         with:
           name: bard-linux
           path: target/x86_64-unknown-linux-musl/release/bard
-      - uses: actions/upload-artifact@v3
+      - name: Upload deb package
+        uses: actions/upload-artifact@v3
         with:
           name: bard-linux
           path: target/x86_64-unknown-linux-musl/debian/bard.deb
@@ -166,8 +183,10 @@ jobs:
       - msrv
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions-rs/toolchain@v1
+      - name: Checkout sources
+        uses: actions/checkout@v2
+      - name: Setup Rust toolchain
+        uses: actions-rs/toolchain@v1
         with:
           profile: minimal
           toolchain: stable
@@ -188,7 +207,8 @@ jobs:
       - name: Build
         run: |
           cargo build --locked --release
-      - uses: actions/upload-artifact@v3
+      - name: Upload Windows exe
+        uses: actions/upload-artifact@v3
         with:
           name: bard-windows
           path: target/release/bard.exe
@@ -200,7 +220,8 @@ jobs:
       - build-linux
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2 # need the Dockerfile
+      - name: Checkout sources
+        uses: actions/checkout@v2 # need the Dockerfile
       - uses: actions/download-artifact@v3
         with:
           name: bard-linux
@@ -209,7 +230,7 @@ jobs:
         uses: docker/setup-buildx-action@v2
         with:
           driver: docker
-      - name: Docker meta
+      - name: Docker metadata
         uses: docker/metadata-action@v4
         id: meta
         with:
