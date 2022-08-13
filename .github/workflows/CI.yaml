@@ -148,13 +148,15 @@ jobs:
             target
           key: build-${{ runner.os }}-${{ env.cache-name }}-${{ hashFiles('Cargo.lock') }}
       - name: Cache cargo tools
+        id: cargo-tools-cache
         uses: actions/cache@v2
         env:
           cache-name: cache-cargo-tools
         with:
           path: cargo-tools
           key: cargo-tools-${{ env.CARGO_DEB }}
-      - name: Install cargo tools # FIXME: caching doesn't work
+      - name: Install cargo tools if not cached
+        if: steps.cargo-tools-cache.outputs.cache-hit != 'true'
         run: |
           cargo install cargo-deb --version ${{ env.CARGO_DEB }} --root cargo-tools --target-dir cargo-tools-build
       - name: Build
