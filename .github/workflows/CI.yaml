@@ -4,6 +4,7 @@ name: CI
 
 env:
   CARGO_DEB: 1.37.0
+  CARGO_RPM: 0.8.0
 
 jobs:
   fmt:
@@ -154,18 +155,19 @@ jobs:
           cache-name: cache-cargo-tools
         with:
           path: cargo-tools
-          key: cargo-tools-${{ env.CARGO_DEB }}
+          key: cargo-tools-${{ env.CARGO_DEB }}-${{ env.CARGO_RPM }}
       - name: Install cargo tools if not cached
         if: steps.cargo-tools-cache.outputs.cache-hit != 'true'
         run: |
           cargo install cargo-deb --version ${{ env.CARGO_DEB }} --root cargo-tools --target-dir cargo-tools-build
+          cargo install cargo-generate-rpm --version ${{ env.CARGO_RPM }} --root cargo-tools --target-dir cargo-tools-build
       - name: Build
+        run: cargo build --locked --release --target=x86_64-unknown-linux-musl
+      - name: Generate packages
         run: |
-          cargo build --locked --release --target=x86_64-unknown-linux-musl
-          PATH="$PATH:$PWD/cargo-tools/bin" cargo deb --no-build --target=x86_64-unknown-linux-musl
-      - name: Remove version & arch suffix from .deb file
-        run: cp target/x86_64-unknown-linux-musl/debian/*.deb target/x86_64-unknown-linux-musl/debian/bard.deb
-      # call upload-artifact twice to flatten resulting directory structure
+          PATH="$PATH:$PWD/cargo-tools/bin" cargo deb --no-build --target=x86_64-unknown-linux-musl -o target/debian/bard.deb
+          PATH="$PATH:$PWD/cargo-tools/bin" cargo generate-rpm --target=x86_64-unknown-linux-musl -o target/generate-rpm/bard.rpm
+      # call upload-artifact per file to flatten resulting directory structure
       - name: Upload linux binary
         uses: actions/upload-artifact@v3
         with:
@@ -175,7 +177,12 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: bard-linux
-          path: target/x86_64-unknown-linux-musl/debian/bard.deb
+          path: target/debian/bard.deb
+      - name: Upload rpm package
+        uses: actions/upload-artifact@v3
+        with:
+          name: bard-linux
+          path: target/generate-rpm/bard.rpm
 
   build-windows:
     name: Windows build
@@ -273,4 +280,5 @@ jobs:
           files: |
             ./bard-linux/bard
             ./bard-linux/bard.deb
+            ./bard-linux/bard.rpm
             ./bard-windows/bard.exe
