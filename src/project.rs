@@ -49,6 +49,7 @@ pub type Metadata = BTreeMap<Box<str>, Value>;
 pub enum Format {
     Html,
     Tex,
+    Pdf,
     Hovorka,
     Json,
     Xml,

@@ -1,9 +1,10 @@
 use std::collections::HashMap;
-use std::fmt;
+use std::{env, fmt};
 use std::fs;
 use std::io;
 use std::sync::{Arc, Mutex};
 
+use tectonic;
 use camino::{Utf8Path as Path, Utf8PathBuf as PathBuf};
 use handlebars::{self as hb, handlebars_helper, Handlebars, HelperDef, JsonValue};
 use image::image_dimensions;
@@ -360,14 +361,23 @@ impl<'a> HbRender<'a> {
         Ok(version)
     }
 
-    fn render(&self) -> Result<()> {
+    /// Renders template and returns resulting bytes. In case it was a text file, you can get the string by using [`String::from_utf8`].
+    fn render_bytes(&self) -> Result<Vec<u8>> {
         let context = RenderContext::new(self.project, self.output);
         let output = self.hb.render(&self.tpl_name, &context)?;
 
-        fs::write(&self.output.file, output.as_bytes())
-            .with_context(|| format!("Error writing output file: `{}`", self.output.file))?;
+        Ok(output.into_bytes())
+    }
 
-        Ok(())
+    /// Save bytes to the output file
+    fn save(&self, bytes: Vec<u8>) -> Result<()> {
+        fs::write(&self.output.file, bytes)
+            .with_context(|| format!("Error writing output file: `{}`", self.output.file))
+    }
+
+    /// Renders template and saves to file
+    fn render(&self) -> Result<()> {
+        self.save(self.render_bytes()?)
     }
 }
 
@@ -406,6 +416,55 @@ impl<'a> Render<'a> for RTex<'a> {
 
     fn render(&self) -> Result<()> {
         self.0.render()
+    }
+}
+
+pub struct RPdf<'a>(RTex<'a>);
+
+impl<'a> Render<'a> for RPdf<'a> {
+    fn new(project: &'a Project, output: &'a Output) -> Self {
+        Self(RTex::new(project, output))
+    }
+
+    fn load(&mut self) -> Result<Option<Version>> {
+        self.0.load()
+    }
+
+    fn render(&self) -> Result<()> {
+        //Render LaTeX
+        let latex = String::from_utf8(self.0.0.render_bytes()?)?;
+        // change working directory to `output` so that relative paths are same as when rendering LaTeX and then compiling it externally with XeLaTeX
+        let path = env::current_dir()?;
+        let mut output_path = path.clone();
+        output_path.push("output");
+        fs::create_dir_all(&output_path).with_context(|| "Cannot create output directory. Make sure you have permission to create directories here.")?;
+        env::set_current_dir(&output_path).expect("WTF?! this should never happen.");
+        // Compile LaTeX to pdf with Tectonic
+        let res = match tectonic::latex_to_pdf(latex) {
+            Ok(pdf) => {
+                self.0.0.save(pdf)
+            }
+            Err(_e) => {
+                //TODO provide more useful error
+                Err(anyhow!(TectonicError {}))
+            }
+        };
+        //change working directory back
+        env::set_current_dir(&path).expect("WTF?! this should never happen.");
+
+        return res
+    }
+}
+
+/// Custom error type used when tectonic library returns an error. TODO add more useful details to the error
+#[derive(Debug)]
+struct TectonicError{ }
+
+impl std::error::Error for TectonicError {}
+
+impl fmt::Display for TectonicError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "Error creating PDF from Tex. Make sure the Tex (LaTeX) code is valid. TIP: Generate a .tex file instead of .pdf and try compiling it with TexLive or XeLaTeX. It may give you more detailed information about what went wrong.")
     }
 }
 

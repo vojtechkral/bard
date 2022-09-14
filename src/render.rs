@@ -48,6 +48,7 @@ pub trait Render<'a>: Sized {
 pub enum Renderer<'a> {
     Html(RHtml<'a>),
     Tex(RTex<'a>),
+    Pdf(RPdf<'a>),
     Hovorka(RHovorka<'a>),
     Json(RJson<'a>),
     Xml(RXml<'a>),
@@ -58,6 +59,7 @@ impl<'a> Render<'a> for Renderer<'a> {
         match output.format {
             Format::Html => Self::Html(RHtml::new(project, output)),
             Format::Tex => Self::Tex(RTex::new(project, output)),
+            Format::Pdf => Self::Pdf(RPdf::new(project, output)),
             Format::Hovorka => Self::Hovorka(RHovorka::new(project, output)),
             Format::Json => Self::Json(RJson::new(project, output)),
             Format::Xml => Self::Xml(RXml::new(project, output)),
@@ -69,6 +71,7 @@ impl<'a> Render<'a> for Renderer<'a> {
         match self {
             Self::Html(r) => r.load(),
             Self::Tex(r) => r.load(),
+            Self::Pdf(r) => r.load(),
             Self::Hovorka(r) => r.load(),
             Self::Json(r) => r.load(),
             Self::Xml(r) => r.load(),
@@ -79,6 +82,7 @@ impl<'a> Render<'a> for Renderer<'a> {
         match self {
             Self::Html(r) => r.render(),
             Self::Tex(r) => r.render(),
+            Self::Pdf(r) => r.render(),
             Self::Hovorka(r) => r.render(),
             Self::Json(r) => r.render(),
             Self::Xml(r) => r.render(),

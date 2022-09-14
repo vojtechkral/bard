@@ -19,6 +19,9 @@ pub struct Output {
     #[serde(rename = "process_win")]
     pub post_process_win: Option<CmdSpec>,
 
+    /// If set to true and the template is pdf, compile it with the embedded Tectonic typesetting engine into PDF.
+    pub tectonic: Option<bool>,
+
     #[serde(flatten)]
     pub metadata: Metadata,
 }
@@ -39,6 +42,7 @@ impl Output {
         self.format = match ext.as_deref() {
             Some("html") => Format::Html,
             Some("tex") => Format::Tex,
+            Some("pdf") => Format::Pdf,
             Some("xml") => Format::Xml,
             Some("json") => Format::Json,
             _ => bail!(
@@ -57,7 +61,7 @@ impl Output {
 
     pub fn template_path(&self) -> Option<&Path> {
         match self.format {
-            Format::Html | Format::Tex | Format::Hovorka => self.template.as_deref(),
+            Format::Html | Format::Tex | Format:: Pdf | Format::Hovorka => self.template.as_deref(),
             Format::Json | Format::Xml => None,
             Format::Auto => Format::no_auto(),
         }
