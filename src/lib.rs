@@ -9,9 +9,8 @@ use std::env;
 use std::ffi::OsString;
 
 use camino::{Utf8Path as Path, Utf8PathBuf as PathBuf};
+use clap::Parser as _;
 use serde::Serialize;
-use structopt::clap::AppSettings;
-use structopt::StructOpt;
 
 pub mod book;
 pub mod cli;
@@ -47,33 +46,33 @@ pub const PROGRAM_META: ProgramMeta = ProgramMeta {
     authors: env!("CARGO_PKG_AUTHORS"),
 };
 
-#[derive(StructOpt, Clone, Default, Debug)]
+#[derive(clap::Parser, Clone, Default, Debug)]
 pub struct MakeOpts {
-    #[structopt(short = "p", long, help = "Don't run outputs' postprocessing steps")]
+    #[clap(short = 'p', long, help = "Don't run outputs' postprocessing steps")]
     pub no_postprocess: bool,
 }
 
-#[derive(StructOpt)]
-#[structopt(
+#[derive(clap::Parser)]
+#[clap(
     version = env!("CARGO_PKG_VERSION"),
     about = "bard: A Markdown-based songbook compiler",
 )]
 enum Bard {
-    #[structopt(about = "Initialize a new bard project skeleton in this directory")]
+    #[clap(about = "Initialize a new bard project skeleton in this directory")]
     Init,
-    #[structopt(about = "Build the current project")]
+    #[clap(about = "Build the current project")]
     Make {
-        #[structopt(flatten)]
+        #[clap(flatten)]
         opts: MakeOpts,
     },
-    #[structopt(
+    #[clap(
         about = "Like make, but keep runing and rebuild each time there's a change in project files"
     )]
     Watch {
-        #[structopt(flatten)]
+        #[clap(flatten)]
         opts: MakeOpts,
     },
-    #[structopt(about = "Commandline utilities for postprocessing")]
+    #[clap(subcommand, about = "Commandline utilities for postprocessing")]
     Util(UtilCmd),
 }
 
@@ -166,11 +165,5 @@ pub fn bard_util(cmd: UtilCmd) -> Result<()> {
 }
 
 pub fn bard(args: &[OsString]) -> Result<()> {
-    Bard::from_clap(
-        &Bard::clap()
-            .setting(AppSettings::VersionlessSubcommands)
-            .setting(AppSettings::ArgRequiredElseHelp)
-            .get_matches_from(args.iter()),
-    )
-    .run()
+    Bard::parse_from(args).run()
 }
