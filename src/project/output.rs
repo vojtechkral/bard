@@ -58,7 +58,7 @@ impl Output {
 
     pub fn template_path(&self) -> Option<&Path> {
         match self.format {
-            Format::Html | Format::Tex | Format:: Pdf | Format::Hovorka => self.template.as_deref(),
+            Format::Html | Format::Tex | Format::Pdf | Format::Hovorka => self.template.as_deref(),
             Format::Json | Format::Xml => None,
             Format::Auto => Format::no_auto(),
         }

@@ -1,16 +1,16 @@
 use std::collections::HashMap;
-use std::{env, fmt};
 use std::fs;
 use std::io;
 use std::sync::{Arc, Mutex};
+use std::{env, fmt};
 
-use tectonic;
 use camino::{Utf8Path as Path, Utf8PathBuf as PathBuf};
 use handlebars::{self as hb, handlebars_helper, Handlebars, HelperDef, JsonValue};
 use image::image_dimensions;
 use lazy_static::lazy_static;
 use regex::{Error as ReError, Regex};
 use semver::Version;
+use tectonic;
 
 use super::{Render, RenderContext};
 use crate::error::*;
@@ -432,18 +432,17 @@ impl<'a> Render<'a> for RPdf<'a> {
 
     fn render(&self) -> Result<()> {
         //Render LaTeX
-        let latex = String::from_utf8(self.0.0.render_bytes()?)?;
+        let latex = String::from_utf8(self.0 .0.render_bytes()?)?;
         // change working directory to `output` so that relative paths are same as when rendering LaTeX and then compiling it externally with XeLaTeX
         let path = env::current_dir()?;
         let mut output_path = path.clone();
         output_path.push("output");
         fs::create_dir_all(&output_path).with_context(|| format!("Cannot create output directory. Make sure you have permission to create directories in {}.", path.display()))?;
-        env::set_current_dir(&output_path).expect("WTF?! this should never happen. Please contact the authors.");
+        env::set_current_dir(&output_path)
+            .expect("WTF?! this should never happen. Please contact the authors.");
         // Compile LaTeX to pdf with Tectonic
         let res = match tectonic::latex_to_pdf(latex) {
-            Ok(pdf) => {
-                self.0.0.save(pdf)
-            }
+            Ok(pdf) => self.0 .0.save(pdf),
             Err(_e) => {
                 //TODO provide more useful error
                 Err(anyhow!(TectonicError {}))
@@ -452,13 +451,13 @@ impl<'a> Render<'a> for RPdf<'a> {
         //change working directory back
         env::set_current_dir(&path).expect("WTF?! this should never happen. Maybe the working directory was deleted. Please contact the authors.");
 
-        return res
+        return res;
     }
 }
 
 /// Custom error type used when tectonic library returns an error. TODO add more useful details to the error
 #[derive(Debug)]
-struct TectonicError{ }
+struct TectonicError {}
 
 impl std::error::Error for TectonicError {}
 
