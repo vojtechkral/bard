@@ -19,9 +19,6 @@ pub struct Output {
     #[serde(rename = "process_win")]
     pub post_process_win: Option<CmdSpec>,
 
-    /// If set to true and the template is pdf, compile it with the embedded Tectonic typesetting engine into PDF.
-    pub tectonic: Option<bool>,
-
     #[serde(flatten)]
     pub metadata: Metadata,
 }

@@ -437,8 +437,8 @@ impl<'a> Render<'a> for RPdf<'a> {
         let path = env::current_dir()?;
         let mut output_path = path.clone();
         output_path.push("output");
-        fs::create_dir_all(&output_path).with_context(|| "Cannot create output directory. Make sure you have permission to create directories here.")?;
-        env::set_current_dir(&output_path).expect("WTF?! this should never happen.");
+        fs::create_dir_all(&output_path).with_context(|| format!("Cannot create output directory. Make sure you have permission to create directories in {}.", path.display()))?;
+        env::set_current_dir(&output_path).expect("WTF?! this should never happen. Please contact the authors.");
         // Compile LaTeX to pdf with Tectonic
         let res = match tectonic::latex_to_pdf(latex) {
             Ok(pdf) => {
@@ -450,7 +450,7 @@ impl<'a> Render<'a> for RPdf<'a> {
             }
         };
         //change working directory back
-        env::set_current_dir(&path).expect("WTF?! this should never happen.");
+        env::set_current_dir(&path).expect("WTF?! this should never happen. Maybe the working directory was deleted. Please contact the authors.");
 
         return res
     }
