@@ -56,3 +56,16 @@ assets = [
     # NB. cargo-generate-rpm auto-updates the target/release path when cross-compiling
     { source = "target/release/bard", dest = "/usr/bin/bard", mode = "755" }
 ]
+
+
+
+[package.metadata.vcpkg]
+git = "https://github.com/microsoft/vcpkg"
+rev = "01b29f6d8212bc845da64773b18665d682f5ab66"
+
+[package.metadata.vcpkg.target]
+x86_64-apple-darwin = { install = ["freetype","harfbuzz[icu,graphite2]"] }
+aarch64-apple-darwin = { triplet = "arm64-osx", install = ["freetype","harfbuzz[icu,graphite2]"] }
+x86_64-unknown-linux-gnu = { install = ["fontconfig","freetype","harfbuzz[icu,graphite2]"] }
+x86_64-pc-windows-msvc = { triplet = "x64-windows-static", install = ["fontconfig","freetype","harfbuzz[icu,graphite2]"] }
+
