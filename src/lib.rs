@@ -135,14 +135,13 @@ pub fn bard_watch_at<P: AsRef<Path>>(opts: &MakeOpts, path: P, mut watch: Watch)
         eprintln!();
         cli::status("Watching", "for changes in the project ...");
         match watch.watch(&project)? {
-            WatchEvent::Path(path) => {
-                cli::status(
-                    "",
-                    &format!("Modification detected at '{}' ...", path.display()),
-                );
-            }
-            WatchEvent::Pathless => cli::status("", "Modification detected ..."),
+            WatchEvent::Change(paths) if paths.len() == 1 => cli::status(
+                "",
+                &format!("Change detected at '{}' ...", paths[0].display()),
+            ),
+            WatchEvent::Change(..) => cli::status("", "Change detected ..."),
             WatchEvent::Cancel => break,
+            WatchEvent::Error(err) => return Err(err),
         }
     }
 
