@@ -225,12 +225,11 @@ where
     }
 
     pub fn content(self) -> XmlResult<ContentBuilder<'w, W>> {
-        let name = self.name.as_bytes();
         let attrs = self
             .attrs
             .iter()
             .map(|(k, v)| Attribute::from((k.as_str(), v.as_str())));
-        let elem = BytesStart::borrowed_name(name).with_attributes(attrs);
+        let elem = BytesStart::new(&self.name).with_attributes(attrs);
         self.writer.write_event(Event::Start(elem))?;
 
         Ok(ContentBuilder {
@@ -241,12 +240,11 @@ where
 
     /// Creates an `<empty/>` tag.
     pub fn finish(self) -> XmlResult<()> {
-        let name = self.name.as_bytes();
         let attrs = self
             .attrs
             .iter()
             .map(|(k, v)| Attribute::from((k.as_str(), v.as_str())));
-        let elem = BytesStart::borrowed_name(name).with_attributes(attrs);
+        let elem = BytesStart::new(&self.name).with_attributes(attrs);
         self.writer.write_event(Event::Empty(elem))
     }
 }
@@ -314,7 +312,7 @@ where
     }
 
     pub fn text(self, text: impl AsRef<str>) -> XmlResult<Self> {
-        let text = BytesText::from_plain_str(text.as_ref());
+        let text = BytesText::new(text.as_ref());
         self.writer.write_event(Event::Text(text))?;
         Ok(self)
     }
@@ -323,13 +321,13 @@ where
         let mut comment = comment.as_ref().replace("--", "- "); // extra space so that we don't get "--" out of "----"
         comment.insert(0, ' ');
         comment.push(' ');
-        let comment = BytesText::from_escaped_str(comment);
+        let comment = BytesText::from_escaped(comment);
         self.writer.write_event(Event::Comment(comment))?;
         Ok(self)
     }
 
     pub fn finish(self) -> XmlResult<()> {
-        let elem = BytesEnd::borrowed(self.parent_name.as_bytes());
+        let elem = BytesEnd::new(&self.parent_name);
         self.writer.write_event(Event::End(elem))?;
 
         Ok(())
@@ -363,7 +361,7 @@ where
 
     fn write_text(&mut self, text: &impl Display) -> XmlResult<()> {
         let text = format!("{}", text);
-        self.write_event(Event::Text(BytesText::from_plain_str(&text)))
+        self.write_event(Event::Text(BytesText::new(&text)))
     }
 }
 
