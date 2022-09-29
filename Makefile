@@ -1,13 +1,10 @@
-
-MSRV = 1.57
-
 fmt:
 	cargo check --tests
 	cargo fmt
 
 .PHONY: msrv
 msrv:
-	cargo +$(MSRV) check --tests
+	cargo +$(shell yq -r .env.MSRV .github/workflows/CI.yaml) check --tests
 
 .PHONY: lint
 lint: msrv

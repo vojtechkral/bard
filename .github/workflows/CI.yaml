@@ -5,6 +5,7 @@ name: CI
 env:
   CARGO_DEB: 1.37.0
   CARGO_RPM: 0.8.0
+  MSRV: 1.60.0
 
 jobs:
   fmt:
@@ -92,7 +93,7 @@ jobs:
         uses: actions-rs/toolchain@v1
         with:
           profile: minimal
-          toolchain: 1.57.0
+          toolchain: ${{ env.MSRV }}
           override: true
       - name: Cache dependencies
         uses: actions/cache@v2
