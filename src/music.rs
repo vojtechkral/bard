@@ -69,7 +69,7 @@ macro_rules! impl_from {
     (i $t:ty) => {
         impl From<$t> for Chromatic {
             fn from(i: $t) -> Chromatic {
-                Chromatic(((i % 12 + 12) % 12) as u8)
+                Chromatic(i.rem_euclid(12) as u8)
             }
         }
     };

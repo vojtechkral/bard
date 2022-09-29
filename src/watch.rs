@@ -48,7 +48,7 @@ impl Watch {
     const DELAY_MS: u64 = 500;
 
     fn event_map(res: notify::Result<notify::Event>) -> Option<WatchEvent> {
-        let evt = match res.with_context(|| format!("Error watching files")) {
+        let evt = match res.context("Error watching files") {
             Ok(evt) => evt,
             Err(err) => return Some(WatchEvent::Error(err)),
         };
@@ -91,7 +91,7 @@ impl Watch {
         project.watch_paths().try_for_each(|path| {
             self.watcher
                 .watch(path.as_std_path(), RecursiveMode::NonRecursive)
-                .with_context(|| format!("Error watching files"))
+                .context("Error watching files")
         })
     }
 
