@@ -13,6 +13,7 @@ msrv:
 lint: msrv
 	cargo fmt -- --check
 	cargo clippy
+	cargo check --features clap/deprecated
 	cargo audit
 
 .PHONY: release

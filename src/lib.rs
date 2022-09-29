@@ -48,31 +48,31 @@ pub const PROGRAM_META: ProgramMeta = ProgramMeta {
 
 #[derive(clap::Parser, Clone, Default, Debug)]
 pub struct MakeOpts {
-    #[clap(short = 'p', long, help = "Don't run outputs' postprocessing steps")]
+    #[arg(short = 'p', long, help = "Don't run outputs' postprocessing steps")]
     pub no_postprocess: bool,
 }
 
 #[derive(clap::Parser)]
-#[clap(
+#[command(
     version = env!("CARGO_PKG_VERSION"),
     about = "bard: A Markdown-based songbook compiler",
 )]
 enum Bard {
-    #[clap(about = "Initialize a new bard project skeleton in this directory")]
+    #[command(about = "Initialize a new bard project skeleton in this directory")]
     Init,
-    #[clap(about = "Build the current project")]
+    #[command(about = "Build the current project")]
     Make {
         #[clap(flatten)]
         opts: MakeOpts,
     },
-    #[clap(
+    #[command(
         about = "Like make, but keep runing and rebuild each time there's a change in project files"
     )]
     Watch {
         #[clap(flatten)]
         opts: MakeOpts,
     },
-    #[clap(subcommand, about = "Commandline utilities for postprocessing")]
+    #[command(subcommand, about = "Commandline utilities for postprocessing")]
     Util(UtilCmd),
 }
 
