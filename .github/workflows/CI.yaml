@@ -45,8 +45,6 @@ jobs:
       - name: Cache cargo tools
         id: cargo-tools-cache
         uses: actions/cache@v2
-        env:
-          cache-name: cache-cargo-tools
         with:
           path: cargo-tools
           key: lint-tools-${{ env.CARGO_OUTDATED }}-${{ env.CARGO_AUDIT }}
@@ -113,8 +111,6 @@ jobs:
           override: true
       - name: Cache dependencies
         uses: actions/cache@v2
-        env:
-          cache-name: cache-dependencies
         with:
           path: |
             ~/.cargo/.crates.toml
@@ -123,7 +119,7 @@ jobs:
             ~/.cargo/registry/index
             ~/.cargo/registry/cache
             target
-          key: test-${{ runner.os }}-${{ env.cache-name }}-${{ hashFiles('Cargo.lock') }}
+          key: test-${{ runner.os }}-${{ hashFiles('Cargo.lock') }}
       - name: Test
         run: |
           cargo test --locked
@@ -143,8 +139,6 @@ jobs:
           override: true
       - name: Cache dependencies
         uses: actions/cache@v2
-        env:
-          cache-name: cache-dependencies
         with:
           path: |
             ~/.cargo/.crates.toml
@@ -153,7 +147,7 @@ jobs:
             ~/.cargo/registry/index
             ~/.cargo/registry/cache
             target
-          key: msrv-${{ runner.os }}-${{ env.cache-name }}-${{ hashFiles('Cargo.lock') }}
+          key: msrv-${{ runner.os }}-${{ hashFiles('Cargo.lock') }}
       - name: Perform MSRV check
         uses: actions-rs/cargo@v1
         with:
@@ -184,8 +178,6 @@ jobs:
           version: 1.0
       - name: Cache dependencies
         uses: actions/cache@v2
-        env:
-          cache-name: cache-dependencies
         with:
           path: |
             ~/.cargo/.crates.toml
@@ -194,15 +186,13 @@ jobs:
             ~/.cargo/registry/index
             ~/.cargo/registry/cache
             target
-          key: build-${{ runner.os }}-${{ env.cache-name }}-${{ hashFiles('Cargo.lock') }}
+          key: build-${{ runner.os }}-${{ hashFiles('Cargo.lock') }}
       - name: Cache cargo tools
         id: cargo-tools-cache
         uses: actions/cache@v2
-        env:
-          cache-name: cache-cargo-tools
         with:
           path: cargo-tools
-          key: cargo-tools-${{ env.CARGO_DEB }}-${{ env.CARGO_RPM }}
+          key: build-tools-${{ env.CARGO_DEB }}-${{ env.CARGO_RPM }}
       - name: Install cargo tools if not cached
         if: steps.cargo-tools-cache.outputs.cache-hit != 'true'
         run: |
@@ -249,8 +239,6 @@ jobs:
           override: true
       - name: Cache dependencies
         uses: actions/cache@v2
-        env:
-          cache-name: cache-dependencies
         with:
           path: |
             ~/.cargo/.crates.toml
@@ -259,7 +247,7 @@ jobs:
             ~/.cargo/registry/index
             ~/.cargo/registry/cache
             target
-          key: build-${{ runner.os }}-${{ env.cache-name }}-${{ hashFiles('Cargo.lock') }}
+          key: build-${{ runner.os }}-${{ hashFiles('Cargo.lock') }}
       - name: Build
         run: |
           cargo build --locked --release
