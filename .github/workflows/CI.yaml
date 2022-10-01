@@ -277,7 +277,7 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           draft: true
-          name: ${{ github.event.head_commit.message }}
+          name: "bard ${{ github.ref_name }}"
           files: |
             ./bard-linux/bard
             ./bard-linux/bard.deb
