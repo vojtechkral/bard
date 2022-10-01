@@ -1,48 +1,62 @@
-use std::env;
 use std::process::{Command, Stdio};
-
-use camino::Utf8Path as Path;
+use std::{env, fs};
 
 use bard::render::DEFAULT_TEMPLATES;
 
 mod util;
 pub use util::*;
 
-fn yarn(args: &[&str], dir: &Path) {
-    let cmd_env = env::var("YARN_CMD");
-    let cmd = cmd_env.as_ref().map(|s| s.as_str()).unwrap_or("yarn");
+fn npx(args: &[&str]) {
+    let cmd_env = env::var("NPX_CMD");
+    let cmd = cmd_env.as_ref().map(|s| s.as_str()).unwrap_or("npx");
+
+    let cmdline = args.iter().fold(cmd.to_string(), |mut cmdline, arg| {
+        cmdline.push(' ');
+        cmdline.push_str(arg);
+        cmdline
+    });
+    eprintln!("{}", cmdline);
+
     let success = Command::new(cmd)
         .args(&*args)
-        .current_dir(dir)
-        .stdout(Stdio::null())
         .stdin(Stdio::null())
         .status()
         .unwrap()
         .success();
-    assert!(success, "yarn command failed: {:?}", args);
+    assert!(success, "npx command failed: {} {:?}", cmd, args);
 }
 
 /// This test calls the reference Handlebars JS implementation to parse
 /// our default templates. There were historically errors in them that
 /// the Rust implementation didn't reject.
 #[test]
-#[ignore = "requires node.js and yarn"]
+#[ignore = "requires node.js and npx"]
 fn hbs_js_parse() {
-    let dir = ROOT / "tests/hbs-js";
+    let handlebars_ver = env::var("HANDLEBARS_VER");
+    let handlebars_ver = handlebars_ver
+        .as_ref()
+        .map(|s| s.as_str())
+        .unwrap_or("latest");
+    let handlebars = format!("handlebars@{}", handlebars_ver);
+
+    let out_dir = Builder::work_dir("hbs-js", false).unwrap();
+    fs::create_dir_all(&out_dir).unwrap();
+    let out = out_dir.join("out");
 
     // Parse each template with JS handlebars
     for default in &DEFAULT_TEMPLATES[..] {
         let mut path = ROOT / "src/render/templates/";
         path.push(default.filename);
-        yarn(
-            &[
-                "--offline",
-                "--frozen-lockfile",
-                "run",
-                "handlebars",
-                path.as_str(),
-            ],
-            &dir,
-        );
+        npx(&[
+            "--yes",
+            handlebars.as_str(),
+            "-f",
+            out.as_str(),
+            path.as_str(),
+        ]);
+
+        let out_size = fs::metadata(&out).unwrap().len();
+        fs::remove_file(&out).unwrap();
+        assert!(out_size > 0);
     }
 }
