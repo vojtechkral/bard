@@ -3,9 +3,11 @@ on: [push, pull_request]
 name: CI
 
 env:
+  MSRV: 1.60.0
   CARGO_DEB: 1.37.0
   CARGO_RPM: 0.8.0
-  MSRV: 1.60.0
+  CARGO_OUTDATED: 0.11.1
+  CARGO_AUDIT: 0.17.0
 
 jobs:
   fmt:
@@ -28,8 +30,8 @@ jobs:
           command: fmt
           args: --all -- --check
 
-  clippy:
-    name: Clippy lints
+  lints:
+    name: Lints
     runs-on: ubuntu-latest
     steps:
       - name: Checkout sources
@@ -40,12 +42,56 @@ jobs:
           toolchain: stable
           components: clippy
           override: true
-      - name: Perform clippy check
+      - name: Cache cargo tools
+        id: cargo-tools-cache
+        uses: actions/cache@v2
+        env:
+          cache-name: cache-cargo-tools
+        with:
+          path: cargo-tools
+          key: lint-tools-${{ env.CARGO_OUTDATED }}-${{ env.CARGO_AUDIT }}
+      - name: Cache dependencies
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cargo/.crates.toml
+            ~/.cargo/.crates2.json
+            ~/.cargo/bin
+            ~/.cargo/registry/index
+            ~/.cargo/registry/cache
+            target
+          key: lint-${{ runner.os }}-${{ hashFiles('Cargo.lock') }}
+      - name: Install cargo tools if not cached
+        if: steps.cargo-tools-cache.outputs.cache-hit != 'true'
+        run: |
+          cargo install cargo-outdated --version ${{ env.CARGO_OUTDATED }} --root cargo-tools --target-dir cargo-tools-build
+          cargo install cargo-audit --version ${{ env.CARGO_AUDIT }} --root cargo-tools --target-dir cargo-tools-build
+      - name: Clippy
         uses: actions-rs/clippy-check@v1
         with:
           name: Clippy Output
           token: ${{ secrets.GITHUB_TOKEN }}
           args: --all-features
+      - name: Outdated dependencies
+        # TODO: add support for githubActions format in cargo-outdated directly?
+        shell: python
+        run: |
+          import json
+          import subprocess
+          import os
+
+          env = os.environ.copy()
+          env["PATH"] = os.getcwd() + "/cargo-tools/bin:" + env["PATH"]
+          ps = subprocess.Popen(['cargo', 'outdated', '--format', 'json'], stdout=subprocess.PIPE, env=env)
+          output = json.load(ps.stdout)
+          outdated = output['dependencies']
+
+          for dep in outdated:
+              msg = "project: {}, compat: {}, latest: {}, kind: {}".format(dep['project'], dep['compat'], dep['latest'], dep['kind'])
+              print("::warning title=Outdated dependency '{}'::{}".format(dep['name'], msg))
+      - name: Audit
+        run: |
+          PATH="$PATH:$PWD/cargo-tools/bin" cargo audit
 
   test:
     name: Test
