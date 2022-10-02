@@ -214,7 +214,7 @@ impl Project {
         mut iter: impl Iterator<Item = &'a str>,
     ) -> Result<()> {
         let arg0 = match iter.next() {
-            Some(arg0) => (arg0),
+            Some(arg0) => arg0,
             None => return Ok(()), // No command does nothing
         };
 

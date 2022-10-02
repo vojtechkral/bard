@@ -9,9 +9,8 @@ use std::env;
 use std::ffi::OsString;
 
 use camino::{Utf8Path as Path, Utf8PathBuf as PathBuf};
+use clap::Parser as _;
 use serde::Serialize;
-use structopt::clap::AppSettings;
-use structopt::StructOpt;
 
 pub mod book;
 pub mod cli;
@@ -47,33 +46,33 @@ pub const PROGRAM_META: ProgramMeta = ProgramMeta {
     authors: env!("CARGO_PKG_AUTHORS"),
 };
 
-#[derive(StructOpt, Clone, Default, Debug)]
+#[derive(clap::Parser, Clone, Default, Debug)]
 pub struct MakeOpts {
-    #[structopt(short = "p", long, help = "Don't run outputs' postprocessing steps")]
+    #[arg(short = 'p', long, help = "Don't run outputs' postprocessing steps")]
     pub no_postprocess: bool,
 }
 
-#[derive(StructOpt)]
-#[structopt(
+#[derive(clap::Parser)]
+#[command(
     version = env!("CARGO_PKG_VERSION"),
     about = "bard: A Markdown-based songbook compiler",
 )]
 enum Bard {
-    #[structopt(about = "Initialize a new bard project skeleton in this directory")]
+    #[command(about = "Initialize a new bard project skeleton in this directory")]
     Init,
-    #[structopt(about = "Build the current project")]
+    #[command(about = "Build the current project")]
     Make {
-        #[structopt(flatten)]
+        #[clap(flatten)]
         opts: MakeOpts,
     },
-    #[structopt(
+    #[command(
         about = "Like make, but keep runing and rebuild each time there's a change in project files"
     )]
     Watch {
-        #[structopt(flatten)]
+        #[clap(flatten)]
         opts: MakeOpts,
     },
-    #[structopt(about = "Commandline utilities for postprocessing")]
+    #[command(subcommand, about = "Commandline utilities for postprocessing")]
     Util(UtilCmd),
 }
 
@@ -136,14 +135,13 @@ pub fn bard_watch_at<P: AsRef<Path>>(opts: &MakeOpts, path: P, mut watch: Watch)
         eprintln!();
         cli::status("Watching", "for changes in the project ...");
         match watch.watch(&project)? {
-            WatchEvent::Path(path) => {
-                cli::status(
-                    "",
-                    &format!("Modification detected at '{}' ...", path.display()),
-                );
-            }
-            WatchEvent::Pathless => cli::status("", "Modification detected ..."),
+            WatchEvent::Change(paths) if paths.len() == 1 => cli::status(
+                "",
+                &format!("Change detected at '{}' ...", paths[0].display()),
+            ),
+            WatchEvent::Change(..) => cli::status("", "Change detected ..."),
             WatchEvent::Cancel => break,
+            WatchEvent::Error(err) => return Err(err),
         }
     }
 
@@ -166,11 +164,5 @@ pub fn bard_util(cmd: UtilCmd) -> Result<()> {
 }
 
 pub fn bard(args: &[OsString]) -> Result<()> {
-    Bard::from_clap(
-        &Bard::clap()
-            .setting(AppSettings::VersionlessSubcommands)
-            .setting(AppSettings::ArgRequiredElseHelp)
-            .get_matches_from(args.iter()),
-    )
-    .run()
+    Bard::parse_from(args).run()
 }

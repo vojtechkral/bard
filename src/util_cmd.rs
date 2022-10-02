@@ -4,27 +4,26 @@ use std::str::FromStr;
 
 use camino::Utf8PathBuf as PathBuf;
 use regex::Regex;
-use structopt::StructOpt;
 
 use crate::util::sort_lexical_by;
 use crate::{cli, error::*};
 
-#[derive(StructOpt)]
+#[derive(clap::Subcommand)]
 pub enum UtilCmd {
-    #[structopt(name = "cp", about = "Copy a file")]
+    #[command(name = "cp", about = "Copy a file")]
     Copy {
-        #[structopt(help = "Source path")]
+        #[arg(help = "Source path")]
         src: String,
-        #[structopt(help = "Destination path")]
+        #[arg(help = "Destination path")]
         dest: String,
     },
-    #[structopt(about = "Alphabetically sorts lines of a file in-place")]
+    #[command(about = "Alphabetically sorts lines of a file in-place")]
     SortLines {
-        #[structopt(
+        #[arg(
             help = "Regular expression that extracts the sort key from each line via a capture group"
         )]
         regex: String,
-        #[structopt(help = "The file whose lines to sort, in-place")]
+        #[arg(help = "The file whose lines to sort, in-place")]
         file: String,
     },
 }
