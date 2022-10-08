@@ -202,23 +202,18 @@ xml_write!(struct RenderContext<'a> {
         .value(program)?
 });
 
-pub struct RXml<'a> {
-    project: &'a Project,
-    output: &'a Output,
+pub struct RXml;
+
+impl RXml {
+    pub fn new() -> Self {
+        Self
+    }
 }
 
-impl<'a> Render<'a> for RXml<'a> {
-    fn new(project: &'a Project, output: &'a Output) -> Self {
-        Self { project, output }
-    }
-
-    fn load(&mut self) -> anyhow::Result<Option<semver::Version>> {
-        Ok(None)
-    }
-
-    fn render(&self) -> anyhow::Result<()> {
-        let context = RenderContext::new(self.project, self.output);
-        let path = &self.output.file;
+impl Render for RXml {
+    fn render(&self, project: &Project, output: &Output) -> anyhow::Result<()> {
+        let context = RenderContext::new(project, output);
+        let path = &output.file;
 
         File::create(path)
             .map_err(Error::from)

@@ -1,28 +1,21 @@
 use std::fs::File;
 
-use semver::Version;
-
 use super::{Render, RenderContext};
 use crate::error::*;
 use crate::project::{Output, Project};
 
-pub struct RJson<'a> {
-    project: &'a Project,
-    output: &'a Output,
+pub struct RJson;
+
+impl RJson {
+    pub fn new() -> Self {
+        Self
+    }
 }
 
-impl<'a> Render<'a> for RJson<'a> {
-    fn new(project: &'a Project, output: &'a Output) -> Self {
-        Self { project, output }
-    }
-
-    fn load(&mut self) -> Result<Option<Version>> {
-        Ok(None)
-    }
-
-    fn render(&self) -> Result<()> {
-        let context = RenderContext::new(self.project, self.output);
-        let path = &self.output.file;
+impl Render for RJson {
+    fn render(&self, project: &Project, output: &Output) -> Result<()> {
+        let context = RenderContext::new(project, output);
+        let path = &output.file;
 
         File::create(path)
             .map_err(Error::from)

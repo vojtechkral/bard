@@ -38,50 +38,45 @@ impl<'a> RenderContext<'a> {
     }
 }
 
-pub trait Render<'a>: Sized {
-    fn new(project: &'a Project, output: &'a Output) -> Self;
-    /// Load the template file (if any) and return the AST version specified.
-    fn load(&mut self) -> Result<Option<Version>>;
-    fn render(&self) -> Result<()>;
+trait Render {
+    /// Render the output file based on `project` and `output`.
+    fn render(&self, project: &Project, output: &Output) -> Result<()>;
+
+    /// Returns the AST version specified in the template, if any.
+    fn version(&self) -> Option<Version> {
+        None
+    }
 }
 
-pub enum Renderer<'a> {
-    Html(RHtml<'a>),
-    Tex(RTex<'a>),
-    Hovorka(RHovorka<'a>),
-    Json(RJson<'a>),
-    Xml(RXml<'a>),
+pub struct Renderer<'a> {
+    project: &'a Project,
+    output: &'a Output,
+    render: Box<dyn Render>,
 }
 
-impl<'a> Render<'a> for Renderer<'a> {
-    fn new(project: &'a Project, output: &'a Output) -> Self {
-        match output.format {
-            Format::Html => Self::Html(RHtml::new(project, output)),
-            Format::Tex => Self::Tex(RTex::new(project, output)),
-            Format::Hovorka => Self::Hovorka(RHovorka::new(project, output)),
-            Format::Json => Self::Json(RJson::new(project, output)),
-            Format::Xml => Self::Xml(RXml::new(project, output)),
+impl<'a> Renderer<'a> {
+    pub fn new(project: &'a Project, output: &'a Output) -> Result<Self> {
+        let render: Box<dyn Render> = match output.format {
+            Format::Html => Box::new(RHtml::new(project, output)?),
+            Format::Tex => Box::new(RTex::new(project, output)?),
+            Format::Hovorka => Box::new(RHovorka::new(project, output)?),
+            Format::Json => Box::new(RJson::new()),
+            Format::Xml => Box::new(RXml::new()),
             Format::Auto => Format::no_auto(),
-        }
+        };
+
+        Ok(Self {
+            project,
+            output,
+            render,
+        })
     }
 
-    fn load(&mut self) -> Result<Option<Version>> {
-        match self {
-            Self::Html(r) => r.load(),
-            Self::Tex(r) => r.load(),
-            Self::Hovorka(r) => r.load(),
-            Self::Json(r) => r.load(),
-            Self::Xml(r) => r.load(),
-        }
+    pub fn version(&self) -> Option<Version> {
+        self.render.version()
     }
 
-    fn render(&self) -> Result<()> {
-        match self {
-            Self::Html(r) => r.render(),
-            Self::Tex(r) => r.render(),
-            Self::Hovorka(r) => r.render(),
-            Self::Json(r) => r.render(),
-            Self::Xml(r) => r.render(),
-        }
+    pub fn render(&self) -> Result<()> {
+        self.render.render(self.project, self.output)
     }
 }

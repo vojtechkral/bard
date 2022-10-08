@@ -1,6 +1,6 @@
 use bard::book;
 use bard::project::Project;
-use bard::render::{Render, Renderer};
+use bard::render::Renderer;
 
 use camino::Utf8PathBuf as PathBuf;
 use semver::Version;
@@ -13,7 +13,8 @@ fn get_output_versions(project: &Project) -> Vec<(Version, PathBuf)> {
     // Imperative code so that track_caller works
     let mut res = vec![];
     for o in &project.settings.output {
-        if let Some(ver) = Renderer::new(project, &o).load().unwrap() {
+        let renderer = Renderer::new(project, &o).unwrap();
+        if let Some(ver) = renderer.version() {
             res.push((ver, o.file.clone()));
         }
     }

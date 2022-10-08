@@ -14,7 +14,7 @@ use crate::cli;
 use crate::default_project::DEFAULT_PROJECT;
 use crate::error::*;
 use crate::music::Notation;
-use crate::render::{Render, Renderer};
+use crate::render::Renderer;
 use crate::util::{ExitStatusExt, PathBufExt};
 
 pub use toml::Value;
@@ -286,8 +286,8 @@ impl Project {
             cli::status("Rendering", output.output_filename());
             let context = || format!("Could not render output file '{}'", output.file);
 
-            let mut renderer = Renderer::new(self, output);
-            let tpl_version = renderer.load().with_context(context)?;
+            let renderer = Renderer::new(self, output).with_context(context)?;
+            let tpl_version = renderer.version();
 
             let res = renderer.render().with_context(context).and_then(|_| {
                 if self.post_process {

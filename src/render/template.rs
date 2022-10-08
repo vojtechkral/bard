@@ -403,22 +403,19 @@ impl HelperDef for MathHelper {
 }
 
 #[derive(Debug)]
-struct HbRender<'a> {
+struct HbRender {
     hb: Handlebars<'static>,
     tpl_name: String,
-    project: &'a Project,
-    output: &'a Output,
-    default_content: &'static str,
     version: Arc<Mutex<Option<Version>>>,
 }
 
-impl<'a> HbRender<'a> {
+impl HbRender {
     /// Version of the template to assume if it specifies none.
     const ASSUMED_FIRST_VERSION: Version = Version::new(1, 0, 0);
 
-    fn new(project: &'a Project, output: &'a Output, default: &DefaultTemaplate) -> Self {
+    fn new(project: &Project, output: &Output, default: &DefaultTemaplate) -> Result<Self> {
         let (version_helper, version) = VersionCheckHelper::new();
-        let hb = Handlebars::new()
+        let mut hb = Handlebars::new()
             .with_helper("eq", hb_eq)
             .with_helper("contains", hb_contains)
             .with_helper("cat", hb_cat)
@@ -436,115 +433,124 @@ impl<'a> HbRender<'a> {
             .map(|t| t.to_string())
             .unwrap_or_else(|| default.filename.to_string());
 
-        Self {
-            hb,
-            tpl_name,
-            project,
-            output,
-            default_content: default.content,
-            version,
-        }
-    }
-
-    fn load(&mut self) -> Result<Version> {
-        if let Some(template) = self.output.template.as_ref() {
+        if let Some(template) = output.template.as_ref() {
             if template.exists() {
-                self.hb
-                    .register_template_file(&self.tpl_name, template)
+                hb.register_template_file(&tpl_name, template)
                     .with_context(|| format!("Error in template file `{}`", template))?;
             } else {
                 let parent = template.parent().unwrap(); // The temaplate should've been resolved as absolute in Project
                 fs::create_dir_all(parent)
-                    .and_then(|_| fs::write(template, self.default_content.as_bytes()))
+                    .and_then(|_| fs::write(template, default.content.as_bytes()))
                     .with_context(|| {
                         format!("Error writing default template to file: `{}`", template)
                     })?;
 
-                self.hb
-                    .register_template_string(&self.tpl_name, self.default_content)
+                hb.register_template_string(&tpl_name, default.content)
                     .expect("Internal error: Could not load default template");
             }
         } else {
-            self.hb
-                .register_template_string(&self.tpl_name, self.default_content)
+            hb.register_template_string(&tpl_name, default.content)
                 .expect("Internal error: Could not load default template");
         }
 
         // Render with no data to an IO Sink.
         // This will certainly fail, but if the version_check() helper is used on top
         // of the template, we will get the version in self.version.
-        let _ = self.hb.render_to_write(&self.tpl_name, &(), io::sink());
-        let version = self
-            .version
-            .lock()
-            .unwrap()
-            .clone()
-            .unwrap_or(Self::ASSUMED_FIRST_VERSION);
-        Ok(version)
+        let _ = hb.render_to_write(&tpl_name, &(), io::sink());
+
+        Ok(Self {
+            hb,
+            tpl_name,
+            version,
+        })
     }
 
-    fn render(&self) -> Result<()> {
-        let context = RenderContext::new(self.project, self.output);
-        let output = self.hb.render(&self.tpl_name, &context)?;
+    fn render(&self, project: &Project, output: &Output) -> Result<()> {
+        let context = RenderContext::new(project, output);
+        let rendered = self.hb.render(&self.tpl_name, &context)?;
 
-        fs::write(&self.output.file, output.as_bytes())
-            .with_context(|| format!("Error writing output file: `{}`", self.output.file))?;
+        fs::write(&output.file, rendered.as_bytes())
+            .with_context(|| format!("Error writing output file: `{}`", output.file))?;
 
         Ok(())
     }
-}
 
-pub struct RHtml<'a>(HbRender<'a>);
-
-impl<'a> Render<'a> for RHtml<'a> {
-    fn new(project: &'a Project, output: &'a Output) -> Self {
-        Self(HbRender::new(project, output, &DEFAULT_TEMPLATE_HTML))
-    }
-
-    fn load(&mut self) -> Result<Option<Version>> {
-        self.0.load().map(Some)
-    }
-
-    fn render(&self) -> Result<()> {
-        self.0.render()
+    fn version(&self) -> Option<Version> {
+        Some(
+            self.version
+                .lock()
+                .unwrap()
+                .clone()
+                .unwrap_or(Self::ASSUMED_FIRST_VERSION),
+        )
     }
 }
 
-pub struct RTex<'a>(HbRender<'a>);
+pub struct RHtml(HbRender);
 
-impl<'a> Render<'a> for RTex<'a> {
-    fn new(project: &'a Project, output: &'a Output) -> Self {
-        let mut render = HbRender::new(project, output, &DEFAULT_TEMPLATE_TEX);
+impl RHtml {
+    pub fn new(project: &Project, output: &Output) -> Result<Self> {
+        Ok(Self(HbRender::new(
+            project,
+            output,
+            &DEFAULT_TEMPLATE_HTML,
+        )?))
+    }
+}
+
+impl Render for RHtml {
+    fn render(&self, project: &Project, output: &Output) -> Result<()> {
+        self.0.render(project, output)
+    }
+
+    fn version(&self) -> Option<Version> {
+        self.0.version()
+    }
+}
+
+pub struct RTex(HbRender);
+
+impl RTex {
+    pub fn new(project: &Project, output: &Output) -> Result<Self> {
+        let mut render = HbRender::new(project, output, &DEFAULT_TEMPLATE_TEX)?;
 
         // Setup Latex escaping
         render.hb.register_escape_fn(hb_latex_escape);
         render.hb.register_helper("pre", Box::new(hb_pre));
 
-        Self(render)
-    }
-
-    fn load(&mut self) -> Result<Option<Version>> {
-        self.0.load().map(Some)
-    }
-
-    fn render(&self) -> Result<()> {
-        self.0.render()
+        Ok(Self(render))
     }
 }
 
-pub struct RHovorka<'a>(HbRender<'a>);
-
-impl<'a> Render<'a> for RHovorka<'a> {
-    fn new(project: &'a Project, output: &'a Output) -> Self {
-        Self(HbRender::new(project, output, &DEFAULT_TEMPLATE_HOVORKA))
+impl Render for RTex {
+    fn render(&self, project: &Project, output: &Output) -> Result<()> {
+        self.0.render(project, output)
     }
 
-    fn load(&mut self) -> Result<Option<Version>> {
-        self.0.load().map(Some)
+    fn version(&self) -> Option<Version> {
+        self.0.version()
+    }
+}
+
+pub struct RHovorka(HbRender);
+
+impl RHovorka {
+    pub fn new(project: &Project, output: &Output) -> Result<Self> {
+        Ok(Self(HbRender::new(
+            project,
+            output,
+            &DEFAULT_TEMPLATE_HOVORKA,
+        )?))
+    }
+}
+
+impl Render for RHovorka {
+    fn render(&self, project: &Project, output: &Output) -> Result<()> {
+        self.0.render(project, output)
     }
 
-    fn render(&self) -> Result<()> {
-        self.0.render()
+    fn version(&self) -> Option<Version> {
+        self.0.version()
     }
 }
 
