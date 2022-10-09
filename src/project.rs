@@ -1,11 +1,9 @@
 use std::collections::BTreeMap;
 use std::fs;
 use std::iter;
-use std::process::Command;
 use std::str;
 
 use camino::{Utf8Path as Path, Utf8PathBuf as PathBuf};
-use handlebars::Handlebars;
 use serde::Deserialize;
 use serde::Serialize;
 
@@ -15,16 +13,17 @@ use crate::default_project::DEFAULT_PROJECT;
 use crate::error::*;
 use crate::music::Notation;
 use crate::render::Renderer;
-use crate::util::{ExitStatusExt, PathBufExt};
+use crate::util::PathBufExt;
 
 pub use toml::Value;
 
 mod input;
 use input::{InputSet, SongsGlobs};
-mod postprocess;
-use postprocess::{CmdSpec, PostProcessCtx};
 mod output;
+mod postprocess;
 pub use output::Output;
+
+use self::postprocess::PostProcessor;
 
 fn dir_songs() -> PathBuf {
     "songs".into()
@@ -207,80 +206,9 @@ impl Project {
         &self.book.songs_sorted
     }
 
-    fn post_process_one<'a>(
-        &'a self,
-        context: &'a PostProcessCtx<'a>,
-        mut iter: impl Iterator<Item = &'a str>,
-    ) -> Result<()> {
-        let arg0 = match iter.next() {
-            Some(arg0) => arg0,
-            None => return Ok(()), // No command does nothing
-        };
-
-        let hb = Handlebars::new();
-        let arg0_r = hb
-            .render_template(arg0, context)
-            .with_context(|| format!("Could not substitute command: '{}'", arg0))?;
-
-        let mut cmd = Command::new(arg0_r.clone());
-        let mut cmd_src = arg0_r;
-
-        for arg in iter {
-            // Accumulate args here for error reporting:
-            cmd_src.push(' ');
-            cmd_src.push_str(arg);
-
-            let arg_r = hb.render_template(arg, context).with_context(|| {
-                format!("Could not substitute command arguments: '{}'", cmd_src)
-            })?;
-
-            // Replace the arg with the interpolated content after succesful render
-            cmd_src.truncate(cmd_src.len() - arg.len());
-            cmd_src.push_str(&arg_r);
-
-            cmd.arg(&arg_r);
-        }
-
-        cmd.current_dir(&self.settings.dir_output);
-
-        cli::status("Postprocess", &cmd_src);
-
-        let status = cmd
-            .status()
-            .with_context(|| format!("Failed to run processing command '{}'", cmd_src))?;
-
-        status
-            .into_result()
-            .with_context(|| format!("Processing command '{}' failed", cmd_src))
-    }
-
-    fn post_process(&self, output: &Output) -> Result<()> {
-        let cmds = match output.post_process() {
-            Some(cmds) if !cmds.is_empty() => cmds,
-            _ => return Ok(()),
-        };
-
-        let context = PostProcessCtx::new(&output.file, &self.project_dir)?;
-
-        match cmds {
-            CmdSpec::Basic(cmd) => self.post_process_one(&context, cmd.split_whitespace())?,
-            CmdSpec::Multiple(vec) => {
-                for cmd in vec.iter() {
-                    self.post_process_one(&context, cmd.split_ascii_whitespace())?;
-                }
-            }
-            CmdSpec::Extended(vec) => {
-                for cmd in vec.iter() {
-                    self.post_process_one(&context, cmd.iter().map(String::as_str))?;
-                }
-            }
-        }
-
-        Ok(())
-    }
-
     pub fn render(&self) -> Result<()> {
         fs::create_dir_all(&self.settings.dir_output)?;
+        let postprocessor = PostProcessor::new(&self.project_dir, self.settings.dir_output());
 
         self.settings.output.iter().try_for_each(|output| {
             cli::status("Rendering", output.output_filename());
@@ -291,7 +219,7 @@ impl Project {
 
             let res = renderer.render().with_context(context).and_then(|_| {
                 if self.post_process {
-                    self.post_process(output).with_context(|| {
+                    postprocessor.run(output).with_context(|| {
                         format!("Could not postprocess output file '{}'", output.file)
                     })
                 } else {
