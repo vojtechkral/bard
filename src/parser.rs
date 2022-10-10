@@ -11,7 +11,7 @@ use std::str;
 use camino::{Utf8Path as Path, Utf8PathBuf as PathBuf};
 use comrak::nodes::{AstNode, ListType, NodeCode, NodeValue};
 use comrak::{ComrakExtensionOptions, ComrakOptions, ComrakParseOptions, ComrakRenderOptions};
-use lazy_static::lazy_static;
+use once_cell::sync::Lazy;
 use regex::{Captures, Regex};
 use thiserror::Error;
 
@@ -26,9 +26,7 @@ type Arena<'a> = comrak::Arena<AstNode<'a>>;
 
 const FALLBACK_TITLE: &str = "[Untitled]";
 
-lazy_static! {
-    static ref EXTENSION: Regex = Regex::new(r"(^|\s)(!+)(\S+)").unwrap();
-}
+static EXTENSION: Lazy<Regex> = Lazy::new(|| Regex::new(r"(^|\s)(!+)(\S+)").unwrap());
 
 #[derive(Error, PartialEq, Eq, Clone, Debug)]
 enum ErrorKind {

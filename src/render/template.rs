@@ -8,7 +8,7 @@ use std::sync::{Arc, Mutex};
 use camino::{Utf8Path as Path, Utf8PathBuf as PathBuf};
 use handlebars::{self as hb, handlebars_helper, Handlebars, HelperDef, JsonValue, RenderError};
 use image::image_dimensions;
-use lazy_static::lazy_static;
+use once_cell::sync::Lazy;
 use regex::{Error as ReError, Regex};
 use semver::Version;
 use serde_json::Number;
@@ -20,9 +20,7 @@ use crate::util::PathBufExt;
 
 type RegexCache = HashMap<String, Result<Regex, ReError>>;
 
-lazy_static! {
-    static ref REGEX_CACHE: Mutex<RegexCache> = Mutex::new(RegexCache::new());
-}
+static REGEX_CACHE: Lazy<Mutex<RegexCache>> = Lazy::new(|| Mutex::new(RegexCache::new()));
 
 // Default templates
 
