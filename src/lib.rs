@@ -84,7 +84,7 @@ impl Bard {
             Init => bard_init(),
             Make { opts } => bard_make(&opts),
             Watch { opts } => bard_watch(&opts),
-            Util(cmd) => bard_util(cmd),
+            Util(cmd) => cmd.run(),
         }
     }
 }
@@ -157,10 +157,6 @@ pub fn bard_watch(opts: &MakeOpts) -> Result<()> {
     });
 
     bard_watch_at(opts, &cwd, watch)
-}
-
-pub fn bard_util(cmd: UtilCmd) -> Result<()> {
-    util_cmd::util_cmd(cmd)
 }
 
 pub fn bard(args: &[OsString]) -> Result<()> {

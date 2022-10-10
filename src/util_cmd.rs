@@ -8,7 +8,7 @@ use regex::Regex;
 use crate::util::sort_lexical_by;
 use crate::{cli, error::*};
 
-#[derive(clap::Subcommand)]
+#[derive(clap::Parser)]
 pub enum UtilCmd {
     #[command(name = "cp", about = "Copy a file")]
     Copy {
@@ -26,6 +26,17 @@ pub enum UtilCmd {
         #[arg(help = "The file whose lines to sort, in-place")]
         file: String,
     },
+}
+
+impl UtilCmd {
+    pub fn run(self) -> Result<()> {
+        use UtilCmd::*;
+
+        match self {
+            SortLines { regex, file } => sort_lines(&regex, &file).map(|_| ()),
+            Copy { src, dest } => copy(&src, &dest),
+        }
+    }
 }
 
 #[derive(Debug)]
@@ -94,13 +105,4 @@ pub fn sort_lines(regex: &str, path: &str) -> Result<usize> {
 pub fn copy(src: &str, dest: &str) -> Result<()> {
     fs::copy(src, dest)?;
     Ok(())
-}
-
-pub fn util_cmd(cmd: UtilCmd) -> Result<()> {
-    use UtilCmd::*;
-
-    match cmd {
-        SortLines { regex, file } => sort_lines(&regex, &file).map(|_| ()),
-        Copy { src, dest } => copy(&src, &dest),
-    }
 }
