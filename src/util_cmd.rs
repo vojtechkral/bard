@@ -65,10 +65,10 @@ fn line_read(mut lines: Vec<Line>, line: io::Result<String>, regex: &Regex) -> R
     Ok(lines)
 }
 
-pub fn sort_lines(regex: &str, path: &str) -> Result<usize> {
+pub fn sort_lines(regex: &str, path: impl Into<PathBuf>) -> Result<usize> {
     let regex = Regex::from_str(regex).with_context(|| format!("Invalid regex: `{}`", regex))?;
 
-    let path = PathBuf::from(path);
+    let path = path.into();
     let file = File::open(&path).with_context(|| format!("Could not open file `{}`", path))?;
     let reader = BufReader::new(file);
 

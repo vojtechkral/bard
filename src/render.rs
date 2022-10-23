@@ -13,6 +13,7 @@ pub mod hovorka;
 pub mod html;
 pub mod json;
 pub mod tex;
+pub mod tex_tools;
 pub mod xml;
 
 pub use self::hovorka::RHovorka;

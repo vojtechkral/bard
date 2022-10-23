@@ -1,4 +1,5 @@
 use std::fmt::Display;
+use std::io;
 use std::sync::atomic::{AtomicBool, Ordering};
 
 use colored::{Color, Colorize};
@@ -68,5 +69,22 @@ pub fn error(error: Error) {
         }
 
         source = err.source();
+    }
+}
+
+// TODO: Use an app context for cli logging (with verbosity)
+
+pub trait TerminalExt {
+    fn rewind_line(&mut self) -> io::Result<()>;
+}
+
+impl TerminalExt for dyn term::Terminal<Output = io::Stderr> + Send {
+    fn rewind_line(&mut self) -> io::Result<()> {
+        if atty::is(atty::Stream::Stdout) {
+            self.cursor_up()?;
+            self.delete_line()?;
+        }
+
+        Ok(())
     }
 }
