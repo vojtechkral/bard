@@ -4,7 +4,7 @@ fmt:
 
 .PHONY: msrv
 msrv:
-	cargo +$(shell yq -r .env.MSRV .github/workflows/CI.yaml) check --tests
+	CARGO_TARGET_DIR=target-msrv cargo +$(shell yq -r .env.MSRV .github/workflows/CI.yaml) check --tests
 
 .PHONY: lint
 lint: msrv

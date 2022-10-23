@@ -43,7 +43,7 @@ impl Output {
             Some("json") => Format::Json,
             _ => bail!(
                 "Unknown or unsupported format of output file: {}\nHint: Specify format with  \
-                 'format = ...'",
+                 'format = ...'\nSupported formats are: tex, html, json, and xml.",
                 self.file
             ),
         };

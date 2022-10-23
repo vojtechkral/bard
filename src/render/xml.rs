@@ -202,6 +202,7 @@ xml_write!(struct RenderContext<'a> {
         .value(program)?
 });
 
+#[derive(Debug, Default)]
 pub struct RXml;
 
 impl RXml {

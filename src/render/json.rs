@@ -4,6 +4,7 @@ use super::{Render, RenderContext};
 use crate::error::*;
 use crate::project::{Output, Project};
 
+#[derive(Debug, Default)]
 pub struct RJson;
 
 impl RJson {

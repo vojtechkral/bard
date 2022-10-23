@@ -64,13 +64,13 @@ impl ExitStatusExt for ExitStatus {
         #[cfg(unix)]
         {
             if let Some(signal) = self.signal() {
-                bail!("Process killed by signal: {}", signal);
+                bail!("Program killed by signal: {}", signal);
             }
         }
 
         match self.code() {
-            Some(code) => bail!("Process exited with code: {}", code),
-            None => bail!("Process failed with unknown error"),
+            Some(code) => bail!("Program exited with code: {}", code),
+            None => bail!("Program failed with unknown error"),
         }
     }
 }
