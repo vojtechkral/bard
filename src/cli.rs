@@ -14,12 +14,30 @@ fn stderr_used() -> bool {
     USE_STDERR.load(Ordering::Acquire)
 }
 
+fn indent_line(line: &str) {
+    eprintln!("             {}", line);
+}
+
 fn status_inner(kind: impl Display, color: Color, status: impl Display) {
-    if stderr_used() {
-        let kind = format!("{:>12}", kind).bold().color(color);
-        let status = format!("{}", status).replace('\n', "\n             ");
-        eprintln!("{} {}", kind, status);
+    if !stderr_used() {
+        return;
     }
+
+    let kind = format!("{:>12}", kind).bold().color(color);
+    let status = format!("{}", status);
+    let mut lines = status.lines();
+    let first = lines.next().unwrap_or("");
+    eprintln!("{} {}", kind, first);
+    lines.for_each(indent_line);
+}
+
+pub fn indent(status: impl Display) {
+    if !stderr_used() {
+        return;
+    }
+
+    let status = format!("{}", status);
+    status.lines().for_each(indent_line);
 }
 
 pub fn status(verb: &str, status: impl Display) {
