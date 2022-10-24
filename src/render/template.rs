@@ -427,12 +427,11 @@ impl HbRender {
         })
     }
 
-    pub(crate) fn render(&self, project: &Project, output: &Output) -> Result<()> {
-        let context = RenderContext::new(project, output);
+    pub(crate) fn render(&self, output: &Path, context: RenderContext) -> Result<()> {
         let rendered = self.hb.render(&self.tpl_name, &context)?;
 
-        fs::write(&output.file, rendered.as_bytes())
-            .with_context(|| format!("Error writing output file: `{}`", output.file))?;
+        fs::write(output, rendered.as_bytes())
+            .with_context(|| format!("Error writing output file: `{}`", output))?;
 
         Ok(())
     }

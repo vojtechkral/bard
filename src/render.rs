@@ -1,4 +1,5 @@
 use anyhow::Result;
+use camino::Utf8Path as Path;
 use semver::Version;
 use serde::Serialize;
 
@@ -53,7 +54,7 @@ impl<'a> RenderContext<'a> {
 
 trait Render {
     /// Render the output file based on `project` and `output`.
-    fn render(&self, project: &Project, output: &Output) -> Result<()>;
+    fn render(&self, output: &Path, context: RenderContext) -> Result<()>;
 
     /// Returns the AST version specified in the template, if any.
     fn version(&self) -> Option<Version> {
@@ -90,6 +91,7 @@ impl<'a> Renderer<'a> {
     }
 
     pub fn render(&self) -> Result<()> {
-        self.render.render(self.project, self.output)
+        let context = RenderContext::new(self.project, self.output);
+        self.render.render(&self.output.file, context)
     }
 }

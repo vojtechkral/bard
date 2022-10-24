@@ -1,8 +1,9 @@
 use handlebars::handlebars_helper;
 use semver::Version;
+use camino::Utf8Path as Path;
 
 use super::template::HbRender;
-use super::Render;
+use super::{Render, RenderContext};
 use crate::error::*;
 use crate::project::{Output, Project};
 
@@ -52,8 +53,8 @@ impl RTex {
 }
 
 impl Render for RTex {
-    fn render(&self, project: &Project, output: &Output) -> Result<()> {
-        self.0.render(project, output)
+    fn render(&self, output: &Path, context: RenderContext) -> Result<()> {
+        self.0.render(output, context)
     }
 
     fn version(&self) -> Option<Version> {
