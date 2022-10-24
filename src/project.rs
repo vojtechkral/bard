@@ -3,15 +3,14 @@ use std::fs;
 use std::iter;
 use std::str;
 
-use camino::{Utf8Path as Path, Utf8PathBuf as PathBuf};
 use serde::Deserialize;
 use serde::Serialize;
 
 use crate::book::{self, Book, Song, SongRef};
 use crate::cli;
 use crate::default_project::DEFAULT_PROJECT;
-use crate::error::*;
 use crate::music::Notation;
+use crate::prelude::*;
 use crate::render::Renderer;
 use crate::util::PathBufExt;
 

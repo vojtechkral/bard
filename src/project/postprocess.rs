@@ -2,13 +2,13 @@ use std::convert::TryFrom;
 use std::env;
 use std::process::Command;
 
-use camino::{Utf8Path as Path, Utf8PathBuf as PathBuf};
 use handlebars::Handlebars;
 use serde::{Deserialize, Serialize};
 
+use crate::cli;
+use crate::prelude::*;
 use crate::project::Output;
 use crate::util::ExitStatusExt;
-use crate::{cli, error::*};
 
 #[derive(Deserialize, Debug)]
 #[serde(untagged)]

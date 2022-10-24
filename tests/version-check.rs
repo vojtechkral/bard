@@ -1,8 +1,8 @@
 use bard::book;
+use bard::prelude::*;
 use bard::project::Project;
 use bard::render::Renderer;
 
-use camino::Utf8PathBuf as PathBuf;
 use semver::Version;
 
 mod util;

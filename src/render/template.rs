@@ -14,7 +14,7 @@ use semver::Version;
 use serde_json::Number;
 
 use super::RenderContext;
-use crate::error::*;
+use crate::prelude::*;
 use crate::project::{Output, Project};
 use crate::util::PathBufExt;
 

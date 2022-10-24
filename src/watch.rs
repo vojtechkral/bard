@@ -3,9 +3,9 @@ use std::sync::mpsc::{channel, Receiver, Sender};
 use std::thread;
 use std::time::Duration;
 
-use anyhow::{Context, Error, Result};
 use notify::{RecommendedWatcher, RecursiveMode, Watcher};
 
+use crate::prelude::*;
 use crate::project::Project;
 
 #[derive(Debug)]

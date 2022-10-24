@@ -2,9 +2,9 @@ use std::collections::HashMap;
 use std::env;
 use std::fs;
 
-use camino::Utf8PathBuf as PathBuf;
 use serde_json as json;
 
+use bard::prelude::*;
 use bard::MakeOpts;
 
 mod util;

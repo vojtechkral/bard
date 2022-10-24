@@ -1,9 +1,7 @@
 use std::fs::File;
 
-use camino::Utf8Path as Path;
-
 use super::{Render, RenderContext};
-use crate::error::*;
+use crate::prelude::*;
 
 #[derive(Debug, Default)]
 pub struct RJson;

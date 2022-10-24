@@ -1,10 +1,9 @@
 use std::iter;
 
-use camino::{Utf8Path as Path, Utf8PathBuf as PathBuf};
 use globset::Glob;
 use serde::Deserialize;
 
-use crate::error::*;
+use crate::prelude::*;
 use crate::util::{read_dir_all, sort_paths_lexical};
 
 #[derive(Deserialize, Debug)]

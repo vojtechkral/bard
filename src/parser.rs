@@ -8,7 +8,6 @@
 use std::mem;
 use std::str;
 
-use camino::{Utf8Path as Path, Utf8PathBuf as PathBuf};
 use comrak::nodes::{AstNode, ListType, NodeCode, NodeValue};
 use comrak::{ComrakExtensionOptions, ComrakOptions, ComrakParseOptions, ComrakRenderOptions};
 use once_cell::sync::Lazy;
@@ -17,6 +16,7 @@ use thiserror::Error;
 
 use crate::book::*;
 use crate::music::{self, Notation};
+use crate::prelude::*;
 use crate::util::{BStr, ByteSliceExt};
 
 mod html;

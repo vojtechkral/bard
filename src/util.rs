@@ -6,10 +6,9 @@ use std::process::ExitStatus;
 #[cfg(unix)]
 use std::os::unix::process::ExitStatusExt as _;
 
-use camino::{Utf8Path as Path, Utf8PathBuf as PathBuf};
 use lexical_sort::{lexical_cmp, PathSort};
 
-use crate::error::*;
+use crate::prelude::*;
 
 pub type BStr = Box<str>;
 

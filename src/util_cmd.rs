@@ -2,11 +2,11 @@ use std::fs::{self, File};
 use std::io::{self, BufRead, BufReader, BufWriter, Write};
 use std::str::FromStr;
 
-use camino::Utf8PathBuf as PathBuf;
 use regex::Regex;
 
+use crate::cli;
+use crate::prelude::*;
 use crate::util::sort_lexical_by;
-use crate::{cli, error::*};
 
 #[derive(clap::Parser)]
 pub enum UtilCmd {

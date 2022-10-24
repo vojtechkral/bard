@@ -8,23 +8,22 @@ use std::convert::TryFrom;
 use std::env;
 use std::ffi::OsString;
 
-use camino::{Utf8Path as Path, Utf8PathBuf as PathBuf};
 use clap::Parser as _;
 use serde::Serialize;
 
 pub mod book;
 pub mod cli;
 pub mod default_project;
-pub mod error;
 pub mod music;
 pub mod parser;
+pub mod prelude;
 pub mod project;
 pub mod render;
 pub mod util;
 pub mod util_cmd;
 pub mod watch;
 
-use crate::error::*;
+use crate::prelude::*;
 use crate::project::Project;
 use crate::util_cmd::UtilCmd;
 use crate::watch::{Watch, WatchEvent};

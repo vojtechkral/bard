@@ -1,8 +1,9 @@
 use std::fmt::Display;
 use std::sync::atomic::{AtomicBool, Ordering};
 
-use anyhow::Error;
 use colored::{Color, Colorize};
+
+use crate::prelude::*;
 
 static USE_STDERR: AtomicBool = AtomicBool::new(false);
 

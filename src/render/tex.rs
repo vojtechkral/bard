@@ -1,10 +1,9 @@
 use handlebars::handlebars_helper;
 use semver::Version;
-use camino::Utf8Path as Path;
 
 use super::template::HbRender;
 use super::{Render, RenderContext};
-use crate::error::*;
+use crate::prelude::*;
 use crate::project::{Output, Project};
 
 default_template!(DEFAULT_TEMPLATE, "pdf.hbs");

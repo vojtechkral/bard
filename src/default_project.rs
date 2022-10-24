@@ -1,9 +1,7 @@
 use std::fs;
 use std::path::MAIN_SEPARATOR;
 
-use camino::{Utf8Path as Path, Utf8PathBuf as PathBuf};
-
-use crate::error::*;
+use crate::prelude::*;
 use crate::util::PathBufExt as _;
 
 /// A filesystem node, either a file (with content), or a directory.

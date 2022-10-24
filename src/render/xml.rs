@@ -5,16 +5,14 @@
 use std::fs::File;
 use std::io::Write;
 
-use camino::Utf8Path as Path;
-
 use super::Render;
+use super::RenderContext;
 use crate::book::{
     Block, BulletList, Chord, ChorusRef, HtmlTag, Image, Inline, Link, Song, SongRef, Verse,
     VerseLabel,
 };
-use crate::error::*;
+use crate::prelude::*;
 use crate::project::BookSection;
-use super::RenderContext;
 use crate::ProgramMeta;
 
 mod xml_support;
