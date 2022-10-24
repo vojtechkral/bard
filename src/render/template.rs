@@ -13,7 +13,7 @@ use regex::{Error as ReError, Regex};
 use semver::Version;
 use serde_json::Number;
 
-use super::{Render, RenderContext};
+use super::RenderContext;
 use crate::error::*;
 use crate::project::{Output, Project};
 use crate::util::PathBufExt;
@@ -29,26 +29,15 @@ pub struct DefaultTemaplate {
     pub content: &'static str,
 }
 
-macro_rules! declare_default_templates {
-    ($all_name:ident : [ $(($name:ident, $filename:expr),)+ ]) => {
-        $(pub static $name: DefaultTemaplate = DefaultTemaplate {
-            filename: $filename,
-            content: include_str!(concat!("./templates/", $filename)),
-        };)+
-
-        pub static $all_name: &'static [ &'static DefaultTemaplate ] = &[
-            $(&$name,)+
-        ];
+macro_rules! default_template {
+    ($name:ident, $filename:expr) => {
+        pub static $name: crate::render::template::DefaultTemaplate =
+            crate::render::template::DefaultTemaplate {
+                filename: $filename,
+                content: include_str!(concat!("./templates/", $filename)),
+            };
     };
 }
-
-declare_default_templates!(
-    DEFAULT_TEMPLATES: [
-        (DEFAULT_TEMPLATE_TEX, "pdf.hbs"),
-        (DEFAULT_TEMPLATE_HTML, "html.hbs"),
-        (DEFAULT_TEMPLATE_HOVORKA, "hovorka.hbs"),
-    ]
-);
 
 // HB helpers
 
@@ -82,31 +71,6 @@ impl HandlebarsExt for Handlebars<'static> {
     }
 }
 
-fn latex_escape(input: &str, pre_spaces: bool) -> String {
-    let mut res = String::with_capacity(input.len());
-    for c in input.chars() {
-        match c {
-            ' ' if pre_spaces => res.push('~'),
-            '&' | '%' | '$' | '#' | '_' | '{' | '}' => {
-                res.push('\\');
-                res.push(c);
-            }
-            '[' => res.push_str("{\\lbrack}"),
-            ']' => res.push_str("{\\rbrack}"),
-            '~' => res.push_str("{\\textasciitilde}"),
-            '^' => res.push_str("{\\textasciicircum}"),
-            '\\' => res.push_str("{\\textbackslash}"),
-            c => res.push(c),
-        }
-    }
-
-    res
-}
-
-fn hb_latex_escape(input: &str) -> String {
-    latex_escape(input, false)
-}
-
 handlebars_helper!(hb_eq: |v1: Json, v2: Json| {
     v1 == v2
 });
@@ -120,10 +84,6 @@ handlebars_helper!(hb_default: |value: Json, def: Json| {
         JsonValue::Null => def.clone(),
         other => other.clone(),
     }
-});
-
-handlebars_helper!(hb_pre: |input: str| {
-    latex_escape(input, true)
 });
 
 struct Cat<'a>(Vec<&'a JsonValue>);
@@ -401,17 +361,21 @@ impl HelperDef for MathHelper {
 }
 
 #[derive(Debug)]
-struct HbRender {
-    hb: Handlebars<'static>,
-    tpl_name: String,
-    version: Arc<Mutex<Option<Version>>>,
+pub(crate) struct HbRender {
+    pub(crate) hb: Handlebars<'static>,
+    pub(crate) tpl_name: String,
+    pub(crate) version: Arc<Mutex<Option<Version>>>,
 }
 
 impl HbRender {
     /// Version of the template to assume if it specifies none.
     const ASSUMED_FIRST_VERSION: Version = Version::new(1, 0, 0);
 
-    fn new(project: &Project, output: &Output, default: &DefaultTemaplate) -> Result<Self> {
+    pub(crate) fn new(
+        project: &Project,
+        output: &Output,
+        default: &DefaultTemaplate,
+    ) -> Result<Self> {
         let (version_helper, version) = VersionCheckHelper::new();
         let mut hb = Handlebars::new()
             .with_helper("eq", hb_eq)
@@ -463,7 +427,7 @@ impl HbRender {
         })
     }
 
-    fn render(&self, project: &Project, output: &Output) -> Result<()> {
+    pub(crate) fn render(&self, project: &Project, output: &Output) -> Result<()> {
         let context = RenderContext::new(project, output);
         let rendered = self.hb.render(&self.tpl_name, &context)?;
 
@@ -473,7 +437,7 @@ impl HbRender {
         Ok(())
     }
 
-    fn version(&self) -> Option<Version> {
+    pub(crate) fn version(&self) -> Option<Version> {
         Some(
             self.version
                 .lock()
@@ -481,74 +445,6 @@ impl HbRender {
                 .clone()
                 .unwrap_or(Self::ASSUMED_FIRST_VERSION),
         )
-    }
-}
-
-pub struct RHtml(HbRender);
-
-impl RHtml {
-    pub fn new(project: &Project, output: &Output) -> Result<Self> {
-        Ok(Self(HbRender::new(
-            project,
-            output,
-            &DEFAULT_TEMPLATE_HTML,
-        )?))
-    }
-}
-
-impl Render for RHtml {
-    fn render(&self, project: &Project, output: &Output) -> Result<()> {
-        self.0.render(project, output)
-    }
-
-    fn version(&self) -> Option<Version> {
-        self.0.version()
-    }
-}
-
-pub struct RTex(HbRender);
-
-impl RTex {
-    pub fn new(project: &Project, output: &Output) -> Result<Self> {
-        let mut render = HbRender::new(project, output, &DEFAULT_TEMPLATE_TEX)?;
-
-        // Setup Latex escaping
-        render.hb.register_escape_fn(hb_latex_escape);
-        render.hb.register_helper("pre", Box::new(hb_pre));
-
-        Ok(Self(render))
-    }
-}
-
-impl Render for RTex {
-    fn render(&self, project: &Project, output: &Output) -> Result<()> {
-        self.0.render(project, output)
-    }
-
-    fn version(&self) -> Option<Version> {
-        self.0.version()
-    }
-}
-
-pub struct RHovorka(HbRender);
-
-impl RHovorka {
-    pub fn new(project: &Project, output: &Output) -> Result<Self> {
-        Ok(Self(HbRender::new(
-            project,
-            output,
-            &DEFAULT_TEMPLATE_HOVORKA,
-        )?))
-    }
-}
-
-impl Render for RHovorka {
-    fn render(&self, project: &Project, output: &Output) -> Result<()> {
-        self.0.render(project, output)
-    }
-
-    fn version(&self) -> Option<Version> {
-        self.0.version()
     }
 }
 

@@ -7,13 +7,26 @@ use crate::music::Notation;
 use crate::project::{BookSection, Format, Metadata, Output, Project};
 use crate::{ProgramMeta, PROGRAM_META};
 
-pub mod json;
+#[macro_use]
 pub mod template;
+pub mod hovorka;
+pub mod html;
+pub mod json;
+pub mod tex;
 pub mod xml;
 
+pub use self::hovorka::RHovorka;
+pub use self::html::RHtml;
 pub use self::json::RJson;
-pub use self::template::*;
+use self::template::DefaultTemaplate;
+pub use self::tex::RTex;
 pub use self::xml::RXml;
+
+pub static DEFAULT_TEMPLATES: &[&DefaultTemaplate] = &[
+    &tex::DEFAULT_TEMPLATE,
+    &html::DEFAULT_TEMPLATE,
+    &hovorka::DEFAULT_TEMPLATE,
+];
 
 #[derive(Serialize, Debug)]
 pub struct RenderContext<'a> {
