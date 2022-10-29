@@ -68,6 +68,7 @@ dependencies = [
  "colored",
  "comrak",
  "ctrlc",
+ "fastrand",
  "fs_extra",
  "globset",
  "handlebars",
@@ -326,6 +327,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b5320ae4c3782150d900b79807611a59a99fc9a1d61d686faafc24b93fc8d7ca"
 
 [[package]]
+name = "fastrand"
+version = "1.8.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a7a407cfaa3385c4ae6b23e84623d48c2798d06e3e6a1878f7f59f17b3f86499"
+dependencies = [
+ "instant",
+]
+
+[[package]]
 name = "filetime"
 version = "0.2.17"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -504,6 +514,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e05c02b5e89bff3b946cedeca278abc628fe811e604f027c45a8aa3cf793d0eb"
 dependencies = [
  "libc",
+]
+
+[[package]]
+name = "instant"
+version = "0.1.12"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7a5bbe824c507c5da5956355e86a746d82e0e1464f65d862cc5e71da70e94b2c"
+dependencies = [
+ "cfg-if",
 ]
 
 [[package]]

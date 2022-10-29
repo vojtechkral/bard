@@ -26,6 +26,7 @@ clap = { version = "4.0.2", features = ["derive"] }
 colored = "2.0.0" # TODO: don't use anymore (use atty + term)
 comrak = { version = "0.14.0", default_features = false }
 ctrlc = "3.1.3"
+fastrand = "1.8.0"
 globset = "0.4.8"
 handlebars = "4.3.3"
 html5ever = "0.26.0"

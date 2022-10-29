@@ -11,6 +11,7 @@ use crate::cli;
 use crate::default_project::DEFAULT_PROJECT;
 use crate::music::Notation;
 use crate::prelude::*;
+use crate::render::tex_tools::TexTools;
 use crate::render::Renderer;
 use crate::util::PathBufExt;
 
@@ -42,9 +43,10 @@ fn default_chorus_label() -> String {
 
 pub type Metadata = BTreeMap<Box<str>, Value>;
 
-#[derive(Deserialize, Clone, Copy, Debug)]
+#[derive(Deserialize, PartialEq, Eq, Clone, Copy, Debug)]
 #[serde(rename_all = "lowercase")]
 pub enum Format {
+    Pdf,
     Html,
     Tex,
     Hovorka,
@@ -208,6 +210,12 @@ impl Project {
     pub fn render(&self) -> Result<()> {
         fs::create_dir_all(&self.settings.dir_output)?;
         let postprocessor = PostProcessor::new(&self.project_dir, self.settings.dir_output());
+
+        if self.settings.output.iter().any(|o| o.format == Format::Pdf) {
+            // Initialize Tex tools ahead of actual rendering so that
+            // errors are reported early...
+            TexTools::initialize().context("Could not initialize TeX tools.")?;
+        }
 
         self.settings.output.iter().try_for_each(|output| {
             cli::status("Rendering", output.output_filename());

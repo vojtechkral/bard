@@ -1,5 +1,5 @@
 use std::convert::TryInto;
-use std::fs;
+use std::ops::Deref;
 use std::path::Path as StdPath;
 use std::process::{ChildStderr, ChildStdout, ExitStatus};
 use std::{fs, io, iter, mem};
@@ -34,10 +34,42 @@ where
     }
 }
 
+/// Scope guard
+pub struct ScopeGuard<R, F: FnOnce() -> R> {
+    guard: Option<F>,
+    armed: bool,
+}
+
+impl<R, F> ScopeGuard<R, F>
+where
+    F: FnOnce() -> R,
+{
+    pub fn new(guard: F) -> Self {
+        Self {
+            guard: Some(guard),
+            armed: true,
+        }
+    }
+
+    pub fn set_armed(&mut self, armed: bool) {
+        self.armed = armed
+    }
+}
+
+impl<R, F> Drop for ScopeGuard<R, F>
+where
+    F: FnOnce() -> R,
+{
+    fn drop(&mut self) {
+        if self.armed {
+            let _ = self.guard.take().map(|f| f());
+        }
+    }
+}
+
 /// Boxed str alias and extensions for `[u8]` and `Vec<u8>`
 pub type BStr = Box<str>;
 
-/// Byte slice extension (also for `Vec<u8>`)
 pub trait ByteSliceExt {
     fn as_bstr(&self) -> BStr;
 }
@@ -266,3 +298,75 @@ impl ProcessLines {
 
 #[cfg(test)]
 mod tests;
+
+pub struct TempDir {
+    path: PathBuf,
+    remove: bool,
+}
+
+impl TempDir {
+    const RAND_CHARS: u32 = 6;
+    const RETRIES: u32 = 9001;
+
+    pub fn new(prefix: impl Into<PathBuf>, remove: bool) -> Result<Self> {
+        let mut path = prefix.into().into_string();
+
+        let orig_len = path.len();
+        path.reserve(Self::RAND_CHARS as usize + 1);
+        for _ in 0..Self::RETRIES {
+            path.push('.');
+            Self::push_rand_chars(&mut path);
+            if Self::create_dir(&path)? {
+                return Ok(Self {
+                    path: path.into(),
+                    remove,
+                });
+            }
+
+            path.truncate(orig_len);
+        }
+
+        bail!("Could not create temporary directory, prefix: `{}`", path);
+    }
+
+    fn push_rand_chars(s: &mut String) {
+        for c in iter::repeat_with(fastrand::alphanumeric).take(Self::RAND_CHARS as usize) {
+            s.push(c)
+        }
+    }
+
+    fn create_dir(path: &str) -> Result<bool> {
+        let path = <&Path>::from(path);
+        match fs::create_dir(path) {
+            Ok(_) => Ok(true),
+            Err(err) if err.kind() == io::ErrorKind::AlreadyExists => Ok(false),
+            Err(err) => Err(err).with_context(|| format!("Could not create directory `{}`", path)),
+        }
+    }
+
+    pub fn set_remove(&mut self, remove: bool) {
+        self.remove = remove;
+    }
+}
+
+impl Drop for TempDir {
+    fn drop(&mut self) {
+        if self.remove {
+            let _ = fs::remove_dir_all(&self.path);
+        }
+    }
+}
+
+impl AsRef<Path> for TempDir {
+    fn as_ref(&self) -> &Path {
+        self.path.as_ref()
+    }
+}
+
+impl Deref for TempDir {
+    type Target = Path;
+
+    fn deref(&self) -> &Self::Target {
+        self.as_ref()
+    }
+}

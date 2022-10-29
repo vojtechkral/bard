@@ -12,6 +12,7 @@ pub mod template;
 pub mod hovorka;
 pub mod html;
 pub mod json;
+pub mod pdf;
 pub mod tex;
 pub mod tex_tools;
 pub mod xml;
@@ -19,6 +20,7 @@ pub mod xml;
 pub use self::hovorka::RHovorka;
 pub use self::html::RHtml;
 pub use self::json::RJson;
+pub use self::pdf::RPdf;
 use self::template::DefaultTemaplate;
 pub use self::tex::RTex;
 pub use self::xml::RXml;
@@ -71,6 +73,7 @@ pub struct Renderer<'a> {
 impl<'a> Renderer<'a> {
     pub fn new(project: &'a Project, output: &'a Output) -> Result<Self> {
         let render: Box<dyn Render> = match output.format {
+            Format::Pdf => Box::new(RPdf::new(project, output)?),
             Format::Html => Box::new(RHtml::new(project, output)?),
             Format::Tex => Box::new(RTex::new(project, output)?),
             Format::Hovorka => Box::new(RHovorka::new(project, output)?),

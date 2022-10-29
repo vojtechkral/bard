@@ -37,13 +37,14 @@ impl Output {
         let ext = self.file.extension().map(str::to_lowercase);
 
         self.format = match ext.as_deref() {
+            Some("pdf") => Format::Pdf,
             Some("html") => Format::Html,
             Some("tex") => Format::Tex,
             Some("xml") => Format::Xml,
             Some("json") => Format::Json,
             _ => bail!(
                 "Unknown or unsupported format of output file: {}\nHint: Specify format with  \
-                 'format = ...'\nSupported formats are: tex, html, json, and xml.",
+                 'format = ...'\nSupported formats are: pdf, tex, html, json, and xml.",
                 self.file
             ),
         };
@@ -57,7 +58,7 @@ impl Output {
 
     pub fn template_path(&self) -> Option<&Path> {
         match self.format {
-            Format::Html | Format::Tex | Format::Hovorka => self.template.as_deref(),
+            Format::Pdf | Format::Html | Format::Tex | Format::Hovorka => self.template.as_deref(),
             Format::Json | Format::Xml => None,
             Format::Auto => Format::no_auto(),
         }
