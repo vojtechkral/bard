@@ -261,14 +261,14 @@ impl HelperDef for ImgHelper {
         _: &'reg Handlebars<'reg>,
         _: &'rc hb::Context,
         _: &mut hb::RenderContext<'reg, 'rc>,
-    ) -> Result<hb::ScopedJson<'reg, 'rc>, hb::RenderError> {
+    ) -> Result<hb::ScopedJson<'reg, 'rc>, RenderError> {
         let path: &str = h
             .param(0)
             .map(|x| x.value())
-            .ok_or_else(|| hb::RenderError::new(format!("{}: Image path not supplied", self.name)))
+            .ok_or_else(|| RenderError::new(format!("{}: Image path not supplied", self.name)))
             .and_then(|x| {
                 x.as_str().ok_or_else(|| {
-                    hb::RenderError::new(&format!(
+                    RenderError::new(&format!(
                         "{}: Image path not a string, it's {:?} as JSON.",
                         self.name, x,
                     ))
@@ -277,7 +277,7 @@ impl HelperDef for ImgHelper {
 
         let pathbuf = Path::new(&path).to_owned().resolved(&self.out_dir);
         let (w, h) = image_dimensions(&pathbuf).map_err(|e| {
-            hb::RenderError::new(&format!(
+            RenderError::new(&format!(
                 "{}: Couldn't read image at `{}`: {}",
                 self.name, pathbuf, e
             ))
@@ -307,14 +307,14 @@ impl HelperDef for DpiHelper {
         _: &'reg Handlebars<'reg>,
         _: &'rc hb::Context,
         _: &mut hb::RenderContext<'reg, 'rc>,
-    ) -> Result<hb::ScopedJson<'reg, 'rc>, hb::RenderError> {
+    ) -> Result<hb::ScopedJson<'reg, 'rc>, RenderError> {
         let value: f64 = h
             .param(0)
             .map(|x| x.value())
-            .ok_or_else(|| hb::RenderError::new("px2mm: Input value not supplied"))
+            .ok_or_else(|| RenderError::new("px2mm: Input value not supplied"))
             .and_then(|x| {
                 x.as_f64().ok_or_else(|| {
-                    hb::RenderError::new(&format!(
+                    RenderError::new(&format!(
                         "px2mm: Input value not a number, it's {:?} as JSON.",
                         x,
                     ))
@@ -349,23 +349,23 @@ impl HelperDef for VersionCheckHelper {
         _: &'reg Handlebars<'reg>,
         _: &'rc hb::Context,
         _: &mut hb::RenderContext<'reg, 'rc>,
-    ) -> Result<hb::ScopedJson<'reg, 'rc>, hb::RenderError> {
+    ) -> Result<hb::ScopedJson<'reg, 'rc>, RenderError> {
         let version = h
             .param(0)
             .map(|x| x.value())
             .ok_or_else(|| {
-                hb::RenderError::new(format!("{}: No version number supplied", Self::FN_NAME))
+                RenderError::new(format!("{}: No version number supplied", Self::FN_NAME))
             })
             .and_then(|x| match x {
                 JsonValue::String(s) => Ok(s.as_str()),
-                _ => Err(hb::RenderError::new(format!(
+                _ => Err(RenderError::new(format!(
                     "{}: Input value not a string",
                     Self::FN_NAME
                 ))),
             })
             .and_then(|s| {
                 Version::parse(s).map_err(|e| {
-                    hb::RenderError::from_error(
+                    RenderError::from_error(
                         &format!("{}: Could not parse version `{}`", Self::FN_NAME, s),
                         e,
                     )
