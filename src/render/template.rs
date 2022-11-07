@@ -2,6 +2,7 @@ use std::collections::HashMap;
 use std::fmt;
 use std::fs;
 use std::io;
+use std::str::FromStr;
 use std::sync::{Arc, Mutex};
 
 use camino::{Utf8Path as Path, Utf8PathBuf as PathBuf};
@@ -122,7 +123,7 @@ fn hb_math_float(a: f64, operation: &str, b: f64) ->Option<f64>{
 /**
  Simple math helper, which can do the usual arithmetic operations on integers and floats. Tries to handle most edge-cases and provide useful error message to the user.
 
- Usage: `{{ math 5 "+" 3 }}`
+ Usage: `{{ math 5 "+" 3 }}`, `{{ math 23.8 / -1.5}}`, `{{ math "3" "*" 8.5 }}`
 
  Supported operations:
     - \+ addition
@@ -157,10 +158,10 @@ pub fn hb_math(
         .ok_or(RenderError::new(&wrong_param_count))?;
     let operation = operation.value().as_str().ok_or(RenderError::new("Second argument must be a string. Example: {{ math 1 \"+\" 2 }}."))?;
 
-    let aint = a.value().as_i64();
-    let afloat = a.value().as_f64();
-    let bint = b.value().as_i64();
-    let bfloat = b.value().as_f64();
+    let aint = a.value().as_i64().or(a.value().as_str().and_then(|s|i64::from_str(s).ok()));
+    let afloat = a.value().as_f64().or(a.value().as_str().and_then(|s|f64::from_str(s).ok()));
+    let bint = b.value().as_i64().or(b.value().as_str().and_then(|s|i64::from_str(s).ok()));
+    let bfloat = b.value().as_f64().or(b.value().as_str().and_then(|s|f64::from_str(s).ok()));
 
     if let (Some(aint), Some(bint)) = (aint, bint)  { //integer calculation
         if operation != "/" { // normal division is done using floats to make it simpler for inexperienced users. For integer division, use //.
