@@ -284,8 +284,8 @@ impl HelperDef for VersionCheckHelper {
 
 struct MathHelper {}
 
-impl MathHelper{
-    fn hb_math_int(a: i64, operation: &str, b: i64) ->Option<i64>{
+impl MathHelper {
+    fn hb_math_int(a: i64, operation: &str, b: i64) -> Option<i64> {
         match operation {
             "+" => Some(a + b),
             "-" => Some(a - b),
@@ -297,22 +297,24 @@ impl MathHelper{
             "^" => Some(a ^ b),
             "<<" => Some(a << b),
             ">>" => Some(a >> b),
-            _ => None
+            _ => None,
         }
     }
 
-    fn hb_math_float(a: f64, operation: &str, b: f64) ->Option<f64>{
+    fn hb_math_float(a: f64, operation: &str, b: f64) -> Option<f64> {
         match operation {
             "+" => Some(a + b),
             "-" => Some(a - b),
             "*" => Some(a * b),
             "/" => Some(a / b),
             "%" => Some(a % b),
-            _ => None
+            _ => None,
         }
     }
 
-    fn new() -> Box<MathHelper> {Box::new(MathHelper{})}
+    fn new() -> Box<MathHelper> {
+        Box::new(MathHelper {})
+    }
 }
 
 /**
@@ -343,38 +345,56 @@ impl HelperDef for MathHelper {
     ) -> Result<hb::ScopedJson<'reg, 'rc>, RenderError> {
         let wrong_param_count = format!("math: Found {} parameters, but math helper requires 3 parameters: number, operator as a string, number. Example: {}.", h.params().len(), "{{ math 1 \"+\" 2.5 }}");
 
-        let a = h
-            .param(0)
-            .ok_or(RenderError::new(&wrong_param_count))?;
-        let operation = h
-            .param(1)
-            .ok_or(RenderError::new(&wrong_param_count))?;
-        let b = h
-            .param(2)
-            .ok_or(RenderError::new(&wrong_param_count))?;
-        let operation = operation.value().as_str().ok_or(RenderError::new("math: Second argument must be a string. Example: {{ math 1 \"+\" 2 }}."))?;
+        let a = h.param(0).ok_or(RenderError::new(&wrong_param_count))?;
+        let operation = h.param(1).ok_or(RenderError::new(&wrong_param_count))?;
+        let b = h.param(2).ok_or(RenderError::new(&wrong_param_count))?;
+        let operation = operation.value().as_str().ok_or(RenderError::new(
+            "math: Second argument must be a string. Example: {{ math 1 \"+\" 2 }}.",
+        ))?;
 
-        let aint = a.value().as_i64().or(a.value().as_str().and_then(|s|i64::from_str(s).ok()));
-        let afloat = a.value().as_f64().or(a.value().as_str().and_then(|s|f64::from_str(s).ok()));
-        let bint = b.value().as_i64().or(b.value().as_str().and_then(|s|i64::from_str(s).ok()));
-        let bfloat = b.value().as_f64().or(b.value().as_str().and_then(|s|f64::from_str(s).ok()));
+        let aint = a
+            .value()
+            .as_i64()
+            .or(a.value().as_str().and_then(|s| i64::from_str(s).ok()));
+        let afloat = a
+            .value()
+            .as_f64()
+            .or(a.value().as_str().and_then(|s| f64::from_str(s).ok()));
+        let bint = b
+            .value()
+            .as_i64()
+            .or(b.value().as_str().and_then(|s| i64::from_str(s).ok()));
+        let bfloat = b
+            .value()
+            .as_f64()
+            .or(b.value().as_str().and_then(|s| f64::from_str(s).ok()));
 
         // try integer arithmetics
-        if let (Some(aint), Some(bint)) = (aint, bint)  {
-            if operation != "/" { // normal division is done using floats to make it simpler for inexperienced users. For integer division, use //.
+        if let (Some(aint), Some(bint)) = (aint, bint) {
+            if operation != "/" {
+                // normal division is done using floats to make it simpler for inexperienced users. For integer division, use //.
                 return if let Some(r) = MathHelper::hb_math_int(aint, operation, bint) {
                     Ok(hb::ScopedJson::Derived(JsonValue::Number(Number::from(r))))
                 } else {
                     Err(RenderError::new(format!("math: Operation \"{}\" is not possible with integers. Available operations on integers: +, -, *, /, //, %, &, |, ^, <<, >>", operation)))
-                }
+                };
             }
         };
         // try float arithmetics
-        let afloat = if let Some(aint) = aint {Some(aint as f64)}else{afloat};
-        let bfloat = if let Some(bint) = bint {Some(bint as f64)}else{bfloat};
+        let afloat = if let Some(aint) = aint {
+            Some(aint as f64)
+        } else {
+            afloat
+        };
+        let bfloat = if let Some(bint) = bint {
+            Some(bint as f64)
+        } else {
+            bfloat
+        };
         return if let Some(afloat) = afloat {
             if let Some(bfloat) = bfloat {
-                if let Some(r) = MathHelper::hb_math_float(afloat, operation, bfloat) { // float calculation
+                if let Some(r) = MathHelper::hb_math_float(afloat, operation, bfloat) {
+                    // float calculation
                     Ok(hb::ScopedJson::Derived(JsonValue::Number(Number::from_f64(r).ok_or(RenderError::new(format!("math: Calculation result is {}, which cannot be converted to JSON number.",r)))?)))
                 } else {
                     Err(RenderError::new(format!("math: Operation \"{}\" is not possible with a decimal number. Available operations: +, -, *, /, %. (Also //, |, ^, <<, >>, but only if both numbers are integers)", operation)))
