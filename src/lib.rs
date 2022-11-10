@@ -8,6 +8,7 @@ use std::convert::TryFrom;
 use std::env;
 use std::ffi::OsString;
 
+use app::{App, MakeOpts, StdioOpts};
 use clap::Parser as _;
 use serde::Serialize;
 
@@ -46,20 +47,17 @@ pub const PROGRAM_META: ProgramMeta = ProgramMeta {
     authors: env!("CARGO_PKG_AUTHORS"),
 };
 
-#[derive(clap::Parser, Clone, Default, Debug)]
-pub struct MakeOpts {
-    #[arg(short = 'p', long, help = "Don't run outputs' postprocessing steps")]
-    pub no_postprocess: bool,
-}
-
 #[derive(clap::Parser)]
 #[command(
     version = env!("CARGO_PKG_VERSION"),
     about = "bard: A Markdown-based songbook compiler",
 )]
-enum Bard {
+enum Cli {
     #[command(about = "Initialize a new bard project skeleton in this directory")]
-    Init,
+    Init {
+        #[clap(flatten)]
+        opts: StdioOpts,
+    },
     #[command(about = "Build the current project")]
     Make {
         #[clap(flatten)]
@@ -76,15 +74,15 @@ enum Bard {
     Util(UtilCmd),
 }
 
-impl Bard {
-    fn run(self) -> Result<()> {
-        use Bard::*;
+impl Cli {
+    fn run(self, app: &App) -> Result<()> {
+        use Cli::*;
 
         match self {
-            Init => bard_init(),
-            Make { opts } => bard_make(&opts),
-            Watch { opts } => bard_watch(&opts),
-            Util(cmd) => cmd.run(),
+            Init { .. } => bard_init(app),
+            Make { .. } => bard_make(app),
+            Watch { .. } => bard_watch(app),
+            Util(cmd) => cmd.run(app),
         }
     }
 }
@@ -96,50 +94,48 @@ fn get_cwd() -> Result<PathBuf> {
         .context("Could not read current directory")
 }
 
-pub fn bard_init_at<P: AsRef<Path>>(path: P) -> Result<()> {
+pub fn bard_init_at<P: AsRef<Path>>(app: &App, path: P) -> Result<()> {
     let path = path.as_ref();
 
-    cli::status("Initialize", &format!("new project at {}", path));
+    app.status("Initialize", &format!("new project at {}", path));
     Project::init(path).context("Could not initialize a new project")?;
-    cli::success("Done!");
+    app.success("Done!");
     Ok(())
 }
 
-pub fn bard_init() -> Result<()> {
+pub fn bard_init(app: &App) -> Result<()> {
     let cwd = get_cwd()?;
-    bard_init_at(&cwd)
+    bard_init_at(app, &cwd)
 }
 
-pub fn bard_make_at<P: AsRef<Path>>(opts: &MakeOpts, path: P) -> Result<Project> {
+pub fn bard_make_at<P: AsRef<Path>>(app: &App, path: P) -> Result<Project> {
     Project::new(path.as_ref())
-        .and_then(|mut project| {
-            project.enable_postprocess(!opts.no_postprocess);
-            project.render()?;
+        .and_then(|project| {
+            project.render(app)?;
             Ok(project)
         })
         .context("Could not make project")
 }
 
-pub fn bard_make(opts: &MakeOpts) -> Result<()> {
+pub fn bard_make(app: &App) -> Result<()> {
     let cwd = get_cwd()?;
 
-    bard_make_at(opts, &cwd)?;
-    cli::success("Done!");
+    bard_make_at(app, &cwd)?;
+    app.success("Done!");
     Ok(())
 }
 
-pub fn bard_watch_at<P: AsRef<Path>>(opts: &MakeOpts, path: P, mut watch: Watch) -> Result<()> {
+pub fn bard_watch_at<P: AsRef<Path>>(app: &App, path: P, mut watch: Watch) -> Result<()> {
     loop {
-        let project = bard_make_at(opts, &path)?;
+        let project = bard_make_at(app, &path)?;
 
         eprintln!();
-        cli::status("Watching", "for changes in the project ...");
+        app.status("Watching", "for changes in the project ...");
         match watch.watch(&project)? {
-            WatchEvent::Change(paths) if paths.len() == 1 => cli::status(
-                "",
-                &format!("Change detected at '{}' ...", paths[0].display()),
-            ),
-            WatchEvent::Change(..) => cli::status("", "Change detected ..."),
+            WatchEvent::Change(paths) if paths.len() == 1 => {
+                app.indent(format!("Change detected at '{}' ...", paths[0].display()))
+            }
+            WatchEvent::Change(..) => app.indent("Change detected ..."),
             WatchEvent::Cancel => break,
             WatchEvent::Error(err) => return Err(err),
         }
@@ -148,7 +144,7 @@ pub fn bard_watch_at<P: AsRef<Path>>(opts: &MakeOpts, path: P, mut watch: Watch)
     Ok(())
 }
 
-pub fn bard_watch(opts: &MakeOpts) -> Result<()> {
+pub fn bard_watch(app: &App) -> Result<()> {
     let cwd = get_cwd()?;
     let (watch, cancellation) = Watch::new()?;
 
@@ -156,9 +152,22 @@ pub fn bard_watch(opts: &MakeOpts) -> Result<()> {
         cancellation.cancel();
     });
 
-    bard_watch_at(opts, &cwd, watch)
+    bard_watch_at(app, &cwd, watch)
 }
 
-pub fn bard(args: &[OsString]) -> Result<()> {
-    Bard::parse_from(args).run()
+pub fn bard(args: &[OsString]) -> i32 {
+    let cli = Cli::parse_from(args);
+    let app = match &cli {
+        Cli::Init { opts } => App::new(&opts.clone().into()),
+        Cli::Make { opts } => App::new(opts),
+        Cli::Watch { opts } => App::new(opts),
+        Cli::Util(_) => App::new(&Default::default()),
+    };
+
+    if let Err(err) = cli.run(&app) {
+        app.error(err);
+        1
+    } else {
+        0
+    }
 }

@@ -4,6 +4,7 @@ use std::str::FromStr;
 
 use regex::Regex;
 
+use crate::app::App;
 use crate::cli;
 use crate::prelude::*;
 use crate::util::sort_lexical_by;
@@ -29,7 +30,7 @@ pub enum UtilCmd {
 }
 
 impl UtilCmd {
-    pub fn run(self) -> Result<()> {
+    pub fn run(self, app: &App) -> Result<()> {
         use UtilCmd::*;
 
         match self {

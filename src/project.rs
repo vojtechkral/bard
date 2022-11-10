@@ -6,6 +6,7 @@ use std::str;
 use serde::Deserialize;
 use serde::Serialize;
 
+use crate::app::App;
 use crate::book::{self, Book, Song, SongRef};
 use crate::cli;
 use crate::default_project::DEFAULT_PROJECT;
@@ -131,7 +132,6 @@ pub struct Project {
 
     project_file: PathBuf,
     input_paths: Vec<PathBuf>,
-    post_process: bool,
 }
 
 impl Project {
@@ -155,7 +155,6 @@ impl Project {
             settings,
             input_paths: vec![],
             book,
-            post_process: true,
         };
 
         project.input_paths = project
@@ -207,7 +206,7 @@ impl Project {
         &self.book.songs_sorted
     }
 
-    pub fn render(&self) -> Result<()> {
+    pub fn render(&self, app: &App) -> Result<()> {
         fs::create_dir_all(&self.settings.dir_output)?;
         let postprocessor = PostProcessor::new(&self.project_dir, self.settings.dir_output());
 
@@ -265,9 +264,5 @@ impl Project {
         iter::once(self.project_file.as_path())
             .chain(in_iter)
             .chain(out_iter)
-    }
-
-    pub fn enable_postprocess(&mut self, enable: bool) {
-        self.post_process = enable;
     }
 }
