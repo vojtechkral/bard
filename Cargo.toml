@@ -22,7 +22,7 @@ path = "src/main.rs"
 anyhow = "1.0.26"
 atty = "0.2.14"
 camino = { version = "1.0.7", features = ["serde1"] }
-clap = { version = "4.0.2", features = ["derive"] }
+clap = { version = "4.0.2", default_features = false, features = ["std", "help", "usage", "error-context", "suggestions", "derive"] }
 colored = "2.0.0" # TODO: don't use anymore (use atty + term)
 comrak = { version = "0.14.0", default_features = false }
 ctrlc = "3.1.3"

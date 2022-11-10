@@ -11,6 +11,7 @@ use std::ffi::OsString;
 use clap::Parser as _;
 use serde::Serialize;
 
+pub mod app;
 pub mod book;
 pub mod cli;
 pub mod default_project;
