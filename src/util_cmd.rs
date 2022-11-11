@@ -5,7 +5,6 @@ use std::str::FromStr;
 use regex::Regex;
 
 use crate::app::App;
-use crate::cli;
 use crate::prelude::*;
 use crate::util::sort_lexical_by;
 
@@ -34,7 +33,12 @@ impl UtilCmd {
         use UtilCmd::*;
 
         match self {
-            SortLines { regex, file } => sort_lines(&regex, &file).map(|_| ()),
+            SortLines { regex, file } => {
+                if sort_lines(&regex, &file)? == 0 {
+                    app.warning("sort-lines: No lines matched the regex.");
+                }
+                Ok(())
+            }
             Copy { src, dest } => copy(&src, &dest),
         }
     }
@@ -95,10 +99,6 @@ pub fn sort_lines(regex: &str, path: impl Into<PathBuf>) -> Result<usize> {
         writeln!(&mut file, "{}", &line.line).with_context(write_err)?;
     }
     file.flush().with_context(write_err)?;
-
-    if count == 0 {
-        cli::warning("sort-lines: No lines matched the regex.");
-    }
 
     Ok(count)
 }

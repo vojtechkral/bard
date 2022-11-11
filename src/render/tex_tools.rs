@@ -152,7 +152,6 @@ impl<'a> TexRenderJob<'a> {
         let toc = self.out_dir.join(format!("{}.toc", tex_stem));
 
         if toc.exists() {
-            // TODO: sort_lines warns on cli - is that ok?
             util_cmd::sort_lines(key, &toc)
                 .with_context(|| format!("Could not sort TOC file '{}'", toc))?;
         }
