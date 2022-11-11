@@ -236,7 +236,7 @@ impl Project {
             // This is done after rendering and preprocessing so that the CLI messages are at the bottom of the log.
             // Otherwise they tend to be far behind eg. TeX output etc.
             if let Some((tpl_version, tpl_path)) = tpl_version.zip(output.template.as_ref()) {
-                book::version::compat_check(tpl_path, &tpl_version);
+                book::version::compat_check(app, tpl_path, &tpl_version);
             }
 
             res
