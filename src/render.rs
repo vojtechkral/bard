@@ -1,6 +1,7 @@
 use semver::Version;
 use serde::Serialize;
 
+use crate::app::App;
 use crate::book::{Song, SongRef};
 use crate::music::Notation;
 use crate::prelude::*;
@@ -56,7 +57,7 @@ impl<'a> RenderContext<'a> {
 
 trait Render {
     /// Render the output file based on `project` and `output`.
-    fn render(&self, output: &Path, context: RenderContext) -> Result<()>;
+    fn render(&self, app: &App, output: &Path, context: RenderContext) -> Result<()>;
 
     /// Returns the AST version specified in the template, if any.
     fn version(&self) -> Option<Version> {
@@ -93,8 +94,8 @@ impl<'a> Renderer<'a> {
         self.render.version()
     }
 
-    pub fn render(&self) -> Result<()> {
+    pub fn render(&self, app: &App) -> Result<()> {
         let context = RenderContext::new(self.project, self.output);
-        self.render.render(&self.output.file, context)
+        self.render.render(app, &self.output.file, context)
     }
 }

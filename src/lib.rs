@@ -109,7 +109,7 @@ pub fn bard_init(app: &App) -> Result<()> {
 }
 
 pub fn bard_make_at<P: AsRef<Path>>(app: &App, path: P) -> Result<Project> {
-    Project::new(path.as_ref())
+    Project::new(app, path.as_ref())
         .and_then(|project| {
             project.render(app)?;
             Ok(project)

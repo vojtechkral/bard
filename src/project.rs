@@ -8,7 +8,6 @@ use serde::Serialize;
 
 use crate::app::App;
 use crate::book::{self, Book, Song, SongRef};
-use crate::cli;
 use crate::default_project::DEFAULT_PROJECT;
 use crate::music::Notation;
 use crate::prelude::*;
@@ -135,7 +134,7 @@ pub struct Project {
 }
 
 impl Project {
-    pub fn new<P: AsRef<Path>>(cwd: P) -> Result<Project> {
+    pub fn new<P: AsRef<Path>>(app: &App, cwd: P) -> Result<Project> {
         let cwd = cwd.as_ref();
         let (project_file, project_dir) = Self::find_in_parents(cwd).ok_or_else(|| {
             anyhow!(
@@ -144,7 +143,7 @@ impl Project {
             )
         })?;
 
-        cli::status("Loading", &format!("project at {}", project_dir));
+        app.status("Loading", &format!("project at {}", project_dir));
 
         let settings = Settings::from_file(&project_file, &project_dir)?;
         let book = Book::new(&settings);
@@ -217,14 +216,14 @@ impl Project {
         }
 
         self.settings.output.iter().try_for_each(|output| {
-            cli::status("Rendering", output.output_filename());
+            app.status("Rendering", output.output_filename());
             let context = || format!("Could not render output file '{}'", output.file);
 
             let renderer = Renderer::new(self, output).with_context(context)?;
             let tpl_version = renderer.version();
 
-            let res = renderer.render().with_context(context).and_then(|_| {
-                if self.post_process {
+            let res = renderer.render(app).with_context(context).and_then(|_| {
+                if app.post_process() {
                     postprocessor.run(output).with_context(|| {
                         format!("Could not postprocess output file '{}'", output.file)
                     })

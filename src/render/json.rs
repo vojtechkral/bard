@@ -1,6 +1,7 @@
 use std::fs::File;
 
 use super::{Render, RenderContext};
+use crate::app::App;
 use crate::prelude::*;
 
 #[derive(Debug, Default)]
@@ -13,7 +14,7 @@ impl RJson {
 }
 
 impl Render for RJson {
-    fn render(&self, output: &Path, context: RenderContext) -> Result<()> {
+    fn render(&self, _app: &App, output: &Path, context: RenderContext) -> Result<()> {
         File::create(output)
             .map_err(Error::from)
             .and_then(|mut f| serde_json::to_writer_pretty(&mut f, &context).map_err(Error::from))

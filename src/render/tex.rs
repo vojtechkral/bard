@@ -3,6 +3,7 @@ use semver::Version;
 
 use super::template::HbRender;
 use super::{Render, RenderContext};
+use crate::app::App;
 use crate::prelude::*;
 use crate::project::{Output, Project};
 
@@ -52,7 +53,7 @@ impl RTex {
 }
 
 impl Render for RTex {
-    fn render(&self, output: &Path, context: RenderContext) -> Result<()> {
+    fn render(&self, _app: &App, output: &Path, context: RenderContext) -> Result<()> {
         self.0.render(output, context)
     }
 

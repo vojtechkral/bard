@@ -7,6 +7,7 @@ use std::io::Write;
 
 use super::Render;
 use super::RenderContext;
+use crate::app::App;
 use crate::book::{
     Block, BulletList, Chord, ChorusRef, HtmlTag, Image, Inline, Link, Song, SongRef, Verse,
     VerseLabel,
@@ -212,7 +213,7 @@ impl RXml {
 }
 
 impl Render for RXml {
-    fn render(&self, output: &Path, context: RenderContext) -> anyhow::Result<()> {
+    fn render(&self, _app: &App, output: &Path, context: RenderContext) -> anyhow::Result<()> {
         File::create(output)
             .map_err(Error::from)
             .and_then(|f| {

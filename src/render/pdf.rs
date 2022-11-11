@@ -6,7 +6,7 @@ use semver::Version;
 use super::template::HbRender;
 use super::tex_tools::TexTools;
 use super::{Render, RenderContext};
-use crate::cli;
+use crate::app::App;
 use crate::prelude::*;
 use crate::project::{Output, Project};
 use crate::render::tex_tools::TexRenderJob;
@@ -66,7 +66,7 @@ impl RPdf {
 }
 
 impl Render for RPdf {
-    fn render(&self, output: &Path, context: RenderContext) -> Result<()> {
+    fn render(&self, app: &App, output: &Path, context: RenderContext) -> Result<()> {
         // TODO: keep temp files option
 
         // Render tex first
@@ -83,9 +83,9 @@ impl Render for RPdf {
             toc_sort_key: self.toc_sort_key.as_deref(),
         };
 
-        cli::indent("Running TeX...");
+        app.indent("Running TeX...");
         TexTools::get().render_pdf(job)?;
-        cli::indent("... ok");
+        app.indent("... ok");
 
         Ok(())
     }
