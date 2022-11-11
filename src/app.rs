@@ -58,6 +58,7 @@ pub struct App {
     /// There are three levels: `0` = quiet, `1` = normal, `2` = verbose.
     verbosity: u32,
     use_color: bool,
+    test_mode: bool,
 }
 
 impl App {
@@ -73,6 +74,17 @@ impl App {
             term: term.map(RefCell::new),
             verbosity: opts.stdio.verbosity(),
             use_color,
+            test_mode: false,
+        }
+    }
+
+    pub fn with_test_mode(post_process: bool) -> Self {
+        Self {
+            post_process,
+            term: None,
+            verbosity: 2,
+            use_color: false,
+            test_mode: true,
         }
     }
 
@@ -196,8 +208,15 @@ impl App {
                 self.rewind_line();
                 eprint!("{}: ", prog_name);
             }
-            stderr.write_all(&line).unwrap();
-            // TODO: ^ this is problematic in tests https://github.com/rust-lang/rust/issues/90785
+
+            if !self.test_mode {
+                stderr.write_all(&line).unwrap();
+            } else {
+                // Workaround for https://github.com/rust-lang/rust/issues/90785
+                let mut line = String::from_utf8_lossy(&line).to_string();
+                line.retain(|c| !c.is_control());
+                eprintln!("{}", line);
+            }
         }
         if self.verbosity == 1 {
             self.rewind_line();

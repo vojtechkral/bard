@@ -5,19 +5,13 @@ use std::fs;
 use serde_json as json;
 
 use bard::prelude::*;
-use bard::MakeOpts;
 
 mod util;
 pub use util::*;
 
 #[test]
 fn project_postprocess() {
-    let build = Builder::build_opts(
-        TEST_PROJECTS / "postprocess",
-        "postprocess",
-        &MakeOpts::default(),
-    )
-    .unwrap();
+    let build = Builder::build_with_ps(TEST_PROJECTS / "postprocess", "postprocess").unwrap();
     let out_dir = build.project.settings.dir_output();
 
     let exe = env::current_exe()

@@ -22,7 +22,7 @@ target/release/bard:
 .PHONY: test
 test:
 	cargo test
-	cargo test -- --ignored
+	cargo test -- --ignored --nocapture
 
 .PHONY: examples
 examples:

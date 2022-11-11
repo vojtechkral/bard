@@ -2,21 +2,13 @@ use std::env;
 use std::fs;
 use std::ops;
 
+use bard::app::App;
 use fs_extra::dir::{self, CopyOptions};
 
-use bard::cli;
 use bard::prelude::*;
 use bard::project::Project;
-use bard::MakeOpts;
 
 const INT_DIR: &str = "int-test-workdirs";
-
-pub const OPTS_NO_PS: MakeOpts = MakeOpts {
-    no_postprocess: true,
-};
-pub const OPTS_PS: MakeOpts = MakeOpts {
-    no_postprocess: false,
-};
 
 /// Project source root (where `Cargo.toml` is)
 pub const ROOT: ProjectPath = ProjectPath { path: &[] };
@@ -104,8 +96,6 @@ impl Builder {
     }
 
     pub fn prepare(src_path: impl AsRef<Path>, name: &str) -> Result<PathBuf> {
-        cli::use_stderr(true);
-
         let src_path = src_path.as_ref();
         let work_dir = Self::work_dir(name, true)?;
 
@@ -113,15 +103,11 @@ impl Builder {
         Ok(work_dir)
     }
 
-    pub fn build(src_path: PathBuf) -> Result<Self> {
-        Self::build_opts(&src_path, src_path.file_name().unwrap(), &OPTS_NO_PS)
-    }
-
-    pub fn build_opts(src_path: impl AsRef<Path>, name: &str, opts: &MakeOpts) -> Result<Self> {
-        cli::use_stderr(true);
+    fn build_inner(src_path: impl AsRef<Path>, name: &str, post_process: bool) -> Result<Self> {
+        let app = App::with_test_mode(post_process);
 
         let work_dir = Self::prepare(src_path, name)?;
-        let project = bard::bard_make_at(opts, &work_dir)?;
+        let project = bard::bard_make_at(&app, &work_dir)?;
 
         Ok(Self {
             project,
@@ -129,15 +115,27 @@ impl Builder {
         })
     }
 
-    pub fn init_and_build(name: &str, opts: &MakeOpts) -> Result<Self> {
-        cli::use_stderr(true);
+    pub fn build(src_path: PathBuf) -> Result<Self> {
+        Self::build_inner(&src_path, src_path.file_name().unwrap(), false)
+    }
+
+    pub fn build_with_name(src_path: PathBuf, name: &str) -> Result<Self> {
+        Self::build_inner(&src_path, name, false)
+    }
+
+    pub fn build_with_ps(src_path: impl AsRef<Path>, name: &str) -> Result<Self> {
+        Self::build_inner(src_path, name, true)
+    }
+
+    pub fn init_and_build(name: &str) -> Result<Self> {
+        let app = App::with_test_mode(false);
 
         let work_dir = Self::work_dir(name.as_ref(), true)?;
         fs::create_dir_all(&work_dir)
             .with_context(|| format!("Could create directory: `{}`", work_dir))?;
 
-        bard::bard_init_at(&work_dir).context("Failed to initialize")?;
-        let project = bard::bard_make_at(opts, &work_dir)?;
+        bard::bard_init_at(&app, &work_dir).context("Failed to initialize")?;
+        let project = bard::bard_make_at(&app, &work_dir)?;
 
         Ok(Self {
             project,

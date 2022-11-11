@@ -40,14 +40,12 @@ fn version_check_load() {
 
 #[test]
 fn version_check_default_project() {
-    let build =
-        Builder::build_opts(ROOT / "default", "version-check-default", &OPTS_NO_PS).unwrap();
+    let build = Builder::build_with_name(ROOT / "default", "version-check-default").unwrap();
     assert_project_versions(&build.project);
 }
 
 #[test]
 fn version_check_example_project() {
-    let build =
-        Builder::build_opts(ROOT / "example", "version-check-example", &OPTS_NO_PS).unwrap();
+    let build = Builder::build_with_name(ROOT / "example", "version-check-example").unwrap();
     assert_project_versions(&build.project);
 }

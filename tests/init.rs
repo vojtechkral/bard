@@ -1,18 +1,13 @@
 mod util;
 use std::fs;
 
+use bard::app::App;
 use bard::default_project::DEFAULT_PROJECT;
 pub use util::*;
 
 #[test]
 fn init_and_build() {
-    let _build = Builder::init_and_build("init", &OPTS_NO_PS).unwrap();
-}
-
-#[test]
-#[ignore = "requires TeX distribution due to post-processing"]
-fn init_and_build_postprocess() {
-    let _build = Builder::init_and_build("init-postprocess", &OPTS_PS).unwrap();
+    let _build = Builder::init_and_build("init").unwrap();
 }
 
 #[test]
@@ -25,7 +20,8 @@ fn init_doesnt_overwrite_1() {
     fs::create_dir_all(&songs_dir).unwrap();
     fs::write(&test_file, test_content).unwrap();
 
-    bard::bard_init_at(&work_dir).unwrap_err();
+    let app = App::with_test_mode(false);
+    bard::bard_init_at(&app, &work_dir).unwrap_err();
 
     let default_project = DEFAULT_PROJECT.resolve(&work_dir);
     default_project.files().find(|&f| f == test_file).unwrap();
@@ -46,7 +42,8 @@ fn init_doesnt_overwrite_2() {
     let project_file = work_dir.join("bard.toml");
     fs::create_dir_all(&out_dir).unwrap();
 
-    bard::bard_init_at(&work_dir).unwrap_err();
+    let app = App::with_test_mode(false);
+    bard::bard_init_at(&app, &work_dir).unwrap_err();
 
     let default_project = DEFAULT_PROJECT.resolve(&work_dir);
     default_project.dirs().find(|&d| d == out_dir).unwrap();
