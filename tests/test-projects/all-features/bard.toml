@@ -7,14 +7,8 @@ songs = [
 notation = "german"
 
 [[output]]
-file = "songbook.tex"
-# verify latex can render and post-process multiple syntax
-process = [
-    "xelatex -interaction=nonstopmode {{file}}",
-    "{{bard}} util sort-lines numberline\\s+\\{[^}]*}([^}]+) {{file_stem}}.toc",
-    "xelatex -interaction=nonstopmode {{file}}",
-    "latexmk -c {{file}}",
-]
+file = "songbook.pdf"
+toc_sort_key = "numberline\\s+\\{[^}]*}([^}]+)"
 
 [[output]]
 file = "songbook.html"
