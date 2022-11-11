@@ -207,7 +207,7 @@ impl Project {
 
     pub fn render(&self, app: &App) -> Result<()> {
         fs::create_dir_all(&self.settings.dir_output)?;
-        let postprocessor = PostProcessor::new(&self.project_dir, self.settings.dir_output());
+        let postprocessor = PostProcessor::new(app, &self.project_dir, self.settings.dir_output());
 
         if self.settings.output.iter().any(|o| o.format == Format::Pdf) {
             // Initialize Tex tools ahead of actual rendering so that

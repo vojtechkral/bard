@@ -5,7 +5,7 @@ use std::process::Command;
 use handlebars::Handlebars;
 use serde::{Deserialize, Serialize};
 
-use crate::cli;
+use crate::app::App;
 use crate::prelude::*;
 use crate::project::Output;
 use crate::util::ExitStatusExt;
@@ -60,13 +60,15 @@ impl<'a> PostProcessCtx<'a> {
 }
 
 pub struct PostProcessor<'a> {
+    app: &'a App,
     project_dir: &'a Path,
     output_dir: &'a Path,
 }
 
 impl<'a> PostProcessor<'a> {
-    pub fn new(project_dir: &'a Path, output_dir: &'a Path) -> Self {
+    pub fn new(app: &'a App, project_dir: &'a Path, output_dir: &'a Path) -> Self {
         Self {
+            app,
             project_dir,
             output_dir,
         }
@@ -108,7 +110,7 @@ impl<'a> PostProcessor<'a> {
 
         cmd.current_dir(self.output_dir);
 
-        cli::status("Postprocess", &cmd_src);
+        self.app.status("Postprocess", &cmd_src);
 
         let status = cmd
             .status()
