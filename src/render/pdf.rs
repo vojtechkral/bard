@@ -72,6 +72,10 @@ impl Render for RPdf {
         // Render tex first
         let tex_file = output.with_extension("tex");
         self.hb.render(&tex_file, context)?;
+        if !app.post_process() {
+            return Ok(());
+        }
+
         let _tex_file_rm = ScopeGuard::new(|| fs::remove_file(&tex_file));
 
         // Invoke TexTools to render PDF
