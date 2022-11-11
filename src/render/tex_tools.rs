@@ -9,7 +9,7 @@ use parking_lot::{const_mutex, Mutex, MutexGuard};
 use serde::de::Error as _;
 use serde::Deserialize;
 
-use crate::cli::{self, TerminalExt as _};
+use crate::app::App;
 use crate::prelude::*;
 use crate::util::{ExitStatusExt, ProcessLines};
 use crate::util_cmd;
@@ -89,9 +89,7 @@ fn test_program(program: &str, arg1: &str) -> Result<Option<String>, ()> {
     Ok(Some(first_line))
 }
 
-fn run_program(program: &str, args: &[&str], cwd: &Path) -> Result<()> {
-    let prog_name = Path::new(program).file_stem().unwrap();
-
+fn run_program(app: &App, program: &str, args: &[&str], cwd: &Path) -> Result<()> {
     let mut child = Command::new(program)
         .args(args)
         .current_dir(cwd)
@@ -103,29 +101,14 @@ fn run_program(program: &str, args: &[&str], cwd: &Path) -> Result<()> {
 
     let mut ps_lines =
         ProcessLines::new(child.stdout.take().unwrap(), child.stderr.take().unwrap());
-    let stderr = io::stderr();
-    let mut stderr = stderr.lock();
 
-    let mut term = term::stderr().unwrap(); // TODO: App context
-
-    // FIXME: This messes up test harness output https://github.com/rust-lang/rust/issues/90785
-    // This should probably be solved by stdio through app-context
-
-    eprintln!();
-    while let Some(line) = ps_lines
-        .read_line()
-        .with_context(|| format!("Error reading output of program `{}`", program))?
-    {
-        term.rewind_line().unwrap();
-        eprint!("{}: ", prog_name);
-        stderr.write_all(&line).unwrap();
-    }
-    term.rewind_line().unwrap();
+    app.subprocess_output(&mut ps_lines, program)?;
 
     let status = child
         .wait()
         .with_context(|| format!("Error running program `{}`", program))?;
-    if !status.success() {
+
+    if !status.success() && app.verbosity() == 1 {
         let cmdline =
             iter::once(&program)
                 .chain(args.iter())
@@ -186,7 +169,7 @@ impl<'a> TexRenderJob<'a> {
 }
 
 trait TexDistro {
-    fn render_pdf(&self, job: TexRenderJob) -> Result<()>;
+    fn render_pdf(&self, app: &App, job: TexRenderJob) -> Result<()>;
 }
 
 pub struct TexTools {
@@ -194,8 +177,8 @@ pub struct TexTools {
 }
 
 impl TexTools {
-    pub fn initialize() -> Result<()> {
-        cli::status("Locating", "TeX tools...");
+    pub fn initialize(app: &App) -> Result<()> {
+        app.status("Locating", "TeX tools...");
 
         if let Ok(tex_config) = env::var("BARD_TEX") {
             let tex_config: TexConfig = tex_config
@@ -218,14 +201,14 @@ impl TexTools {
         let program = "xelatex".to_string();
         let version = test_program(&program, "-version");
         if let Ok(Some(version)) = version {
-            cli::indent(version);
+            app.indent(version);
             return Self::set(TexLive::new(program));
         }
 
         let program = "tectonic".to_string();
         let version = test_program(&program, "--version");
         if let Ok(Some(version)) = version {
-            cli::indent(version);
+            app.indent(version);
             return Self::set(Tectonic::new(program));
         }
 
@@ -257,8 +240,8 @@ impl TexTools {
         Ok(())
     }
 
-    pub fn render_pdf(&self, job: TexRenderJob) -> Result<()> {
-        self.distro.render_pdf(job)
+    pub fn render_pdf(&self, app: &App, job: TexRenderJob) -> Result<()> {
+        self.distro.render_pdf(app, job)
     }
 }
 
@@ -273,7 +256,7 @@ impl TexLive {
 }
 
 impl TexDistro for TexLive {
-    fn render_pdf(&self, job: TexRenderJob) -> Result<()> {
+    fn render_pdf(&self, app: &App, job: TexRenderJob) -> Result<()> {
         let args = [
             "-interaction=nonstopmode",
             "-output-directory",
@@ -281,9 +264,9 @@ impl TexDistro for TexLive {
             job.tex_file.as_str(),
         ];
 
-        run_program(&self.program, &args, job.cwd())?;
+        run_program(app, &self.program, &args, job.cwd())?;
         job.sort_toc()?;
-        run_program(&self.program, &args, job.cwd())?;
+        run_program(app, &self.program, &args, job.cwd())?;
         job.move_pdf()?;
 
         Ok(())
@@ -301,7 +284,7 @@ impl Tectonic {
 }
 
 impl TexDistro for Tectonic {
-    fn render_pdf(&self, job: TexRenderJob) -> Result<()> {
+    fn render_pdf(&self, app: &App, job: TexRenderJob) -> Result<()> {
         let args = [
             "-k",
             "-r",
@@ -311,9 +294,9 @@ impl TexDistro for Tectonic {
             job.tex_file.as_str(),
         ];
 
-        run_program(&self.program, &args, job.cwd())?;
+        run_program(app, &self.program, &args, job.cwd())?;
         job.sort_toc()?;
-        run_program(&self.program, &args, job.cwd())?;
+        run_program(app, &self.program, &args, job.cwd())?;
         job.move_pdf()?;
 
         Ok(())
@@ -323,7 +306,7 @@ impl TexDistro for Tectonic {
 struct TexNoop;
 
 impl TexDistro for TexNoop {
-    fn render_pdf(&self, _job: TexRenderJob) -> Result<()> {
+    fn render_pdf(&self, _: &App, _: TexRenderJob) -> Result<()> {
         Ok(())
     }
 }

@@ -84,7 +84,7 @@ impl Render for RPdf {
         };
 
         app.indent("Running TeX...");
-        TexTools::get().render_pdf(job)?;
+        TexTools::get().render_pdf(app, job)?;
         app.indent("... ok");
 
         Ok(())

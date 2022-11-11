@@ -212,7 +212,7 @@ impl Project {
         if self.settings.output.iter().any(|o| o.format == Format::Pdf) {
             // Initialize Tex tools ahead of actual rendering so that
             // errors are reported early...
-            TexTools::initialize().context("Could not initialize TeX tools.")?;
+            TexTools::initialize(app).context("Could not initialize TeX tools.")?;
         }
 
         self.settings.output.iter().try_for_each(|output| {
