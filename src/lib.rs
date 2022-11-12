@@ -14,7 +14,6 @@ use serde::Serialize;
 
 pub mod app;
 pub mod book;
-pub mod cli;
 pub mod default_project;
 pub mod music;
 pub mod parser;
