@@ -5,10 +5,9 @@ songs = [
 notation = "english"
 
 [[output]]
-file = "songbook.tex"
+file = "songbook.pdf"
 template = "pdf.hbs"
 font = "DejaVu Sans"
-process = "latexmk -xelatex -interaction=nonstopmode {{file}}"
 
 [[output]]
 file = "songbook.html"

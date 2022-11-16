@@ -14,7 +14,6 @@ pub mod hovorka;
 pub mod html;
 pub mod json;
 pub mod pdf;
-pub mod tex;
 pub mod tex_tools;
 pub mod xml;
 
@@ -23,11 +22,10 @@ pub use self::html::RHtml;
 pub use self::json::RJson;
 pub use self::pdf::RPdf;
 use self::template::DefaultTemaplate;
-pub use self::tex::RTex;
 pub use self::xml::RXml;
 
 pub static DEFAULT_TEMPLATES: &[&DefaultTemaplate] = &[
-    &tex::DEFAULT_TEMPLATE,
+    &pdf::DEFAULT_TEMPLATE,
     &html::DEFAULT_TEMPLATE,
     &hovorka::DEFAULT_TEMPLATE,
 ];
@@ -76,7 +74,6 @@ impl<'a> Renderer<'a> {
         let render: Box<dyn Render> = match output.format {
             Format::Pdf => Box::new(RPdf::new(project, output)?),
             Format::Html => Box::new(RHtml::new(project, output)?),
-            Format::Tex => Box::new(RTex::new(project, output)?),
             Format::Hovorka => Box::new(RHovorka::new(project, output)?),
             Format::Json => Box::new(RJson::new()),
             Format::Xml => Box::new(RXml::new()),

@@ -3,7 +3,7 @@ songs = [
 ]
 
 [[output]]
-file = "songbook.tex"
+file = "songbook.pdf"
 
 [[output]]
 file = "songbook.html"

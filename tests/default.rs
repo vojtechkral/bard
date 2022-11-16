@@ -40,8 +40,8 @@ fn project_default_templates_save() {
     let html = fs::read_to_string(templates.join("html.hbs")).unwrap();
     assert_eq!(html, render::html::DEFAULT_TEMPLATE.content);
 
-    let tex = fs::read_to_string(templates.join("pdf.hbs")).unwrap();
-    assert_eq!(tex, render::tex::DEFAULT_TEMPLATE.content);
+    let pdf = fs::read_to_string(templates.join("pdf.hbs")).unwrap();
+    assert_eq!(pdf, render::pdf::DEFAULT_TEMPLATE.content);
 
     let hovorka = fs::read_to_string(templates.join("hovorka.hbs")).unwrap();
     assert_eq!(hovorka, render::hovorka::DEFAULT_TEMPLATE.content);
