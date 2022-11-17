@@ -282,7 +282,23 @@ impl HelperDef for VersionCheckHelper {
     }
 }
 
-struct MathHelper {}
+/// Simple math helper, which can do the usual arithmetic operations on integers and floats. Tries to handle most edge-cases and provide useful error message to the user.
+///
+/// Usage: `{{ math 5 "+" 3 }}`, `{{ math 23.8 / -1.5}}`, `{{ math "3" "*" 8.5 }}`
+///
+/// Supported operations:
+///    - \+ addition
+///    - \- subtraction
+///    - \* multiplication
+///    - / **decimal** division (integers are converted to floats)
+///    - // integer division (both numbers must be integers)
+///    - % modulo
+///    - & bitwise and (integers only)
+///    - | bitwise or (integers only)
+///    - ^ bitwise xor (integers only)
+///    - << bitwise shift left (integers only)
+///    - \>> bitwise shift right (integers only)
+struct MathHelper;
 
 impl MathHelper {
     fn hb_math_int(a: i64, operation: &str, b: i64) -> Option<i64> {
@@ -317,24 +333,6 @@ impl MathHelper {
     }
 }
 
-/**
-Simple math helper, which can do the usual arithmetic operations on integers and floats. Tries to handle most edge-cases and provide useful error message to the user.
-
-Usage: `{{ math 5 "+" 3 }}`, `{{ math 23.8 / -1.5}}`, `{{ math "3" "*" 8.5 }}`
-
-Supported operations:
-   - \+ addition
-   - \- subtraction
-   - \* multiplication
-   - / **decimal** division (integers are converted to floats)
-   - // integer division (both numbers must be integers)
-   - % modulo
-   - & bitwise and (integers only)
-   - | bitwise or (integers only)
-   - ^ bitwise xor (integers only)
-   - << bitwise shift left (integers only)
-   - \>> bitwise shift right (integers only)
- */
 impl HelperDef for MathHelper {
     fn call_inner<'reg: 'rc, 'rc>(
         &self,
