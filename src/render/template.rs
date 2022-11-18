@@ -301,30 +301,30 @@ impl HelperDef for VersionCheckHelper {
 struct MathHelper;
 
 impl MathHelper {
-    fn hb_math_int(a: i64, operation: &str, b: i64) -> Option<i64> {
+    fn hb_math_int(a: i64, operation: &str, b: i64) -> Result<i64, RenderError> {
         match operation {
-            "+" => Some(a + b),
-            "-" => Some(a - b),
-            "*" => Some(a * b),
-            "//" => Some(a / b), // normal division is done using floats to make it simples for inexperienced users. For integer division, use //.
-            "%" => Some(a % b),
-            "&" => Some(a & b),
-            "|" => Some(a | b),
-            "^" => Some(a ^ b),
-            "<<" => Some(a << b),
-            ">>" => Some(a >> b),
-            _ => None,
+            "+" => Ok(a + b),
+            "-" => Ok(a - b),
+            "*" => Ok(a * b),
+            "//" => Ok(a / b), // normal division is done using floats to make it simples for inexperienced users. For integer division, use //.
+            "%" => Ok(a % b),
+            "&" => Ok(a & b),
+            "|" => Ok(a | b),
+            "^" => Ok(a ^ b),
+            "<<" => Ok(a << b),
+            ">>" => Ok(a >> b),
+            _ => Err(RenderError::new(format!("math: Operation \"{}\" is not possible with integers. Available operations on integers: +, -, *, /, //, %, &, |, ^, <<, >>", operation))),
         }
     }
 
-    fn hb_math_float(a: f64, operation: &str, b: f64) -> Option<f64> {
+    fn hb_math_float(a: f64, operation: &str, b: f64) -> Result<f64, RenderError> {
         match operation {
-            "+" => Some(a + b),
-            "-" => Some(a - b),
-            "*" => Some(a * b),
-            "/" => Some(a / b),
-            "%" => Some(a % b),
-            _ => None,
+            "+" => Ok(a + b),
+            "-" => Ok(a - b),
+            "*" => Ok(a * b),
+            "/" => Ok(a / b),
+            "%" => Ok(a % b),
+            _ => Err(RenderError::new(format!("math: Operation \"{}\" is not possible with a decimal number. Available operations: +, -, *, /, %. (Also //, |, ^, <<, >>, but only if both numbers are integers)", operation))),
         }
     }
 
@@ -371,11 +371,9 @@ impl HelperDef for MathHelper {
         if let (Some(aint), Some(bint)) = (aint, bint) {
             if operation != "/" {
                 // normal division is done using floats to make it simpler for inexperienced users. For integer division, use //.
-                return if let Some(r) = MathHelper::hb_math_int(aint, operation, bint) {
-                    Ok(hb::ScopedJson::Derived(JsonValue::Number(Number::from(r))))
-                } else {
-                    Err(RenderError::new(format!("math: Operation \"{}\" is not possible with integers. Available operations on integers: +, -, *, /, //, %, &, |, ^, <<, >>", operation)))
-                };
+                return Ok(hb::ScopedJson::Derived(JsonValue::Number(Number::from(
+                    Self::hb_math_int(aint, operation, bint)?,
+                ))));
             }
         };
         // try float arithmetics
@@ -391,12 +389,14 @@ impl HelperDef for MathHelper {
         };
         return if let Some(afloat) = afloat {
             if let Some(bfloat) = bfloat {
-                if let Some(r) = MathHelper::hb_math_float(afloat, operation, bfloat) {
-                    // float calculation
-                    Ok(hb::ScopedJson::Derived(JsonValue::Number(Number::from_f64(r).ok_or(RenderError::new(format!("math: Calculation result is {}, which cannot be converted to JSON number.",r)))?)))
-                } else {
-                    Err(RenderError::new(format!("math: Operation \"{}\" is not possible with a decimal number. Available operations: +, -, *, /, %. (Also //, |, ^, <<, >>, but only if both numbers are integers)", operation)))
-                }
+                let r = Self::hb_math_float(afloat, operation, bfloat)?;
+                // float calculation
+                Ok(hb::ScopedJson::Derived(JsonValue::Number(
+                    Number::from_f64(r).ok_or(RenderError::new(format!(
+                        "math: Calculation result is {}, which cannot be converted to JSON number.",
+                        r
+                    )))?,
+                )))
             } else {
                 Err(RenderError::new(format!("math: Second number is not in valid format. Valid examples: 5, -62.53. Got this: {:?}", b)))
             }
