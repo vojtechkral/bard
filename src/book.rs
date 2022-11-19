@@ -364,7 +364,7 @@ impl Book {
 
     pub fn add_md_file<P: AsRef<Path>>(&mut self, path: P) -> Result<()> {
         let path = path.as_ref();
-        let source = fs::read_to_string(&path)?;
+        let source = fs::read_to_string(path)?;
 
         self.add_md(&source, path)
     }
@@ -372,7 +372,7 @@ impl Book {
     pub fn load_files<P: AsRef<Path>>(&mut self, input_paths: &[P]) -> Result<()> {
         for path in input_paths.iter() {
             let path = path.as_ref();
-            self.add_md_file(&path)?;
+            self.add_md_file(path)?;
         }
 
         self.songs.shrink_to_fit();

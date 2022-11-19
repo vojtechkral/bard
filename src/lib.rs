@@ -100,7 +100,7 @@ pub fn bard_init_at<P: AsRef<Path>>(path: P) -> Result<()> {
     let path = path.as_ref();
 
     cli::status("Initialize", &format!("new project at {}", path));
-    Project::init(&path).context("Could not initialize a new project")?;
+    Project::init(path).context("Could not initialize a new project")?;
     cli::success("Done!");
     Ok(())
 }

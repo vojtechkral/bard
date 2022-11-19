@@ -287,9 +287,9 @@ impl Project {
             let context = || format!("Could not render output file '{}'", output.file);
 
             let mut renderer = Renderer::new(self, output);
-            let tpl_version = renderer.load().with_context(&context)?;
+            let tpl_version = renderer.load().with_context(context)?;
 
-            let res = renderer.render().with_context(&context).and_then(|_| {
+            let res = renderer.render().with_context(context).and_then(|_| {
                 if self.post_process {
                     self.post_process(output).with_context(|| {
                         format!("Could not postprocess output file '{}'", output.file)

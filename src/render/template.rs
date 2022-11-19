@@ -450,12 +450,12 @@ impl<'a> HbRender<'a> {
         if let Some(template) = self.output.template.as_ref() {
             if template.exists() {
                 self.hb
-                    .register_template_file(&self.tpl_name, &template)
+                    .register_template_file(&self.tpl_name, template)
                     .with_context(|| format!("Error in template file `{}`", template))?;
             } else {
                 let parent = template.parent().unwrap(); // The temaplate should've been resolved as absolute in Project
                 fs::create_dir_all(parent)
-                    .and_then(|_| fs::write(&template, self.default_content.as_bytes()))
+                    .and_then(|_| fs::write(template, self.default_content.as_bytes()))
                     .with_context(|| {
                         format!("Error writing default template to file: `{}`", template)
                     })?;

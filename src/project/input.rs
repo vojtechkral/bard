@@ -62,14 +62,14 @@ impl<'a> InputSet<'a> {
         let glob = Glob::new(glob)
             .with_context(|| format!("Invalid glob pattern: `{}`", glob))?
             .compile_matcher();
-        let dir_songs = &self.dir_songs;
+        let dir_songs = self.dir_songs;
         let match_set = &mut self.match_set;
 
         for matched in self
             .all_files
             .iter()
             // NB. Unwrap should be ok here as the paths will all be prefixed by dir_songs
-            .filter(|path| glob.is_match(path.strip_prefix(&dir_songs).unwrap()))
+            .filter(|path| glob.is_match(path.strip_prefix(dir_songs).unwrap()))
         {
             match_set.push(matched.clone());
         }

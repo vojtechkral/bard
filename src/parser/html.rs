@@ -110,7 +110,7 @@ impl TokenSink for Sink {
     fn process_token(&mut self, token: Token, _line_num: u64) -> TokenSinkResult<Self::Handle> {
         match token {
             Token::TagToken(tag) => self.append_tag(tag),
-            Token::CharacterTokens(s) => self.append_text(&*s),
+            Token::CharacterTokens(s) => self.append_text(&s),
 
             Token::NullCharacterToken => {
                 panic!("Control characters should not have been left in input.")

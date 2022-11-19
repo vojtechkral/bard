@@ -220,7 +220,7 @@ impl<'a> Render<'a> for RXml<'a> {
         let context = RenderContext::new(self.project, self.output);
         let path = &self.output.file;
 
-        File::create(&path)
+        File::create(path)
             .map_err(Error::from)
             .and_then(|f| {
                 let mut writer = Writer::new_with_indent(f, b' ', 2);
