@@ -21,10 +21,7 @@ pub use toml::Value;
 mod input;
 use input::{InputSet, SongsGlobs};
 mod output;
-mod postprocess;
 pub use output::Output;
-
-use self::postprocess::PostProcessor;
 
 fn dir_songs() -> PathBuf {
     "songs".into()
@@ -208,7 +205,6 @@ impl Project {
 
     pub fn render(&self, app: &App) -> Result<()> {
         fs::create_dir_all(&self.settings.dir_output)?;
-        let postprocessor = PostProcessor::new(app, &self.project_dir, self.settings.dir_output());
 
         if self.settings.output.iter().any(|o| o.format == Format::Pdf) {
             // Initialize Tex tools ahead of actual rendering so that
@@ -226,9 +222,7 @@ impl Project {
 
             let res = renderer.render(app).with_context(context).and_then(|_| {
                 if app.post_process() {
-                    postprocessor.run(output).with_context(|| {
-                        format!("Could not postprocess output file '{}'", output.file)
-                    })
+                    Ok(()) // TODO: script
                 } else {
                     Ok(())
                 }

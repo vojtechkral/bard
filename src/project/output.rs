@@ -2,7 +2,6 @@ use serde::Deserialize;
 use toml::Value;
 
 use crate::prelude::*;
-use crate::project::postprocess::CmdSpec;
 use crate::project::{Format, Metadata};
 use crate::util::PathBufExt;
 
@@ -13,11 +12,6 @@ pub struct Output {
 
     #[serde(default)]
     pub format: Format,
-
-    #[serde(rename = "process")]
-    pub post_process: Option<CmdSpec>,
-    #[serde(rename = "process_win")]
-    pub post_process_win: Option<CmdSpec>,
 
     #[serde(flatten)]
     pub metadata: Metadata,
@@ -61,14 +55,6 @@ impl Output {
             Format::Json | Format::Xml => None,
             Format::Auto => Format::no_auto(),
         }
-    }
-
-    pub fn post_process(&self) -> Option<&CmdSpec> {
-        if cfg!(windows) && self.post_process_win.is_some() {
-            return self.post_process_win.as_ref();
-        }
-
-        self.post_process.as_ref()
     }
 
     pub fn template_filename(&self) -> String {
