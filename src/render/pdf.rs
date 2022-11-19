@@ -87,9 +87,8 @@ impl Render for RPdf {
             toc_sort_key: self.toc_sort_key.as_deref(),
         };
 
-        app.indent("Running TeX...");
+        app.status("Running", "TeX...");
         TexTools::get().render_pdf(app, job)?;
-        app.indent("... ok");
 
         Ok(())
     }

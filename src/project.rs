@@ -11,6 +11,7 @@ use crate::book::{self, Book, Song, SongRef};
 use crate::default_project::DEFAULT_PROJECT;
 use crate::music::Notation;
 use crate::prelude::*;
+use crate::render::tex_tools::TexConfig;
 use crate::render::tex_tools::TexTools;
 use crate::render::Renderer;
 use crate::util::PathBufExt;
@@ -77,19 +78,20 @@ pub struct BookSection {
 
 #[derive(Deserialize, Debug)]
 pub struct Settings {
+    // TODO: version
+    songs: SongsGlobs,
+
     #[serde(default = "dir_songs")]
     dir_songs: PathBuf,
     #[serde(default = "dir_templates")]
     dir_templates: PathBuf,
     #[serde(default = "dir_output")]
     dir_output: PathBuf,
-
-    songs: SongsGlobs,
-    pub output: Vec<Output>,
-
     #[serde(default)]
     pub notation: Notation,
+    tex: Option<TexConfig>,
 
+    pub output: Vec<Output>,
     pub book: BookSection,
 }
 
@@ -211,7 +213,8 @@ impl Project {
         if self.settings.output.iter().any(|o| o.format == Format::Pdf) {
             // Initialize Tex tools ahead of actual rendering so that
             // errors are reported early...
-            TexTools::initialize(app).context("Could not initialize TeX tools.")?;
+            TexTools::initialize(app, self.settings.tex.as_ref())
+                .context("Could not initialize TeX tools.")?;
         }
 
         self.settings.output.iter().try_for_each(|output| {

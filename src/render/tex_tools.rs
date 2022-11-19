@@ -3,7 +3,7 @@ use std::ops::Deref;
 use std::process::{Command, Stdio};
 use std::str::FromStr;
 use std::time::Duration;
-use std::{env, fs, io, iter, thread};
+use std::{env, fmt, fs, io, iter, thread};
 
 use parking_lot::{const_mutex, Mutex, MutexGuard};
 use serde::de::Error as _;
@@ -39,7 +39,7 @@ impl FromStr for TexConfig {
         } else if kind.eq_ignore_ascii_case("none") {
             Self::None
         } else {
-            bail!("Unexpected TeX distro type: `{}`, possible choices are: `texlive`, `tectonic`, or `none`", kind);
+            bail!("Unexpected TeX distro type: '{}', possible choices are: 'texlive', 'tectonic', or 'none'. The syntax for TeX config is 'distro' or 'distro:program'.", kind);
         };
 
         Ok(res)
@@ -56,27 +56,41 @@ impl<'de> Deserialize<'de> for TexConfig {
     }
 }
 
-/// Run a command and get first line from stdout, if any
-fn test_program(program: &str, arg1: &str) -> Result<Option<String>, ()> {
-    fn unit<E>(_: E) {}
+impl fmt::Display for TexConfig {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            TexConfig::TexLive { program } => {
+                write!(f, "texlive")?;
+                if let Some(p) = program {
+                    write!(f, ":{}", p)?;
+                }
+            }
+            TexConfig::Tectonic { program } => {
+                write!(f, "tectonic")?;
+                if let Some(p) = program {
+                    write!(f, ":{}", p)?;
+                }
+            }
+            TexConfig::None => write!(f, "none")?,
+        }
 
-    let mut child = match Command::new(program)
+        Ok(())
+    }
+}
+
+/// Run a command and get first line from stdout, if any
+fn test_program(program: &str, arg1: &str) -> Result<String> {
+    let mut child = Command::new(program)
         .arg(arg1)
         .stdin(Stdio::null())
         .stdout(Stdio::piped())
         .stderr(Stdio::null())
-        .spawn()
-        .map_err(|e| e.kind())
-    {
-        Ok(child) => child,
-        Err(io::ErrorKind::NotFound) => return Ok(None),
-        Err(_) => return Err(()),
-    };
+        .spawn()?;
 
     // Crude way to wait for the subprocess with a timeout.
     for _ in 0..30 {
-        if let Some(status) = child.try_wait().map_err(unit)? {
-            status.into_result().map_err(unit)?;
+        if let Some(status) = child.try_wait()? {
+            status.into_result()?;
             break;
         }
 
@@ -84,9 +98,15 @@ fn test_program(program: &str, arg1: &str) -> Result<Option<String>, ()> {
     }
     let _ = child.kill();
 
-    let stdout = child.stdout.take().map(io::BufReader::new).ok_or(())?;
-    let first_line = stdout.lines().next().ok_or(())?.map_err(unit)?;
-    Ok(Some(first_line))
+    let stdout = child.stdout.take().map(io::BufReader::new).unwrap();
+    let first_line = stdout
+        .lines()
+        .next()
+        .ok_or_else(|| anyhow!("No output from program {}", program))??;
+    if first_line.is_empty() || first_line.chars().all(|c| c.is_ascii_whitespace()) {
+        bail!("No output from program {}", program);
+    }
+    Ok(first_line)
 }
 
 fn run_program(app: &App, program: &str, args: &[&str], cwd: &Path) -> Result<()> {
@@ -97,7 +117,7 @@ fn run_program(app: &App, program: &str, args: &[&str], cwd: &Path) -> Result<()
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
         .spawn()
-        .with_context(|| format!("Could not run program `{}`", program))?;
+        .with_context(|| format!("Could not run program '{}'", program))?;
 
     let mut ps_lines =
         ProcessLines::new(child.stdout.take().unwrap(), child.stderr.take().unwrap());
@@ -106,7 +126,7 @@ fn run_program(app: &App, program: &str, args: &[&str], cwd: &Path) -> Result<()
 
     let status = child
         .wait()
-        .with_context(|| format!("Error running program `{}`", program))?;
+        .with_context(|| format!("Error running program '{}'", program))?;
 
     if !status.success() && app.verbosity() == 1 {
         let cmdline =
@@ -171,47 +191,61 @@ trait TexDistro {
     fn render_pdf(&self, app: &App, job: TexRenderJob) -> Result<()>;
 }
 
+type DynTexDistro = Box<dyn TexDistro + Send + Sync + 'static>;
+
 pub struct TexTools {
-    distro: Box<dyn TexDistro + Send + Sync + 'static>,
+    distro: DynTexDistro,
 }
 
 impl TexTools {
-    pub fn initialize(app: &App) -> Result<()> {
+    pub fn initialize(app: &App, settings_tex: Option<&TexConfig>) -> Result<()> {
         app.status("Locating", "TeX tools...");
 
-        if let Ok(tex_config) = env::var("BARD_TEX") {
-            let tex_config: TexConfig = tex_config
-                .parse()
-                .context("Invalid config in BARD_TEX environment variable")?;
+        // First see if there's an explicit config...
+        if let Some((config, source)) = Self::explicit_config(settings_tex)? {
+            let distro = match config.clone() {
+                TexConfig::TexLive { program } => TexLive::probe(app, program),
+                TexConfig::Tectonic { program } => Tectonic::probe(app, program),
+                TexConfig::None => Ok(TexNoop::new()),
+            }
+            .with_context(|| {
+                format!(
+                    "Error using TeX distribution '{}' configured from {}.",
+                    config, source
+                )
+            })?;
 
-            // When tech tools are configured explicitly, we don't probe them...
-
-            return match tex_config {
-                TexConfig::TexLive { program } => Self::set(TexLive::new(
-                    program.unwrap_or_else(|| "xelatex".to_string()),
-                )),
-                TexConfig::Tectonic { program } => Self::set(Tectonic::new(
-                    program.unwrap_or_else(|| "tectonic".to_string()),
-                )),
-                TexConfig::None => Self::set(TexNoop),
-            };
+            return Self::set(distro);
         }
 
-        let program = "xelatex".to_string();
-        let version = test_program(&program, "-version");
-        if let Ok(Some(version)) = version {
-            app.indent(version);
-            return Self::set(TexLive::new(program));
+        // No explicit config, try to probe automatically...
+
+        if let Ok(texlive) = TexLive::probe(app, None) {
+            return Self::set(texlive);
         }
 
-        let program = "tectonic".to_string();
-        let version = test_program(&program, "--version");
-        if let Ok(Some(version)) = version {
-            app.indent(version);
-            return Self::set(Tectonic::new(program));
+        if let Ok(tectonic) = Tectonic::probe(app, None) {
+            return Self::set(tectonic);
         }
 
         bail!("No TeX distribution found. FIXME: link doc.")
+    }
+
+    fn explicit_config(
+        settings_tex: Option<&TexConfig>,
+    ) -> Result<Option<(TexConfig, &'static str)>> {
+        // Env var takes priority:
+        if let Ok(cfg) = env::var("BARD_TEX") {
+            return cfg
+                .parse()
+                .map(|cfg| Some((cfg, "the BARD_TEX environment variable")))
+                .context("Invalid config in BARD_TEX environment variable");
+        }
+
+        // Then comes explicit setting from project settings:
+        Ok(settings_tex
+            .cloned()
+            .map(|cfg| (cfg, "the 'tex' option in bard.toml")))
     }
 
     pub fn get() -> impl Deref<Target = Self> {
@@ -228,13 +262,8 @@ impl TexTools {
         Guard(TEX_TOOLS.lock())
     }
 
-    fn set<D>(distro: D) -> Result<()>
-    where
-        D: TexDistro + Send + Sync + 'static,
-    {
-        let this = Self {
-            distro: Box::new(distro),
-        };
+    fn set(distro: Box<dyn TexDistro + Send + Sync + 'static>) -> Result<()> {
+        let this = Self { distro };
         *TEX_TOOLS.lock() = Some(this);
         Ok(())
     }
@@ -249,8 +278,11 @@ struct TexLive {
 }
 
 impl TexLive {
-    fn new(program: String) -> Self {
-        Self { program }
+    fn probe(app: &App, program: Option<String>) -> Result<DynTexDistro> {
+        let program = program.unwrap_or_else(|| "xelatex".to_string());
+        let first_line = test_program(&program, "-version")?;
+        app.indent(first_line);
+        Ok(Box::new(Self { program }))
     }
 }
 
@@ -277,8 +309,11 @@ struct Tectonic {
 }
 
 impl Tectonic {
-    fn new(program: String) -> Self {
-        Self { program }
+    fn probe(app: &App, program: Option<String>) -> Result<DynTexDistro> {
+        let program = program.unwrap_or_else(|| "tectonic".to_string());
+        let first_line = test_program(&program, "--version")?;
+        app.indent(first_line);
+        Ok(Box::new(Self { program }))
     }
 }
 
@@ -304,6 +339,12 @@ impl TexDistro for Tectonic {
 
 struct TexNoop;
 
+impl TexNoop {
+    fn new() -> DynTexDistro {
+        Box::new(Self)
+    }
+}
+
 impl TexDistro for TexNoop {
     fn render_pdf(&self, _: &App, _: TexRenderJob) -> Result<()> {
         Ok(())
@@ -317,10 +358,8 @@ mod tests {
     #[cfg(unix)]
     #[test]
     fn test_test_program() {
-        assert_eq!(test_program("echo", "hello").unwrap().unwrap(), "hello");
-        assert!(test_program("xxx-surely-this-doesnt-exist", "")
-            .unwrap()
-            .is_none());
+        assert_eq!(test_program("echo", "hello").unwrap(), "hello");
+        test_program("xxx-surely-this-doesnt-exist", "").unwrap_err();
         test_program("false", "").unwrap_err();
         test_program("sleep", "9800").unwrap_err();
     }

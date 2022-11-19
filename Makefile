@@ -7,10 +7,13 @@ msrv:
 	CARGO_TARGET_DIR=target-msrv cargo +$(shell yq -r .env.MSRV .github/workflows/CI.yaml) check --tests
 
 .PHONY: lint
-lint: msrv
+lint:
 	cargo fmt -- --check
 	cargo clippy
 	cargo check --features clap/deprecated
+
+.PHONY: audit
+audit:
 	cargo audit
 
 .PHONY: release
@@ -19,10 +22,16 @@ release: target/release/bard
 target/release/bard:
 	cargo build --release
 
-.PHONY: test
-test:
+.PHONY: tests-quick
+tests-quick:
 	cargo test
+
+.PHONY: tests-ignored
+tests-ignored:
 	cargo test -- --ignored --nocapture
+
+.PHONY: test
+test: tests-quick tests-ignored msrv audit lint
 
 .PHONY: examples
 examples:
