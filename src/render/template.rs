@@ -24,6 +24,8 @@ lazy_static! {
     static ref REGEX_CACHE: Mutex<RegexCache> = Mutex::new(RegexCache::new());
 }
 
+// Default templates
+
 pub struct DefaultTemaplate {
     pub filename: &'static str,
     pub content: &'static str,
@@ -50,6 +52,8 @@ declare_default_templates!(
     ]
 );
 
+// HB helpers
+
 macro_rules! hb_err {
     ($msg:literal) => {
         RenderError::new($msg)
@@ -62,6 +66,22 @@ macro_rules! hb_err {
     ($e:ident, $fmt:literal, $($field:expr),+) => {
         RenderError::from_error(&format!($fmt, $($field),+), $e)
     };
+}
+
+trait HandlebarsExt {
+    fn with_helper<T>(self, name: &str, helper: T) -> Self
+    where
+        T: HelperDef + Send + Sync + 'static;
+}
+
+impl HandlebarsExt for Handlebars<'static> {
+    fn with_helper<T>(mut self, name: &str, helper: T) -> Self
+    where
+        T: HelperDef + Send + Sync + 'static,
+    {
+        self.register_helper(name, Box::new(helper));
+        self
+    }
 }
 
 fn latex_escape(input: &str, pre_spaces: bool) -> String {
@@ -154,21 +174,21 @@ struct ImgHelper {
 }
 
 impl ImgHelper {
-    fn width(project: &Project) -> Box<Self> {
+    fn width(project: &Project) -> Self {
         let out_dir = project.settings.dir_output().to_owned();
-        Box::new(Self {
+        Self {
             out_dir,
             result_i: 0,
             name: "img_w",
-        })
+        }
     }
-    fn height(project: &Project) -> Box<Self> {
+    fn height(project: &Project) -> Self {
         let out_dir = project.settings.dir_output().to_owned();
-        Box::new(Self {
+        Self {
             out_dir,
             result_i: 1,
             name: "img_h",
-        })
+        }
     }
 }
 
@@ -210,8 +230,8 @@ struct DpiHelper {
 impl DpiHelper {
     const INCH_MM: f64 = 25.4;
 
-    fn new(output: &Output) -> Box<Self> {
-        Box::new(Self { dpi: output.dpi() })
+    fn new(output: &Output) -> Self {
+        Self { dpi: output.dpi() }
     }
 }
 
@@ -243,11 +263,11 @@ struct VersionCheckHelper {
 }
 
 impl VersionCheckHelper {
-    fn new() -> (Box<Self>, Arc<Mutex<Option<Version>>>) {
+    fn new() -> (Self, Arc<Mutex<Option<Version>>>) {
         let version = Arc::new(Mutex::new(None));
-        let this = Box::new(Self {
+        let this = Self {
             version: version.clone(),
-        });
+        };
         (this, version)
     }
 }
@@ -397,18 +417,18 @@ impl<'a> HbRender<'a> {
     const ASSUMED_FIRST_VERSION: Version = Version::new(1, 0, 0);
 
     fn new(project: &'a Project, output: &'a Output, default: &DefaultTemaplate) -> Self {
-        let mut hb = Handlebars::new();
         let (version_helper, version) = VersionCheckHelper::new();
-        hb.register_helper("eq", Box::new(hb_eq));
-        hb.register_helper("contains", Box::new(hb_contains));
-        hb.register_helper("cat", Box::new(hb_cat));
-        hb.register_helper("default", Box::new(hb_default));
-        hb.register_helper("matches", Box::new(hb_matches));
-        hb.register_helper("math", Box::new(MathHelper));
-        hb.register_helper("px2mm", DpiHelper::new(output));
-        hb.register_helper("img_w", ImgHelper::width(project));
-        hb.register_helper("img_h", ImgHelper::height(project));
-        hb.register_helper("version_check", version_helper);
+        let hb = Handlebars::new()
+            .with_helper("eq", hb_eq)
+            .with_helper("contains", hb_contains)
+            .with_helper("cat", hb_cat)
+            .with_helper("default", hb_default)
+            .with_helper("matches", hb_matches)
+            .with_helper("math", MathHelper)
+            .with_helper("px2mm", DpiHelper::new(output))
+            .with_helper("img_w", ImgHelper::width(project))
+            .with_helper("img_h", ImgHelper::height(project))
+            .with_helper("version_check", version_helper);
 
         let tpl_name = output
             .template
@@ -527,3 +547,6 @@ impl<'a> Render<'a> for RHovorka<'a> {
         self.0.render()
     }
 }
+
+#[cfg(test)]
+mod tests;
