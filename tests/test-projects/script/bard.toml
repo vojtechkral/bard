@@ -1,0 +1,16 @@
+songs = [
+    "yippie.md",
+]
+
+notation = "english"
+
+[[output]]
+file = "out.html"
+sans_font = false
+script = "script"
+
+[book]
+title = "My Songbook"
+subtitle = "(You can edit that title!)"
+chorus_label = "Ch"
+title_note = "(And this note too...)"

@@ -1,6 +1,9 @@
 use std::collections::BTreeMap;
+use std::env;
 use std::fs;
 use std::iter;
+use std::process::Command;
+use std::process::Stdio;
 use std::str;
 
 use serde::Deserialize;
@@ -14,6 +17,7 @@ use crate::prelude::*;
 use crate::render::tex_tools::TexConfig;
 use crate::render::tex_tools::TexTools;
 use crate::render::Renderer;
+use crate::util::ExitStatusExt;
 use crate::util::PathBufExt;
 
 pub use toml::Value;
@@ -121,6 +125,11 @@ impl Settings {
     }
 }
 
+#[cfg(unix)]
+static SCRIPT_EXT: &str = "sh";
+#[cfg(windows)]
+static SCRIPT_EXT: &str = "bat";
+
 #[derive(Debug)]
 pub struct Project {
     pub project_dir: PathBuf,
@@ -203,6 +212,40 @@ impl Project {
         &self.book.songs_sorted
     }
 
+    fn run_script(&self, app: &App, output: &Output) -> Result<()> {
+        let script_fn = match output.script.as_deref() {
+            Some(s) => format!("{}.{}", s, SCRIPT_EXT),
+            None => return Ok(()),
+        };
+
+        let script_path = self.settings.dir_output().join(&script_fn);
+        if !script_path.exists() {
+            bail!(
+                "Could not find script file '{}' in the output directory.",
+                script_fn
+            );
+        }
+
+        app.status(
+            "Running",
+            format!("script '{}'", script_fn),
+        );
+        Command::new(script_path)
+            .current_dir(self.settings.dir_output())
+            .stdin(Stdio::null())
+            .stdout(Stdio::piped())
+            .stderr(Stdio::piped())
+            .env("BARD", env::current_exe()?)
+            .env("OUTPUT", output.file.as_os_str())
+            .env("OUTPUT_STEM", output.file.file_stem().unwrap()) // NB. unwrap is fine here, there's always a stem
+            .env("PROJECT_DIR", self.project_dir.as_os_str())
+            .env("OUTPUT_DIR", self.settings.dir_output().as_os_str())
+            .status()?
+            .into_result()?;
+
+        Ok(())
+    }
+
     pub fn render(&self, app: &App) -> Result<()> {
         fs::create_dir_all(&self.settings.dir_output)?;
 
@@ -215,14 +258,24 @@ impl Project {
 
         self.settings.output.iter().try_for_each(|output| {
             app.status("Rendering", output.output_filename());
-            let context = || format!("Could not render output file '{}'", output.file);
+            let context = || {
+                format!(
+                    "Could not render output file '{}'",
+                    output.file.file_name().unwrap()
+                )
+            };
 
             let renderer = Renderer::new(self, output).with_context(context)?;
             let tpl_version = renderer.version();
 
             let res = renderer.render(app).with_context(context).and_then(|_| {
                 if app.post_process() {
-                    Ok(()) // TODO: script
+                    self.run_script(app, output).with_context(|| {
+                        format!(
+                            "Could not run script for output file '{}'",
+                            output.file.file_name().unwrap()
+                        )
+                    })
                 } else {
                     Ok(())
                 }

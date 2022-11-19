@@ -351,11 +351,10 @@ impl TexDistro for TexNoop {
     }
 }
 
-#[cfg(test)]
+#[cfg(all(test, unix))]
 mod tests {
     use super::*;
 
-    #[cfg(unix)]
     #[test]
     fn test_test_program() {
         assert_eq!(test_program("echo", "hello").unwrap(), "hello");

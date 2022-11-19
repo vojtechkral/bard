@@ -13,6 +13,8 @@ pub struct Output {
     #[serde(default)]
     pub format: Format,
 
+    pub script: Option<String>,
+
     #[serde(flatten)]
     pub metadata: Metadata,
 }
