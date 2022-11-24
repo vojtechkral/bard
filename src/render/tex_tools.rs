@@ -12,7 +12,7 @@ use strum::{Display, EnumString, EnumVariantNames, VariantNames as _};
 
 use crate::app::App;
 use crate::prelude::*;
-use crate::util::{ExitStatusExt, ProcessLines};
+use crate::util::{ExitStatusExt, ProcessLines, TempPath};
 use crate::util_cmd;
 
 static TEX_TOOLS: Mutex<Option<TexTools>> = const_mutex(None);
@@ -221,15 +221,26 @@ fn run_program(app: &App, program: &str, args: &[&str], cwd: &Path) -> Result<()
 
 #[derive(Debug)]
 pub struct TexRenderJob<'a> {
-    pub tex_file: &'a Path,
-    pub out_dir: &'a Path,
-    pub pdf_path: &'a Path,
-    pub toc_sort_key: Option<&'a str>,
+    pub tex_file: TempPath,
+    out_dir: TempPath,
+    pdf_path: &'a Path,
+    toc_sort_key: Option<&'a str>,
+}
+
+impl<'a> TexRenderJob<'a> {
+    pub fn new(pdf_path: &'a Path, keep: bool, toc_sort_key: Option<&'a str>) -> Result<Self> {
+        Ok(Self {
+            tex_file: TempPath::new_file(pdf_path.with_extension("tex"), !keep),
+            out_dir: TempPath::make_temp_dir(pdf_path, !keep)?,
+            pdf_path,
+            toc_sort_key,
+        })
+    }
 }
 
 impl<'a> TexRenderJob<'a> {
     fn cwd(&self) -> &'a Path {
-        self.tex_file.parent().unwrap()
+        self.pdf_path.parent().unwrap()
     }
 
     fn sort_toc(&self) -> Result<()> {
@@ -316,9 +327,11 @@ impl TexTools {
         Ok(())
     }
 
-    pub fn render_pdf(&self, app: &App, job: TexRenderJob) -> Result<()> {
+    pub fn render_pdf(&self, app: &App, mut job: TexRenderJob) -> Result<()> {
         if self.config.distro.is_none() {
-            return Ok(())
+            // TODO: test this:
+            job.tex_file.set_remove(false);
+            return Ok(());
         }
 
         app.status("Running", "TeX...");

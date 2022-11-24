@@ -34,39 +34,6 @@ where
     }
 }
 
-/// Scope guard
-pub struct ScopeGuard<R, F: FnOnce() -> R> {
-    guard: Option<F>,
-    armed: bool,
-}
-
-impl<R, F> ScopeGuard<R, F>
-where
-    F: FnOnce() -> R,
-{
-    pub fn new(guard: F) -> Self {
-        Self {
-            guard: Some(guard),
-            armed: true,
-        }
-    }
-
-    pub fn set_armed(&mut self, armed: bool) {
-        self.armed = armed
-    }
-}
-
-impl<R, F> Drop for ScopeGuard<R, F>
-where
-    F: FnOnce() -> R,
-{
-    fn drop(&mut self) {
-        if self.armed {
-            let _ = self.guard.take().map(|f| f());
-        }
-    }
-}
-
 /// Boxed str alias and extensions for `[u8]` and `Vec<u8>`
 pub type BStr = Box<str>;
 
@@ -296,19 +263,40 @@ impl ProcessLines {
     }
 }
 
-#[cfg(test)]
-mod tests;
+#[derive(Clone, Copy, Debug)]
+enum TempPathType {
+    File,
+    Dir,
+}
 
-pub struct TempDir {
+#[derive(Debug)]
+pub struct TempPath {
     path: PathBuf,
+    typ: TempPathType,
     remove: bool,
 }
 
-impl TempDir {
+impl TempPath {
     const RAND_CHARS: u32 = 6;
     const RETRIES: u32 = 9001;
 
-    pub fn new(prefix: impl Into<PathBuf>, remove: bool) -> Result<Self> {
+    pub fn new_file(path: impl Into<PathBuf>, remove: bool) -> Self {
+        Self {
+            path: path.into(),
+            typ: TempPathType::File,
+            remove,
+        }
+    }
+
+    pub fn new_dir(path: impl Into<PathBuf>, remove: bool) -> Self {
+        Self {
+            path: path.into(),
+            typ: TempPathType::Dir,
+            remove,
+        }
+    }
+
+    pub fn make_temp_dir(prefix: impl Into<PathBuf>, remove: bool) -> Result<Self> {
         let mut path = prefix.into().into_string();
 
         let orig_len = path.len();
@@ -317,10 +305,7 @@ impl TempDir {
             path.push('.');
             Self::push_rand_chars(&mut path);
             if Self::create_dir(&path)? {
-                return Ok(Self {
-                    path: path.into(),
-                    remove,
-                });
+                return Ok(Self::new_dir(path, remove));
             }
 
             path.truncate(orig_len);
@@ -349,24 +334,32 @@ impl TempDir {
     }
 }
 
-impl Drop for TempDir {
+impl Drop for TempPath {
     fn drop(&mut self) {
-        if self.remove {
-            let _ = fs::remove_dir_all(&self.path);
+        if !self.remove {
+            return;
         }
+
+        let _ = match self.typ {
+            TempPathType::File => fs::remove_file(&self.path),
+            TempPathType::Dir => fs::remove_dir_all(&self.path),
+        };
     }
 }
 
-impl AsRef<Path> for TempDir {
+impl AsRef<Path> for TempPath {
     fn as_ref(&self) -> &Path {
         self.path.as_ref()
     }
 }
 
-impl Deref for TempDir {
+impl Deref for TempPath {
     type Target = Path;
 
     fn deref(&self) -> &Self::Target {
         self.as_ref()
     }
 }
+
+#[cfg(test)]
+mod tests;

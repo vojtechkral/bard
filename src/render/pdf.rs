@@ -1,5 +1,3 @@
-use std::fs;
-
 use handlebars::handlebars_helper;
 use semver::Version;
 
@@ -10,7 +8,6 @@ use crate::app::App;
 use crate::prelude::*;
 use crate::project::{Output, Project};
 use crate::render::tex_tools::TexRenderJob;
-use crate::util::{ScopeGuard, TempDir};
 
 default_template!(DEFAULT_TEMPLATE, "pdf.hbs");
 
@@ -67,29 +64,18 @@ impl RPdf {
 
 impl Render for RPdf {
     fn render(&self, app: &App, output: &Path, context: RenderContext) -> Result<()> {
-        // TODO: keep temp files option
+        // Render TeX first
+        let mut job = TexRenderJob::new(output, app.keep_interm(), self.toc_sort_key.as_deref())?;
+        self.hb.render(&job.tex_file, context)?;
 
-        // Render tex first
-        let tex_file = output.with_extension("tex");
-        self.hb.render(&tex_file, context)?;
         if !app.post_process() {
+            // TODO: test this
+            job.tex_file.set_remove(false);
             return Ok(());
         }
 
-        let _tex_file_rm = ScopeGuard::new(|| fs::remove_file(&tex_file));
-
-        // Invoke TexTools to render PDF
-        let out_dir = TempDir::new(output, true)?;
-        let job = TexRenderJob {
-            tex_file: &tex_file,
-            out_dir: &out_dir,
-            pdf_path: output,
-            toc_sort_key: self.toc_sort_key.as_deref(),
-        };
-
-        TexTools::get().render_pdf(app, job)?;
-
-        Ok(())
+        // Run TeX
+        TexTools::get().render_pdf(app, job)
     }
 
     fn version(&self) -> Option<Version> {

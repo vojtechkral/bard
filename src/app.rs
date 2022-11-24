@@ -16,7 +16,7 @@ pub struct StdioOpts {
     pub quiet: bool,
     #[arg(
         long,
-        help = "Whether to use colored output in terminal/console (auto-detected by default)"
+        help = "Whether to use colored output (auto-detected by default)"
     )]
     pub color: Option<bool>,
 }
@@ -34,8 +34,18 @@ impl StdioOpts {
 
 #[derive(clap::Parser, Clone, Default, Debug)]
 pub struct MakeOpts {
-    #[arg(short = 'p', long, help = "Don't run outputs postprocessing steps")]
+    #[arg(
+        short = 'p',
+        long,
+        help = "Don't run post-processing steps, ie. TeX and scripts, if any"
+    )]
     pub no_postprocess: bool,
+    #[arg(
+        short = 'k',
+        long,
+        help = "Keep intermediate output files in the output directory"
+    )]
+    pub keep: bool,
     #[clap(flatten)]
     pub stdio: StdioOpts,
 }
@@ -52,6 +62,7 @@ impl From<StdioOpts> for MakeOpts {
 /// Runtime config and stdio output fns.
 pub struct App {
     post_process: bool,
+    keep_interm: bool,
 
     // stdio stuff
     term: Option<RefCell<Box<StderrTerminal>>>,
@@ -71,6 +82,7 @@ impl App {
 
         Self {
             post_process: !opts.no_postprocess,
+            keep_interm: opts.keep,
             term: term.map(RefCell::new),
             verbosity: opts.stdio.verbosity(),
             use_color,
@@ -81,6 +93,7 @@ impl App {
     pub fn with_test_mode(post_process: bool) -> Self {
         Self {
             post_process,
+            keep_interm: true,
             term: None,
             verbosity: 2,
             use_color: false,
@@ -90,6 +103,10 @@ impl App {
 
     pub fn post_process(&self) -> bool {
         self.post_process
+    }
+
+    pub fn keep_interm(&self) -> bool {
+        self.keep_interm
     }
 
     pub fn verbosity(&self) -> u32 {
