@@ -71,13 +71,12 @@ pub struct Renderer<'a> {
 
 impl<'a> Renderer<'a> {
     pub fn new(project: &'a Project, output: &'a Output) -> Result<Self> {
-        let render: Box<dyn Render> = match output.format {
+        let render: Box<dyn Render> = match output.format() {
             Format::Pdf => Box::new(RPdf::new(project, output)?),
             Format::Html => Box::new(RHtml::new(project, output)?),
             Format::Hovorka => Box::new(RHovorka::new(project, output)?),
             Format::Json => Box::new(RJson::new()),
             Format::Xml => Box::new(RXml::new()),
-            Format::Auto => Format::no_auto(),
         };
 
         Ok(Self {

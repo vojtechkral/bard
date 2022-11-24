@@ -25,7 +25,7 @@ pub use toml::Value;
 mod input;
 use input::{InputSet, SongsGlobs};
 mod output;
-pub use output::Output;
+pub use output::{Format, Output};
 
 fn dir_songs() -> PathBuf {
     "songs".into()
@@ -44,29 +44,6 @@ fn default_chorus_label() -> String {
 }
 
 pub type Metadata = BTreeMap<Box<str>, Value>;
-
-#[derive(Deserialize, PartialEq, Eq, Clone, Copy, Debug)]
-#[serde(rename_all = "lowercase")]
-pub enum Format {
-    Pdf,
-    Html,
-    Hovorka,
-    Json,
-    Xml,
-    Auto,
-}
-
-impl Format {
-    pub fn no_auto() -> ! {
-        panic!("Output's Format should have been resolved at this point");
-    }
-}
-
-impl Default for Format {
-    fn default() -> Self {
-        Self::Auto
-    }
-}
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct BookSection {
@@ -226,10 +203,7 @@ impl Project {
             );
         }
 
-        app.status(
-            "Running",
-            format!("script '{}'", script_fn),
-        );
+        app.status("Running", format!("script '{}'", script_fn));
         Command::new(script_path)
             .current_dir(self.settings.dir_output())
             .stdin(Stdio::null())
@@ -249,7 +223,7 @@ impl Project {
     pub fn render(&self, app: &App) -> Result<()> {
         fs::create_dir_all(&self.settings.dir_output)?;
 
-        if self.settings.output.iter().any(|o| o.format == Format::Pdf) {
+        if self.settings.output.iter().any(|o| o.is_pdf()) {
             // Initialize Tex tools ahead of actual rendering so that
             // errors are reported early...
             TexTools::initialize(app, self.settings.tex.as_ref())
