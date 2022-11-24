@@ -1,7 +1,6 @@
 mod util;
 use std::fs;
 
-use bard::app::App;
 use bard::default_project::DEFAULT_PROJECT;
 pub use util::*;
 
@@ -20,7 +19,7 @@ fn init_doesnt_overwrite_1() {
     fs::create_dir_all(&songs_dir).unwrap();
     fs::write(&test_file, test_content).unwrap();
 
-    let app = App::with_test_mode(false);
+    let app = Builder::app(false);
     bard::bard_init_at(&app, &work_dir).unwrap_err();
 
     let default_project = DEFAULT_PROJECT.resolve(&work_dir);
@@ -42,7 +41,7 @@ fn init_doesnt_overwrite_2() {
     let project_file = work_dir.join("bard.toml");
     fs::create_dir_all(&out_dir).unwrap();
 
-    let app = App::with_test_mode(false);
+    let app = Builder::app(false);
     bard::bard_init_at(&app, &work_dir).unwrap_err();
 
     let default_project = DEFAULT_PROJECT.resolve(&work_dir);

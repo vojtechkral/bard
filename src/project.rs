@@ -1,5 +1,4 @@
 use std::collections::BTreeMap;
-use std::env;
 use std::fs;
 use std::iter;
 use std::process::Command;
@@ -207,9 +206,9 @@ impl Project {
         Command::new(script_path)
             .current_dir(self.settings.dir_output())
             .stdin(Stdio::null())
-            .stdout(Stdio::piped())
-            .stderr(Stdio::piped())
-            .env("BARD", env::current_exe()?)
+            .stdout(Stdio::inherit())
+            .stderr(Stdio::inherit())
+            .env("BARD", app.bard_exe())
             .env("OUTPUT", output.file.as_os_str())
             .env("OUTPUT_STEM", output.file.file_stem().unwrap()) // NB. unwrap is fine here, there's always a stem
             .env("PROJECT_DIR", self.project_dir.as_os_str())

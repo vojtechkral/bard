@@ -12,8 +12,7 @@ toc_sort_key = "numberline\\s+\\{[^}]*}([^}]+)"
 
 [[output]]
 file = "songbook.html"
-# verify post-process simple syntax
-process = "{{bard}} util cp {{file}} cp1.html"
+script = "script"
 
 [[output]]
 format = "hovorka"
@@ -21,11 +20,6 @@ file = "songbook.hovorka.xml"
 
 [[output]]
 file = "songbook.json"
-# verify post-process extended syntax
-process = [
-    ["{{bard}}", "util", "cp", "{{file}}", "cp2.json"],
-    ["{{bard}}", "util", "cp", "{{file}}", "cp3.json"],
-]
 
 [[output]]
 file = "songbook.xml"

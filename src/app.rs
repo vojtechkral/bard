@@ -1,6 +1,8 @@
 use std::cell::RefCell;
+use std::convert::TryFrom;
 use std::fmt::Display;
 use std::io::{self, Write};
+use std::{env, fmt};
 
 use term::color::{self, Color};
 use term::{Attr, StderrTerminal};
@@ -70,6 +72,9 @@ pub struct App {
     verbosity: u32,
     use_color: bool,
     test_mode: bool,
+
+    /// bard self exe binary path
+    bard_exe: PathBuf,
 }
 
 impl App {
@@ -87,10 +92,14 @@ impl App {
             verbosity: opts.stdio.verbosity(),
             use_color,
             test_mode: false,
+            bard_exe: env::current_exe()
+                .map_err(Error::from)
+                .and_then(|p| PathBuf::try_from(p).map_err(Error::from))
+                .expect("Could not get path to bard self binary"),
         }
     }
 
-    pub fn with_test_mode(post_process: bool) -> Self {
+    pub fn with_test_mode(post_process: bool, bard_exe: PathBuf) -> Self {
         Self {
             post_process,
             keep_interm: true,
@@ -98,6 +107,7 @@ impl App {
             verbosity: 2,
             use_color: false,
             test_mode: true,
+            bard_exe,
         }
     }
 
@@ -111,6 +121,10 @@ impl App {
 
     pub fn verbosity(&self) -> u32 {
         self.verbosity
+    }
+
+    pub fn bard_exe(&self) -> &Path {
+        self.bard_exe.as_path()
     }
 
     // stdio helpers
@@ -240,5 +254,20 @@ impl App {
         }
 
         Ok(())
+    }
+}
+
+impl fmt::Debug for App {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let term = self.term.is_some();
+        f.debug_struct("App")
+            .field("post_process", &self.post_process)
+            .field("keep_interm", &self.keep_interm)
+            .field("term", &term)
+            .field("verbosity", &self.verbosity)
+            .field("use_color", &self.use_color)
+            .field("test_mode", &self.test_mode)
+            .field("bard_exe", &self.bard_exe)
+            .finish()
     }
 }

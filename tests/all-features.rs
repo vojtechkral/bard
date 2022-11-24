@@ -1,4 +1,6 @@
 mod util;
+use std::fs;
+
 pub use util::*;
 
 #[test]
@@ -18,4 +20,10 @@ fn project_all_features() {
             "Multiple Songs 2",
         ]
     );
+
+    // Verify script worked
+    let out_dir = build.project.settings.dir_output();
+    let html = fs::read_to_string(out_dir.join("songbook.html")).unwrap();
+    let html_copy = fs::read_to_string(out_dir.join("copy-of-songbook.html")).unwrap();
+    assert_eq!(html, html_copy);
 }

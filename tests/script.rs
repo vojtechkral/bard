@@ -1,5 +1,4 @@
 use std::collections::HashMap;
-use std::env;
 use std::fs;
 
 mod util;
@@ -10,15 +9,9 @@ fn project_script() {
     let build = Builder::build_with_ps(TEST_PROJECTS / "script", "script").unwrap();
     let out_dir = build.project.settings.dir_output();
 
-    let exe = env::current_exe()
-        .unwrap()
-        .into_os_string()
-        .into_string()
-        .unwrap();
-
     let out = fs::read_to_string(out_dir.join("out.toml")).unwrap();
     let out: HashMap<String, String> = toml::from_str(&out).unwrap();
-    assert_eq!(out["BARD"], exe);
+    assert_eq!(out["BARD"], build.app.bard_exe());
     assert_eq!(out["OUTPUT"], out_dir.join("out.html"));
     assert_eq!(out["PROJECT_DIR"], build.project.project_dir);
     assert_eq!(out["OUTPUT_DIR"], out_dir);

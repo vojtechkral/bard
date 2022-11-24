@@ -2,7 +2,6 @@ use std::fs;
 use std::thread;
 use std::time::Duration;
 
-use bard::app::App;
 use bard::watch::Watch;
 
 mod util;
@@ -19,7 +18,7 @@ fn watch() {
     let dir2 = build.dir.clone();
     let (watch, cancellation) = Watch::new().unwrap();
     let watch_thread = thread::spawn(move || {
-        let app = App::with_test_mode(false);
+        let app = Builder::app(false);
         bard::bard_watch_at(&app, &dir2, watch)
     });
 

@@ -64,6 +64,7 @@ pub fn int_dir() -> PathBuf {
 pub struct Builder {
     pub project: Project,
     pub dir: PathBuf,
+    pub app: App,
 }
 
 impl Builder {
@@ -103,8 +104,15 @@ impl Builder {
         Ok(work_dir)
     }
 
+    pub fn app(post_process: bool) -> App {
+        let bard_exe = option_env!("CARGO_BIN_EXE_bard")
+            .expect("$CARGO_BIN_EXE_bard")
+            .into();
+        App::with_test_mode(post_process, bard_exe)
+    }
+
     fn build_inner(src_path: impl AsRef<Path>, name: &str, post_process: bool) -> Result<Self> {
-        let app = App::with_test_mode(post_process);
+        let app = Self::app(post_process);
 
         let work_dir = Self::prepare(src_path, name)?;
         let project = bard::bard_make_at(&app, &work_dir)?;
@@ -112,6 +120,7 @@ impl Builder {
         Ok(Self {
             project,
             dir: work_dir,
+            app,
         })
     }
 
@@ -128,7 +137,7 @@ impl Builder {
     }
 
     pub fn init_and_build(name: &str) -> Result<Self> {
-        let app = App::with_test_mode(false);
+        let app = Self::app(false);
 
         let work_dir = Self::work_dir(name.as_ref(), true)?;
         fs::create_dir_all(&work_dir)
@@ -140,6 +149,7 @@ impl Builder {
         Ok(Self {
             project,
             dir: work_dir,
+            app,
         })
     }
 }
