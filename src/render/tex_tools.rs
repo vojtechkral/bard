@@ -8,6 +8,7 @@ use std::{env, fmt, fs, io, iter, thread};
 use parking_lot::{const_mutex, Mutex, MutexGuard};
 use serde::de::Error as _;
 use serde::Deserialize;
+use strum::{Display, EnumString, EnumVariantNames, VariantNames as _};
 
 use crate::app::App;
 use crate::prelude::*;
@@ -16,33 +17,112 @@ use crate::util_cmd;
 
 static TEX_TOOLS: Mutex<Option<TexTools>> = const_mutex(None);
 
-#[derive(Clone, Debug)]
-pub enum TexConfig {
-    TexLive { program: Option<String> },
-    Tectonic { program: Option<String> },
+#[derive(EnumString, EnumVariantNames, Display, Clone, Copy, PartialEq, Eq, Debug)]
+#[strum(ascii_case_insensitive, serialize_all = "lowercase")]
+pub enum TexDistro {
+    TexLive,
+    Tectonic,
     None,
+}
+
+impl TexDistro {
+    fn default_program(&self) -> Option<String> {
+        match self {
+            Self::TexLive => Some("xelatex".to_string()),
+            Self::Tectonic => Some("tectonic".to_string()),
+            Self::None => None,
+        }
+    }
+
+    fn is_none(&self) -> bool {
+        matches!(self, Self::None)
+    }
+}
+
+impl<'de> Deserialize<'de> for TexDistro {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        let input: &'de str = Deserialize::deserialize(deserializer)?;
+        input.parse().map_err(D::Error::custom)
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct TexConfig {
+    distro: TexDistro,
+    program: Option<String>,
+}
+
+impl TexConfig {
+    fn try_from_env() -> Result<Option<Self>> {
+        match env::var("BARD_TEX") {
+            Ok(var) => var.parse().map(Some),
+            Err(env::VarError::NotPresent) => Ok(None),
+            Err(env::VarError::NotUnicode(..)) => bail!("BARD_TEX not valid Unicode"),
+        }
+    }
+
+    fn with_distro(distro: TexDistro) -> Self {
+        Self {
+            distro,
+            program: None,
+        }
+    }
+
+    fn probe(&mut self, app: &App) -> Result<()> {
+        if self.distro.is_none() {
+            return Ok(());
+        }
+
+        if self.program.is_none() {
+            self.program = self.distro.default_program();
+        }
+
+        let version = match self.distro {
+            TexDistro::TexLive => test_program(self.program.as_ref().unwrap(), "-version")?,
+            TexDistro::Tectonic => test_program(self.program.as_ref().unwrap(), "--version")?,
+            TexDistro::None => unreachable!(),
+        };
+
+        app.indent(version);
+        Ok(())
+    }
+
+    fn render_args<'j, 's: 'j>(&'s self, job: &'j TexRenderJob) -> Vec<&'j str> {
+        let mut args = match self.distro {
+            TexDistro::TexLive => vec![
+                "-interaction=nonstopmode",
+                "-output-directory",
+                job.out_dir.as_str(),
+            ],
+            TexDistro::Tectonic => vec!["-k", "-r", "0", "-o", job.out_dir.as_str()],
+            TexDistro::None => unreachable!(),
+        };
+
+        args.extend(["--", job.tex_file.as_str()]);
+        args
+    }
 }
 
 impl FromStr for TexConfig {
     type Err = Error;
 
+    /// Syntax: `distro:program`
     fn from_str(input: &str) -> Result<Self, Self::Err> {
-        let (kind, program) = input
+        let (distro, program) = input
             .split_once(':')
-            .map(|(a, b)| (a, Some(b.to_string())))
-            .unwrap_or((input, None));
+            .map_or((input, None), |(k, p)| (k, Some(p.to_string())));
+        let distro: TexDistro = distro.parse().map_err(|_| {
+            anyhow!(
+                "Unexpected TeX distro type: '{}', possible choices are: {:?}.",
+                distro,
+                TexDistro::VARIANTS,
+            )
+        })?;
 
-        let res = if kind.eq_ignore_ascii_case("texlive") {
-            Self::TexLive { program }
-        } else if kind.eq_ignore_ascii_case("tectonic") {
-            Self::Tectonic { program }
-        } else if kind.eq_ignore_ascii_case("none") {
-            Self::None
-        } else {
-            bail!("Unexpected TeX distro type: '{}', possible choices are: 'texlive', 'tectonic', or 'none'. The syntax for TeX config is 'distro' or 'distro:program'.", kind);
-        };
-
-        Ok(res)
+        Ok(Self { distro, program })
     }
 }
 
@@ -58,20 +138,10 @@ impl<'de> Deserialize<'de> for TexConfig {
 
 impl fmt::Display for TexConfig {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            TexConfig::TexLive { program } => {
-                write!(f, "texlive")?;
-                if let Some(p) = program {
-                    write!(f, ":{}", p)?;
-                }
-            }
-            TexConfig::Tectonic { program } => {
-                write!(f, "tectonic")?;
-                if let Some(p) = program {
-                    write!(f, ":{}", p)?;
-                }
-            }
-            TexConfig::None => write!(f, "none")?,
+        write!(f, "{}", self.distro)?;
+
+        if let Some(program) = self.program.as_ref() {
+            write!(f, ":{}", program)?;
         }
 
         Ok(())
@@ -187,65 +257,43 @@ impl<'a> TexRenderJob<'a> {
     }
 }
 
-trait TexDistro {
-    fn render_pdf(&self, app: &App, job: TexRenderJob) -> Result<()>;
-}
-
-type DynTexDistro = Box<dyn TexDistro + Send + Sync + 'static>;
-
 pub struct TexTools {
-    distro: DynTexDistro,
+    config: TexConfig,
 }
 
 impl TexTools {
-    pub fn initialize(app: &App, settings_tex: Option<&TexConfig>) -> Result<()> {
+    pub fn initialize(app: &App, from_settings: Option<&TexConfig>) -> Result<()> {
         app.status("Locating", "TeX tools...");
 
-        // First see if there's an explicit config...
-        if let Some((config, source)) = Self::explicit_config(settings_tex)? {
-            let distro = match config.clone() {
-                TexConfig::TexLive { program } => TexLive::probe(app, program),
-                TexConfig::Tectonic { program } => Tectonic::probe(app, program),
-                TexConfig::None => Ok(TexNoop::new()),
-            }
-            .with_context(|| {
+        // 1. Priority: BARD_TEX env var
+        if let Some(mut config) = TexConfig::try_from_env()? {
+            config.probe(app).with_context(|| {
                 format!(
-                    "Error using TeX distribution '{}' configured from {}.",
-                    config, source
+                    "Error using TeX distribution '{}' configured from the BARD_TEX environment variable.", config)})?;
+            return Self::set(config);
+        }
+
+        // 2. Config from bard.toml
+        if let Some(mut config) = from_settings.cloned() {
+            config.probe(app).with_context(|| {
+                format!(
+                    "Error using TeX distribution '{}' configured from the bard.toml project file.",
+                    config
                 )
             })?;
-
-            return Self::set(distro);
+            return Self::set(config);
         }
 
-        // No explicit config, try to probe automatically...
+        // 3. No explicit config, try to probe automatically...
 
-        if let Ok(texlive) = TexLive::probe(app, None) {
-            return Self::set(texlive);
-        }
-
-        if let Ok(tectonic) = Tectonic::probe(app, None) {
-            return Self::set(tectonic);
+        for kind in [TexDistro::TexLive, TexDistro::Tectonic] {
+            let mut config = TexConfig::with_distro(kind);
+            if config.probe(app).is_ok() {
+                return Self::set(config);
+            }
         }
 
         bail!("No TeX distribution found. FIXME: link doc.")
-    }
-
-    fn explicit_config(
-        settings_tex: Option<&TexConfig>,
-    ) -> Result<Option<(TexConfig, &'static str)>> {
-        // Env var takes priority:
-        if let Ok(cfg) = env::var("BARD_TEX") {
-            return cfg
-                .parse()
-                .map(|cfg| Some((cfg, "the BARD_TEX environment variable")))
-                .context("Invalid config in BARD_TEX environment variable");
-        }
-
-        // Then comes explicit setting from project settings:
-        Ok(settings_tex
-            .cloned()
-            .map(|cfg| (cfg, "the 'tex' option in bard.toml")))
     }
 
     pub fn get() -> impl Deref<Target = Self> {
@@ -262,91 +310,31 @@ impl TexTools {
         Guard(TEX_TOOLS.lock())
     }
 
-    fn set(distro: Box<dyn TexDistro + Send + Sync + 'static>) -> Result<()> {
-        let this = Self { distro };
+    fn set(config: TexConfig) -> Result<()> {
+        let this = Self { config };
         *TEX_TOOLS.lock() = Some(this);
         Ok(())
     }
 
     pub fn render_pdf(&self, app: &App, job: TexRenderJob) -> Result<()> {
-        self.distro.render_pdf(app, job)
-    }
-}
+        if self.config.distro.is_none() {
+            return Ok(())
+        }
 
-struct TexLive {
-    program: String,
-}
+        app.status("Running", "TeX...");
 
-impl TexLive {
-    fn probe(app: &App, program: Option<String>) -> Result<DynTexDistro> {
-        let program = program.unwrap_or_else(|| "xelatex".to_string());
-        let first_line = test_program(&program, "-version")?;
-        app.indent(first_line);
-        Ok(Box::new(Self { program }))
-    }
-}
+        let args = self.config.render_args(&job);
+        let program = self.config.program.as_ref().unwrap();
 
-impl TexDistro for TexLive {
-    fn render_pdf(&self, app: &App, job: TexRenderJob) -> Result<()> {
-        let args = [
-            "-interaction=nonstopmode",
-            "-output-directory",
-            job.out_dir.as_str(),
-            job.tex_file.as_str(),
-        ];
+        if app.verbosity() >= 2 {
+            app.status("Command", format!("'{}' {:?}", program, args));
+        }
 
-        run_program(app, &self.program, &args, job.cwd())?;
+        run_program(app, program, &args, job.cwd())?;
         job.sort_toc()?;
-        run_program(app, &self.program, &args, job.cwd())?;
+        run_program(app, program, &args, job.cwd())?;
         job.move_pdf()?;
 
-        Ok(())
-    }
-}
-
-struct Tectonic {
-    program: String,
-}
-
-impl Tectonic {
-    fn probe(app: &App, program: Option<String>) -> Result<DynTexDistro> {
-        let program = program.unwrap_or_else(|| "tectonic".to_string());
-        let first_line = test_program(&program, "--version")?;
-        app.indent(first_line);
-        Ok(Box::new(Self { program }))
-    }
-}
-
-impl TexDistro for Tectonic {
-    fn render_pdf(&self, app: &App, job: TexRenderJob) -> Result<()> {
-        let args = [
-            "-k",
-            "-r",
-            "0",
-            "-o",
-            job.out_dir.as_str(),
-            job.tex_file.as_str(),
-        ];
-
-        run_program(app, &self.program, &args, job.cwd())?;
-        job.sort_toc()?;
-        run_program(app, &self.program, &args, job.cwd())?;
-        job.move_pdf()?;
-
-        Ok(())
-    }
-}
-
-struct TexNoop;
-
-impl TexNoop {
-    fn new() -> DynTexDistro {
-        Box::new(Self)
-    }
-}
-
-impl TexDistro for TexNoop {
-    fn render_pdf(&self, _: &App, _: TexRenderJob) -> Result<()> {
         Ok(())
     }
 }

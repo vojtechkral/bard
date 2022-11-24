@@ -87,7 +87,6 @@ impl Render for RPdf {
             toc_sort_key: self.toc_sort_key.as_deref(),
         };
 
-        app.status("Running", "TeX...");
         TexTools::get().render_pdf(app, job)?;
 
         Ok(())
