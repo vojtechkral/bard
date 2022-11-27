@@ -1901,7 +1901,13 @@
     }
   ],
   "notation": "english",
-  "output": {},
+  "output": {
+    "format": "json",
+    "sans_font": false,
+    "toc_sort_key": null,
+    "dpi": 144.0,
+    "script": null
+  },
   "program": {
     "name": "bard",
     "version": "2.0.0-alpha1",

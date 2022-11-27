@@ -1,3 +1,5 @@
+use std::borrow::Cow;
+
 use semver::Version;
 use serde::Serialize;
 
@@ -5,7 +7,7 @@ use crate::app::App;
 use crate::book::{Song, SongRef};
 use crate::music::Notation;
 use crate::prelude::*;
-use crate::project::{BookSection, Format, Metadata, Output, Project};
+use crate::project::{Format, Metadata, Output, Project};
 use crate::{ProgramMeta, PROGRAM_META};
 
 #[macro_use]
@@ -32,22 +34,22 @@ pub static DEFAULT_TEMPLATES: &[&DefaultTemaplate] = &[
 
 #[derive(Serialize, Debug)]
 pub struct RenderContext<'a> {
-    book: &'a BookSection,
+    book: Cow<'a, Metadata>,
     songs: &'a [Song],
     songs_sorted: &'a [SongRef],
     notation: Notation,
-    output: &'a Metadata,
+    output: &'a Output,
     program: &'static ProgramMeta,
 }
 
 impl<'a> RenderContext<'a> {
     fn new(project: &'a Project, output: &'a Output) -> Self {
         RenderContext {
-            book: project.book_section(),
+            book: output.override_book_section(project.book_section()),
             songs: project.songs(),
             songs_sorted: project.songs_sorted(),
             notation: project.settings.notation,
-            output: &output.metadata,
+            output,
             program: &PROGRAM_META,
         }
     }

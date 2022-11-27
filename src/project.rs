@@ -6,7 +6,7 @@ use std::process::Stdio;
 use std::str;
 
 use serde::Deserialize;
-use serde::Serialize;
+use serde::Deserializer;
 
 use crate::app::App;
 use crate::book::{self, Book, Song, SongRef};
@@ -38,19 +38,17 @@ fn dir_output() -> PathBuf {
     "output".into()
 }
 
-fn default_chorus_label() -> String {
-    "Ch".into()
-}
-
 pub type Metadata = BTreeMap<Box<str>, Value>;
 
-#[derive(Serialize, Deserialize, Debug)]
-pub struct BookSection {
-    #[serde(default = "default_chorus_label")]
-    pub chorus_label: String,
-
-    #[serde(flatten)]
-    pub metadata: Metadata,
+fn meta_default_chorus_label<'de, D>(de: D) -> Result<Metadata, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    let mut meta = Metadata::deserialize(de)?;
+    if !meta.contains_key("chorus_label") {
+        meta.insert("chorus_label".into(), "Ch".into());
+    }
+    Ok(meta)
 }
 
 #[derive(Deserialize, Debug)]
@@ -69,7 +67,8 @@ pub struct Settings {
     tex: Option<TexConfig>,
 
     pub output: Vec<Output>,
-    pub book: BookSection,
+    #[serde(deserialize_with = "meta_default_chorus_label")]
+    pub book: Metadata,
 }
 
 impl Settings {
@@ -176,7 +175,7 @@ impl Project {
             .finalize()
     }
 
-    pub fn book_section(&self) -> &BookSection {
+    pub fn book_section(&self) -> &Metadata {
         &self.settings.book
     }
 

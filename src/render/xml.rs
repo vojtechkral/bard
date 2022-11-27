@@ -3,6 +3,7 @@
 //! This module defines `RXml` and how AST from `book` is serialized into XML.
 
 use std::fs::File;
+use std::io;
 use std::io::Write;
 
 use super::Render;
@@ -13,10 +14,11 @@ use crate::book::{
     VerseLabel,
 };
 use crate::prelude::*;
-use crate::project::BookSection;
 use crate::ProgramMeta;
 
 mod xml_support;
+use crate::project::Format;
+use crate::project::Output;
 use crate::xml_write;
 use xml_support::*;
 
@@ -163,14 +165,35 @@ xml_write!(struct ProgramMeta {
         .field(authors)?
 });
 
-xml_write!(struct BookSection {
-    chorus_label,
-    metadata,
+impl XmlWrite for Format {
+    fn write<W>(&self, mut writer: &mut Writer<W>) -> quick_xml::Result<()>
+    where
+        W: io::Write,
+    {
+        writer.write_text(self)
+    }
+}
+
+xml_write!(struct Output {
+    file,
+    template,
+    format,
+    toc_sort_key,
+    sans_font,
+    dpi,
+    script,
+    book_overrides,
 } -> |w| {
-    w.tag("book")
+    let _ = file;
+    let _ = template;
+    let _ = book_overrides;
+    w.tag("output")
         .content()?
-        .field(chorus_label)?
-        .value(metadata)?
+        .field_opt(format)?
+        .field(sans_font)?
+        .field_opt(toc_sort_key)?
+        .field(dpi)?
+        .field_opt(script)?
 });
 
 xml_write!(struct SongRef {
@@ -193,14 +216,17 @@ xml_write!(struct RenderContext<'a> {
     w.tag("songbook")
         .attr(notation)
         .content()?
-        .comment("this is the [book] section in bard.toml:")?
-        .value(book)?
-        .many(songs)?
-        .comment("these are references to <song> elements in alphabetically-sorted order:")?
+        .comment("The [book] section in bard.toml")?
+        .field(book)?
+        .comment("References to <song> elements in alphabetically-sorted order")?
         .value_wrap("songs-sorted", songs_sorted)?
-        .comment("this is the extra fields in the [[output]] section in bard.toml:")?
+        .comment("Fields in the [[output]] section in bard.toml")?
         .value_wrap("output", output)?
+        .comment("Software metadata")?
         .value(program)?
+        .comment("Song data")?
+        .field(songs)?
+
 });
 
 #[derive(Debug, Default)]

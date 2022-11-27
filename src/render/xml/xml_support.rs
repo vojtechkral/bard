@@ -5,10 +5,12 @@
 //!
 //! The code here was needed as no existing XML derive crate is complete enough to cover bard AST requirements.
 
+use std::borrow::Cow;
 use std::fmt::Display;
 use std::fs::File;
 use std::io;
 
+use camino::{Utf8Path, Utf8PathBuf};
 use quick_xml::events::attributes::Attribute;
 use quick_xml::events::{BytesEnd, BytesStart, BytesText, Event};
 use quick_xml::Result as XmlResult;
@@ -32,6 +34,39 @@ where
         W: io::Write,
     {
         XmlWrite::write(*self, writer)
+    }
+}
+
+impl<'a, T> XmlWrite for Cow<'a, T>
+where
+    T: XmlWrite + Clone + ?Sized,
+{
+    fn write<W>(&self, writer: &mut Writer<W>) -> XmlResult<()>
+    where
+        W: io::Write,
+    {
+        match self {
+            Cow::Borrowed(b) => b.write(writer),
+            Cow::Owned(o) => o.write(writer),
+        }
+    }
+}
+
+impl XmlWrite for bool {
+    fn write<W>(&self, mut writer: &mut Writer<W>) -> XmlResult<()>
+    where
+        W: io::Write,
+    {
+        writer.write_text(self)
+    }
+}
+
+impl XmlWrite for f64 {
+    fn write<W>(&self, mut writer: &mut Writer<W>) -> XmlResult<()>
+    where
+        W: io::Write,
+    {
+        writer.write_text(self)
     }
 }
 
@@ -86,6 +121,24 @@ where
         W: io::Write,
     {
         XmlWrite::write(&**self, writer)
+    }
+}
+
+impl XmlWrite for Utf8Path {
+    fn write<W>(&self, mut writer: &mut Writer<W>) -> XmlResult<()>
+    where
+        W: io::Write,
+    {
+        writer.write_text(&self.as_str())
+    }
+}
+
+impl XmlWrite for Utf8PathBuf {
+    fn write<W>(&self, mut writer: &mut Writer<W>) -> XmlResult<()>
+    where
+        W: io::Write,
+    {
+        writer.write_text(&self.as_str())
     }
 }
 
@@ -158,6 +211,16 @@ impl<T> Field<T> {
 
     pub fn unwrap(self) -> T {
         self.value
+    }
+}
+
+impl<'a, T> Field<&'a Option<T>> {
+    pub fn transpose(self) -> Option<Field<&'a T>> {
+        let value = self.value.as_ref()?;
+        Some(Field {
+            name: self.name,
+            value,
+        })
     }
 }
 
@@ -285,6 +348,17 @@ where
             .value(&field.value)?
             .finish()?;
         Ok(self)
+    }
+
+    pub fn field_opt<T>(self, field: Field<&Option<T>>) -> XmlResult<Self>
+    where
+        T: XmlWrite,
+    {
+        if let Some(field) = field.transpose() {
+            self.field(field)
+        } else {
+            Ok(self)
+        }
     }
 
     pub fn many<I, T>(self, container: T) -> XmlResult<Self>

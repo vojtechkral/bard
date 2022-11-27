@@ -189,7 +189,7 @@ impl DpiHelper {
     const INCH_MM: f64 = 25.4;
 
     fn new(output: &Output) -> Self {
-        Self { dpi: output.dpi() }
+        Self { dpi: output.dpi }
     }
 }
 

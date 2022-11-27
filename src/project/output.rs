@@ -1,12 +1,13 @@
-use serde::Deserialize;
-use strum::{EnumVariantNames, VariantNames};
-use toml::Value;
+use std::borrow::Cow;
+
+use serde::{Deserialize, Serialize};
+use strum::{Display, EnumVariantNames, VariantNames};
 
 use crate::prelude::*;
 use crate::project::Metadata;
 use crate::util::PathBufExt;
 
-#[derive(Deserialize, EnumVariantNames, PartialEq, Eq, Clone, Copy, Debug)]
+#[derive(Serialize, Deserialize, Display, EnumVariantNames, PartialEq, Eq, Clone, Copy, Debug)]
 #[serde(rename_all = "lowercase")]
 #[strum(serialize_all = "lowercase")]
 pub enum Format {
@@ -51,15 +52,27 @@ impl Format {
     }
 }
 
-#[derive(Deserialize, Debug)]
+fn default_dpi() -> f64 {
+    144.0
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+#[serde(deny_unknown_fields)]
 pub struct Output {
+    #[serde(skip_serializing)]
     pub file: PathBuf,
+    #[serde(skip_serializing)]
     pub template: Option<PathBuf>,
     pub format: Option<Format>,
+    #[serde(default)]
+    pub sans_font: bool,
+    pub toc_sort_key: Option<String>,
+    #[serde(default = "default_dpi")]
+    pub dpi: f64,
     pub script: Option<String>,
 
-    #[serde(flatten)]
-    pub metadata: Metadata,
+    #[serde(rename = "book", default, skip_serializing)]
+    pub book_overrides: Metadata,
 }
 
 impl Output {
@@ -102,16 +115,17 @@ impl Output {
         self.format() == Format::Pdf
     }
 
-    pub fn dpi(&self) -> f64 {
-        const DEFAULT: f64 = 144.0;
-
-        self.metadata
-            .get("dpi")
-            .and_then(|value| match value {
-                Value::Integer(i) => Some(*i as f64),
-                Value::Float(f) => Some(*f),
-                _ => None,
-            })
-            .unwrap_or(DEFAULT)
+    pub fn override_book_section<'a>(&self, project_book: &'a Metadata) -> Cow<'a, Metadata> {
+        if self.book_overrides.is_empty() {
+            Cow::Borrowed(project_book)
+        } else {
+            let mut meta = project_book.clone();
+            meta.extend(
+                self.book_overrides
+                    .iter()
+                    .map(|(k, v)| (k.clone(), v.clone())),
+            );
+            Cow::Owned(meta)
+        }
     }
 }

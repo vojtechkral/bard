@@ -53,12 +53,10 @@ impl RPdf {
         hb.hb.register_escape_fn(hb_latex_escape);
         hb.hb.register_helper("pre", Box::new(hb_pre));
 
-        let toc_sort_key = output
-            .metadata
-            .get("toc_sort_key")
-            .and_then(|val| val.as_str().map(|s| s.to_string()));
-
-        Ok(Self { hb, toc_sort_key })
+        Ok(Self {
+            hb,
+            toc_sort_key: output.toc_sort_key.clone(),
+        })
     }
 }
 

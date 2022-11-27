@@ -7,7 +7,6 @@ notation = "english"
 [[output]]
 file = "songbook.pdf"
 template = "pdf.hbs"
-font = "DejaVu Sans"
 
 [[output]]
 file = "songbook.html"
