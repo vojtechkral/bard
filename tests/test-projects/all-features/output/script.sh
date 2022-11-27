@@ -1,3 +1,3 @@
 #!/bin/zsh
 
-"$BARD" util cp "$OUTPUT" "copy-of-${OUTPUT_STEM}.html"
+cp "$OUTPUT" "copy-of-${OUTPUT_STEM}.html"

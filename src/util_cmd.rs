@@ -1,4 +1,4 @@
-use std::fs::{self, File};
+use std::fs::File;
 use std::io::{self, BufRead, BufReader, BufWriter, Write};
 use std::str::FromStr;
 
@@ -10,13 +10,6 @@ use crate::util::sort_lexical_by;
 
 #[derive(clap::Parser)]
 pub enum UtilCmd {
-    #[command(name = "cp", about = "Copy a file")]
-    Copy {
-        #[arg(help = "Source path")]
-        src: String,
-        #[arg(help = "Destination path")]
-        dest: String,
-    },
     #[command(about = "Alphabetically sorts lines of a file in-place")]
     SortLines {
         #[arg(
@@ -39,7 +32,6 @@ impl UtilCmd {
                 }
                 Ok(())
             }
-            Copy { src, dest } => copy(&src, &dest),
         }
     }
 }
@@ -101,9 +93,4 @@ pub fn sort_lines(regex: &str, path: impl Into<PathBuf>) -> Result<usize> {
     file.flush().with_context(write_err)?;
 
     Ok(count)
-}
-
-pub fn copy(src: &str, dest: &str) -> Result<()> {
-    fs::copy(src, dest)?;
-    Ok(())
 }
