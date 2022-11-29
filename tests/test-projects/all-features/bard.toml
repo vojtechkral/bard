@@ -1,3 +1,5 @@
+version = 2
+
 songs = [
     "md-all.md",
     "wildcard/*.md",

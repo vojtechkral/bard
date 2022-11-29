@@ -1,10 +1,11 @@
 //! `bard`, the Markdown-based songbook compiler.
 //!
-//! #### **This is not a public API.**
+//! > ### <span style="font-variant: small-caps">**This is not a public API.** </span>
 //! This library is an implementation detail of the `bard` CLI tool.
 //! These APIs are internal and may break without notice.
 
 #![allow(clippy::new_ret_no_self)]
+#![allow(clippy::comparison_chain)]
 
 use std::convert::TryFrom;
 use std::env;

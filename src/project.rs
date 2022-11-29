@@ -26,6 +26,8 @@ use input::{InputSet, SongsGlobs};
 mod output;
 pub use output::{Format, Output};
 
+type TomlMap = toml::map::Map<String, Value>;
+
 fn dir_songs() -> PathBuf {
     "songs".into()
 }
@@ -72,12 +74,32 @@ pub struct Settings {
 }
 
 impl Settings {
+    fn version() -> u32 {
+        let major = env!("CARGO_PKG_VERSION_MAJOR");
+        major.parse().unwrap()
+    }
+
     pub fn from_file(path: &Path, project_dir: &Path) -> Result<Settings> {
         let contents = fs::read_to_string(path)
             .with_context(|| format!("Failed to read project file '{}'", path))?;
 
-        let mut settings: Settings = toml::from_str(&contents)
-            .with_context(|| format!("Could not parse project file '{}'", path))?;
+        let parse_err = || format!("Could not parse project file '{}'", path);
+
+        // Check version
+        let settings: TomlMap = toml::from_str(&contents).with_context(parse_err)?;
+        let version = settings.get("version").unwrap_or(&Value::Integer(1));
+        let version = version
+            .as_integer()
+            .ok_or_else(|| anyhow!("`version` field expected to be an interger"))
+            .with_context(parse_err)?;
+        let self_ver = Self::version();
+        if version < self_ver as _ {
+            bail!("This seems to be a project created with bard 1.x - to build with bard {}.x please follow the migration guide: FIXME: link", self_ver);
+        } else if version > self_ver as _ {
+            bail!("This project was create with a newer version {}.x of bard, the project cannot be built by bard {}.x", version, self_ver);
+        }
+
+        let mut settings: Settings = toml::from_str(&contents).with_context(parse_err)?;
 
         settings.resolve(project_dir)?;
         Ok(settings)
