@@ -10,6 +10,8 @@ license = "Apache-2.0"
 keywords = ["music", "markdown"]
 edition = "2018"
 
+default-run = "bard"
+
 [lib]
 name = "bard"
 path = "src/lib.rs"
@@ -48,6 +50,15 @@ toml = "0.5"
 [dev-dependencies]
 assert-json-diff = "2.0.1"
 fs_extra = "1.2.0"
+
+[[bin]]
+# Small helper bin for testing TeX binary setting
+name = "tex-mock"
+path = "tests/util/tex-mock.rs"
+test = false
+doctest = false
+bench = false
+doc = false
 
 [package.metadata.docs.rs]
 features = ["docs_rs_pls_dont_build_these_docs_this_is_internal_stuff"]
