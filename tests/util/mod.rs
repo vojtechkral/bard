@@ -15,8 +15,6 @@ use fs_extra::dir::{self, CopyOptions};
 use bard::prelude::*;
 use bard::project::Project;
 
-const INT_DIR: &str = "int-test-workdirs";
-
 /// Project source root (where `Cargo.toml` is)
 pub const ROOT: ProjectPath = ProjectPath { path: &[] };
 
@@ -70,16 +68,9 @@ pub fn assert_first_line_contains<P: AsRef<Path>>(path: P, what: &str) {
     );
 }
 
-pub fn int_dir() -> PathBuf {
-    // Cargo suppor for tmpdir merged yay https://github.com/rust-lang/cargo/pull/9375
-    // but we should still support old cargos, better to use option_env:
-    option_env!("CARGO_TARGET_TMPDIR")
-        .map(PathBuf::from)
-        .unwrap_or(
-            [env!("CARGO_MANIFEST_DIR"), "target", INT_DIR]
-                .iter()
-                .collect(),
-        )
+pub fn tmp_dir() -> PathBuf {
+    // Cargo support for tmpdir merged yay https://github.com/rust-lang/cargo/pull/9375
+    PathBuf::from(env!("CARGO_TARGET_TMPDIR"))
 }
 
 #[derive(Debug)]
@@ -91,7 +82,7 @@ pub struct Builder {
 
 impl Builder {
     pub fn work_dir(name: &str, rm: bool) -> Result<PathBuf> {
-        let path = int_dir().join(name);
+        let path = tmp_dir().join(name);
 
         if rm {
             if path.exists() {

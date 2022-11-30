@@ -7,7 +7,7 @@ pub use util::*;
 
 #[test]
 fn sort_lines() {
-    let file = int_dir().join("test-file-sort-lines");
+    let file = tmp_dir().join("test-file-sort-lines");
     let content_to_sort = r#"xxx
 foo bar baz=b
 foo bar baz=a
@@ -47,7 +47,7 @@ xxx
 
 #[test]
 fn sort_lines_no_capture_group() {
-    let file = int_dir().join("test-file-sort-lines-no-capture-group");
+    let file = tmp_dir().join("test-file-sort-lines-no-capture-group");
     let content_to_sort = "foo bar baz=b\n";
 
     fs::write(&file, content_to_sort.as_bytes()).unwrap();
@@ -56,7 +56,7 @@ fn sort_lines_no_capture_group() {
 
 #[test]
 fn sort_lines_no_match() {
-    let file = int_dir().join("test-file-sort-lines-no-match");
+    let file = tmp_dir().join("test-file-sort-lines-no-match");
     let content_to_sort = r#"xxx
 yyy
 zzz
