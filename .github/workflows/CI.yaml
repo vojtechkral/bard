@@ -8,7 +8,7 @@ env:
   CARGO_RPM: 0.8.0
   CARGO_OUTDATED: 0.11.1
   CARGO_AUDIT: 0.17.0
-  HANDLEBARS_VER: 4.7.7
+  TECTONIC_VER: 0.12.0
 
 jobs:
   fmt:
@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout sources
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Setup Rust toolchain
         uses: actions-rs/toolchain@v1
         with:
@@ -36,7 +36,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout sources
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Setup Rust toolchain
         uses: actions-rs/toolchain@v1
         with:
@@ -45,12 +45,12 @@ jobs:
           override: true
       - name: Cache cargo tools
         id: cargo-tools-cache
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: cargo-tools
           key: lint-tools-${{ env.CARGO_OUTDATED }}-${{ env.CARGO_AUDIT }}
       - name: Cache dependencies
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: |
             ~/.cargo/.crates.toml
@@ -98,7 +98,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout sources
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Setup Rust toolchain
         uses: actions-rs/toolchain@v1
         with:
@@ -106,7 +106,7 @@ jobs:
           toolchain: stable
           override: true
       - name: Cache dependencies
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: |
             ~/.cargo/.crates.toml
@@ -116,9 +116,28 @@ jobs:
             ~/.cargo/registry/cache
             target
           key: test-${{ runner.os }}-${{ hashFiles('Cargo.lock') }}
+      - name: Cache tectonic
+        id: tectonic-cache
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/tectonic-bin
+            ~/.cache/Tectonic
+          key: test-tectonic-${{ runner.os }}-${{ env.TECTONIC_VER }}-${{ hashFiles('src/render/templates/pdf.hbs') }}
+      - name: Download tectonic binary if not cached
+        if: steps.tectonic-cache.outputs.cache-hit != 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mkdir -p ~/tectonic-bin
+          cd ~/tectonic-bin
+          gh release download --repo tectonic-typesetting/tectonic tectonic@${{ env.TECTONIC_VER }} -p tectonic-${{ env.TECTONIC_VER }}-x86_64-unknown-linux-musl.tar.gz
+          tar -xzf tectonic-${{ env.TECTONIC_VER }}-x86_64-unknown-linux-musl.tar.gz
+          ls -la ~/tectonic-bin
       - name: Test
         run: |
-          cargo test --locked
+          PATH="$PATH:$HOME/tectonic-bin" tectonic -V
+          PATH="$PATH:$HOME/tectonic-bin" BARD_TEX=tectonic cargo test --locked -- --nocapture
       - name: Install Node.js
         id: apt-packages
         uses: awalsh128/cache-apt-pkgs-action@v1
@@ -126,7 +145,7 @@ jobs:
           packages: nodejs
           version: 1.0
       - name: Cache npm dependencies
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: |
             ~/.npm
@@ -141,7 +160,7 @@ jobs:
     runs-on: windows-latest
     steps:
       - name: Checkout sources
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Setup Rust toolchain
         uses: actions-rs/toolchain@v1
         with:
@@ -149,7 +168,7 @@ jobs:
           toolchain: stable
           override: true
       - name: Cache dependencies
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: |
             ~/.cargo/.crates.toml
@@ -159,9 +178,29 @@ jobs:
             ~/.cargo/registry/cache
             target
           key: test-${{ runner.os }}-${{ hashFiles('Cargo.lock') }}
+      - name: Cache tectonic
+        id: tectonic-cache
+        uses: actions/cache@v3
+        with:
+          path: ~\AppData\Local\TectonicProject  # as per https://github.com/actions/cache/tree/ac25611caef967612169ab7e95533cf932c32270#windows-environment-variables
+          key: test-tectonic-${{ runner.os }}-${{ env.TECTONIC_VER }}-${{ hashFiles('src/render/templates/pdf.hbs') }}
+      - name: Download tectonic binary if not cached
+        if: steps.tectonic-cache.outputs.cache-hit != 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mkdir ~\AppData\Local\TectonicProject\bin
+          cd ~\AppData\Local\TectonicProject\bin
+          gh release download --repo tectonic-typesetting/tectonic tectonic@${{ env.TECTONIC_VER }} -p tectonic-${{ env.TECTONIC_VER }}-x86_64-pc-windows-msvc.zip
+          7z x tectonic-${{ env.TECTONIC_VER }}-x86_64-pc-windows-msvc.zip
+          rm tectonic-${{ env.TECTONIC_VER }}-x86_64-pc-windows-msvc.zip
+          dir ~\AppData\Local\TectonicProject\bin
       - name: Test
         run: |
-          cargo test --locked
+          $env:PATH += ";$env:USERPROFILE\AppData\Local\TectonicProject\bin"
+          Write-Output $env:PATH
+          tectonic -V
+          cargo test --locked -- --nocapture
 
   msrv:
     name: MSRV check
@@ -169,7 +208,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout sources
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Setup Rust toolchain
         uses: actions-rs/toolchain@v1
         with:
@@ -177,7 +216,7 @@ jobs:
           toolchain: ${{ env.MSRV }}
           override: true
       - name: Cache dependencies
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: |
             ~/.cargo/.crates.toml
@@ -203,7 +242,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout sources
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Setup Rust toolchain
         uses: actions-rs/toolchain@v1
         with:
@@ -217,7 +256,7 @@ jobs:
           packages: musl-tools # provides musl-gcc
           version: 1.0
       - name: Cache dependencies
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: |
             ~/.cargo/.crates.toml
@@ -229,7 +268,7 @@ jobs:
           key: build-${{ runner.os }}-${{ hashFiles('Cargo.lock') }}
       - name: Cache cargo tools
         id: cargo-tools-cache
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: cargo-tools
           key: build-tools-${{ env.CARGO_DEB }}-${{ env.CARGO_RPM }}
@@ -271,7 +310,7 @@ jobs:
     runs-on: windows-latest
     steps:
       - name: Checkout sources
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Setup Rust toolchain
         uses: actions-rs/toolchain@v1
         with:
@@ -279,7 +318,7 @@ jobs:
           toolchain: stable
           override: true
       - name: Cache dependencies
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: |
             ~/.cargo/.crates.toml
@@ -306,7 +345,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout sources
-        uses: actions/checkout@v2 # need the Dockerfile
+        uses: actions/checkout@v3 # need the Dockerfile
       - uses: actions/download-artifact@v3
         with:
           name: bard-linux
@@ -338,7 +377,7 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
 
   daft-release:
-    name: Draf Release
+    name: Draft a Release
     if: startsWith(github.ref, 'refs/tags/')
     needs:
       - build-linux
