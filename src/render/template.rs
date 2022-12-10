@@ -5,7 +5,6 @@ use std::io;
 use std::str::FromStr;
 use std::sync::{Arc, Mutex};
 
-use camino::{Utf8Path as Path, Utf8PathBuf as PathBuf};
 use handlebars::{self as hb, handlebars_helper, Handlebars, HelperDef, JsonValue, RenderError};
 use image::image_dimensions;
 use once_cell::sync::Lazy;
@@ -16,7 +15,6 @@ use serde_json::Number;
 use super::RenderContext;
 use crate::prelude::*;
 use crate::project::{Output, Project};
-use crate::util::PathBufExt;
 
 type RegexCache = HashMap<String, Result<Regex, ReError>>;
 
@@ -114,7 +112,7 @@ handlebars_helper!(hb_matches: |value: str, regex: str| {
     if !cache.contains_key(regex) {
         let res = Regex::new(regex);
         if res.is_err() {
-            eprintln!("Warning: `matches` helper: Invalid regular expression: `{}`", regex);
+            eprintln!("Warning: 'matches' helper: Invalid regular expression: '{}'", regex);
         }
         cache.insert(regex.into(), res);
     }
@@ -174,7 +172,7 @@ impl HelperDef for ImgHelper {
 
         let pathbuf = Path::new(&path).to_owned().resolved(&self.out_dir);
         let (w, h) = image_dimensions(&pathbuf)
-            .map_err(|e| hb_err!(e, "{}: Couldn't read image at `{}`", self.name, pathbuf))?;
+            .map_err(|e| hb_err!(e, "{}: Couldn't read image at {:?}", self.name, pathbuf))?;
 
         let res = [w, h][self.result_i];
         Ok(hb::ScopedJson::Derived(JsonValue::from(res)))
@@ -248,7 +246,7 @@ impl HelperDef for VersionCheckHelper {
             })
             .and_then(|s| {
                 Version::parse(s)
-                    .map_err(|e| hb_err!(e, "version_check: Could not parse version `{}`", s))
+                    .map_err(|e| hb_err!(e, "version_check: Could not parse version '{}'", s))
             })?;
 
         *self.version.lock().unwrap() = Some(version);
@@ -392,19 +390,19 @@ impl HbRender {
         let tpl_name = output
             .template
             .as_ref()
-            .map(|t| t.to_string())
+            .map(|t| t.to_string_lossy().to_string())
             .unwrap_or_else(|| default.filename.to_string());
 
         if let Some(template) = output.template.as_ref() {
             if template.exists() {
                 hb.register_template_file(&tpl_name, template)
-                    .with_context(|| format!("Error in template file `{}`", template))?;
+                    .with_context(|| format!("Error in template file {:?}", template))?;
             } else {
                 let parent = template.parent().unwrap(); // The temaplate should've been resolved as absolute in Project
                 fs::create_dir_all(parent)
                     .and_then(|_| fs::write(template, default.content.as_bytes()))
                     .with_context(|| {
-                        format!("Error writing default template to file: `{}`", template)
+                        format!("Error writing default template to file: {:?}", template)
                     })?;
 
                 hb.register_template_string(&tpl_name, default.content)
@@ -431,7 +429,7 @@ impl HbRender {
         let rendered = self.hb.render(&self.tpl_name, &context)?;
 
         fs::write(output, rendered.as_bytes())
-            .with_context(|| format!("Error writing output file: `{}`", output))?;
+            .with_context(|| format!("Error writing output file: {:?}", output))?;
 
         Ok(())
     }

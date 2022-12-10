@@ -10,7 +10,6 @@ use std::fmt::Display;
 use std::fs::File;
 use std::io;
 
-use camino::{Utf8Path, Utf8PathBuf};
 use quick_xml::events::attributes::Attribute;
 use quick_xml::events::{BytesEnd, BytesStart, BytesText, Event};
 use quick_xml::Result as XmlResult;
@@ -121,24 +120,6 @@ where
         W: io::Write,
     {
         XmlWrite::write(&**self, writer)
-    }
-}
-
-impl XmlWrite for Utf8Path {
-    fn write<W>(&self, mut writer: &mut Writer<W>) -> XmlResult<()>
-    where
-        W: io::Write,
-    {
-        writer.write_text(&self.as_str())
-    }
-}
-
-impl XmlWrite for Utf8PathBuf {
-    fn write<W>(&self, mut writer: &mut Writer<W>) -> XmlResult<()>
-    where
-        W: io::Write,
-    {
-        writer.write_text(&self.as_str())
     }
 }
 

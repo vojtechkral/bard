@@ -51,8 +51,8 @@ fn hbs_js_parse() {
             "--yes",
             handlebars.as_str(),
             "-f",
-            out.as_str(),
-            path.as_str(),
+            out.to_str().unwrap(),
+            path.to_str().unwrap(),
         ]);
 
         let out_size = fs::metadata(&out).unwrap().len();

@@ -43,7 +43,7 @@ pub struct InputSet<'a> {
 impl<'a> InputSet<'a> {
     pub fn new(dir_songs: &'a Path) -> Result<Self> {
         let all_files = read_dir_all(dir_songs)
-            .with_context(|| format!("Could not read directory `{}`", dir_songs))?;
+            .with_context(|| format!("Could not read directory {:?}", dir_songs))?;
 
         Ok(Self {
             dir_songs,
@@ -59,7 +59,7 @@ impl<'a> InputSet<'a> {
     fn apply_glob_inner<'s>(&'s mut self, glob: &str) -> Result<&'s mut [PathBuf]> {
         let orig_len = self.match_set.len();
         let glob = Glob::new(glob)
-            .with_context(|| format!("Invalid glob pattern: `{}`", glob))?
+            .with_context(|| format!("Invalid glob pattern: '{}'", glob))?
             .compile_matcher();
         let dir_songs = self.dir_songs;
         let match_set = &mut self.match_set;
@@ -82,7 +82,7 @@ impl<'a> InputSet<'a> {
             let added = self.apply_glob_inner(glob)?;
             if added.is_empty() {
                 bail!(
-                    "No files matched pattern `{}` in diectory `{}`",
+                    "No files matched pattern '{}' in diectory {:?}",
                     glob,
                     self.dir_songs,
                 );
@@ -96,7 +96,7 @@ impl<'a> InputSet<'a> {
             // This is a plain filename
             let path = self.dir_songs.join(glob);
             if !path.exists() {
-                bail!("File not found: `{}`", path);
+                bail!("File not found: {:?}", path);
             }
 
             self.match_set.push(path);

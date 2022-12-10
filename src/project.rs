@@ -5,8 +5,8 @@ use std::process::Command;
 use std::process::Stdio;
 use std::str;
 
-use serde::Deserialize;
-use serde::Deserializer;
+use serde::de::Error as _;
+use serde::{Deserialize, Deserializer};
 
 use crate::app::App;
 use crate::book::{self, Book, Song, SongRef};
@@ -17,7 +17,6 @@ use crate::render::tex_tools::TexConfig;
 use crate::render::tex_tools::TexTools;
 use crate::render::Renderer;
 use crate::util::ExitStatusExt;
-use crate::util::PathBufExt;
 
 pub use toml::Value;
 
@@ -81,16 +80,16 @@ impl Settings {
 
     pub fn from_file(path: &Path, project_dir: &Path) -> Result<Settings> {
         let contents = fs::read_to_string(path)
-            .with_context(|| format!("Failed to read project file '{}'", path))?;
+            .with_context(|| format!("Failed to read project file {:?}", path))?;
 
-        let parse_err = || format!("Could not parse project file '{}'", path);
+        let parse_err = || format!("Could not parse project file {:?}", path);
 
         // Check version
         let settings: TomlMap = toml::from_str(&contents).with_context(parse_err)?;
         let version = settings.get("version").unwrap_or(&Value::Integer(1));
         let version = version
             .as_integer()
-            .ok_or_else(|| anyhow!("`version` field expected to be an interger"))
+            .ok_or_else(|| anyhow!("'version' field expected to be an interger"))
             .with_context(parse_err)?;
         let self_ver = Self::version();
         if version < self_ver as _ {
@@ -142,12 +141,12 @@ impl Project {
         let cwd = cwd.as_ref();
         let (project_file, project_dir) = Self::find_in_parents(cwd).ok_or_else(|| {
             anyhow!(
-                "Could not find bard.toml file in current or parent directories\nCurrent directory: '{}'",
-                cwd
+                "Could not find bard.toml file in current or parent directories\nCurrent directory: {:?}",
+                cwd,
             )
         })?;
 
-        app.status("Loading", &format!("project at {}", project_dir));
+        app.status("Loading", &format!("project at {:?}", project_dir));
 
         let settings = Settings::from_file(&project_file, &project_dir)?;
         let book = Book::new(&settings);
@@ -254,7 +253,7 @@ impl Project {
             app.status("Rendering", output.output_filename());
             let context = || {
                 format!(
-                    "Could not render output file '{}'",
+                    "Could not render output file {:?}",
                     output.file.file_name().unwrap()
                 )
             };
@@ -266,7 +265,7 @@ impl Project {
                 if app.post_process() {
                     self.run_script(app, output).with_context(|| {
                         format!(
-                            "Could not run script for output file '{}'",
+                            "Could not run script for output file {:?}",
                             output.file.file_name().unwrap()
                         )
                     })
@@ -295,7 +294,7 @@ impl Project {
     }
 
     pub fn watch_paths(&self) -> impl Iterator<Item = &Path> {
-        let in_iter = self.input_paths.iter().map(PathBuf::as_path);
+        let in_iter = self.input_paths.iter().map(PathBuf::as_ref);
 
         let out_iter = self
             .settings

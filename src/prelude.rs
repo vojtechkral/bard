@@ -1,4 +1,7 @@
 //! Crate-wide definitions.
 
+pub use std::path::{Path, PathBuf};
+
 pub use anyhow::{anyhow, bail, Context as _, Error, Result};
-pub use camino::{Utf8Path as Path, Utf8PathBuf as PathBuf};
+
+pub use crate::util::{PathBufExt as _, PathExt as _};

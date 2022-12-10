@@ -31,20 +31,20 @@ impl Format {
             .extension()
             .ok_or_else(|| {
                 anyhow!(
-                    "Could not detect format for output file '{}' - no extension.\n{}",
+                    "Could not detect format for output file {:?} - no extension.\n{}",
                     path,
                     format_hint(),
                 )
             })?
             .to_ascii_lowercase();
 
-        Ok(match ext.as_str() {
+        Ok(match ext.to_str().unwrap_or("") {
             "pdf" => Self::Pdf,
             "html" => Self::Html,
             "json" => Self::Json,
             "xml" => Self::Xml,
             _ => bail!(
-                "Could not detect format based file on extension for: '{}'\n{}",
+                "Could not detect format based file on extension for: {:?}\n{}",
                 path,
                 format_hint(),
             ),
@@ -93,8 +93,11 @@ impl Output {
         self.format.unwrap()
     }
 
-    pub fn output_filename(&self) -> &str {
-        self.file.file_name().expect("OutputSpec: Invalid filename")
+    pub fn output_filename(&self) -> Cow<str> {
+        self.file
+            .file_name()
+            .expect("OutputSpec: Invalid filename")
+            .to_string_lossy()
     }
 
     pub fn template_path(&self) -> Option<&Path> {
@@ -102,13 +105,6 @@ impl Output {
             Format::Pdf | Format::Html | Format::Hovorka => self.template.as_deref(),
             Format::Json | Format::Xml => None,
         }
-    }
-
-    pub fn template_filename(&self) -> String {
-        self.template
-            .as_ref()
-            .map(|p| p.to_string())
-            .unwrap_or_else(|| String::from("<builtin>"))
     }
 
     pub fn is_pdf(&self) -> bool {

@@ -1,3 +1,5 @@
+use std::borrow::Cow;
+use std::ffi::OsStr;
 use std::io::{BufRead, Write};
 use std::ops::Deref;
 use std::process::{Command, Stdio};
@@ -90,18 +92,24 @@ impl TexConfig {
         Ok(())
     }
 
-    fn render_args<'j, 's: 'j>(&'s self, job: &'j TexRenderJob) -> Vec<&'j str> {
+    fn render_args<'j, 's: 'j>(&'s self, job: &'j TexRenderJob) -> Vec<&'j OsStr> {
         let mut args = match self.distro {
             TexDistro::TexLive => vec![
-                "-interaction=nonstopmode",
-                "-output-directory",
-                job.out_dir.as_str(),
+                "-interaction=nonstopmode".as_ref(),
+                "-output-directory".as_ref(),
+                job.out_dir.as_os_str(),
             ],
-            TexDistro::Tectonic => vec!["-k", "-r", "0", "-o", job.out_dir.as_str()],
+            TexDistro::Tectonic => vec![
+                "-k".as_ref(),
+                "-r".as_ref(),
+                "0".as_ref(),
+                "-o".as_ref(),
+                job.out_dir.as_os_str(),
+            ],
             TexDistro::None => unreachable!(),
         };
 
-        args.extend(["--", job.tex_file.as_str()]);
+        args.extend(["--".as_ref(), job.tex_file.as_os_str()]);
         args
     }
 }
@@ -179,7 +187,7 @@ fn test_program(program: &str, arg1: &str) -> Result<String> {
     Ok(first_line)
 }
 
-fn run_program(app: &App, program: &str, args: &[&str], cwd: &Path) -> Result<()> {
+fn run_program(app: &App, program: &str, args: &[&OsStr], cwd: &Path) -> Result<()> {
     let mut child = Command::new(program)
         .args(args)
         .current_dir(cwd)
@@ -199,14 +207,13 @@ fn run_program(app: &App, program: &str, args: &[&str], cwd: &Path) -> Result<()
         .with_context(|| format!("Error running program '{}'", program))?;
 
     if !status.success() && app.verbosity() == 1 {
-        let cmdline =
-            iter::once(&program)
-                .chain(args.iter())
-                .fold(String::new(), |mut cmdline, arg| {
-                    cmdline.push_str(arg);
-                    cmdline.push(' ');
-                    cmdline
-                });
+        let cmdline = iter::once(Cow::Borrowed(program))
+            .chain(args.iter().map(|arg| arg.to_string_lossy()))
+            .fold(String::new(), |mut cmdline, arg| {
+                cmdline.push_str(&arg);
+                cmdline.push(' ');
+                cmdline
+            });
         eprintln!("{}", cmdline);
 
         let stderr = io::stderr();
@@ -250,11 +257,11 @@ impl<'a> TexRenderJob<'a> {
         };
 
         let tex_stem = self.tex_file.file_stem().unwrap();
-        let toc = self.out_dir.join(format!("{}.toc", tex_stem));
+        let toc = self.out_dir.join_stem(tex_stem, ".toc");
 
         if toc.exists() {
             util_cmd::sort_lines(key, &toc)
-                .with_context(|| format!("Could not sort TOC file '{}'", toc))?;
+                .with_context(|| format!("Could not sort TOC file {:?}", toc))?;
         }
 
         Ok(())
@@ -262,9 +269,9 @@ impl<'a> TexRenderJob<'a> {
 
     fn move_pdf(&self) -> Result<()> {
         let tex_stem = self.tex_file.file_stem().unwrap();
-        let out_pdf = self.out_dir.join(format!("{}.pdf", tex_stem));
+        let out_pdf = self.out_dir.join_stem(tex_stem, ".pdf");
         fs::rename(&out_pdf, self.pdf_path)
-            .with_context(|| format!("Could not move to output file '{}'", self.pdf_path))
+            .with_context(|| format!("Could not move to output file {:?}", self.pdf_path))
     }
 }
 

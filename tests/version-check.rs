@@ -24,7 +24,7 @@ fn get_output_versions(project: &Project) -> Vec<(Version, PathBuf)> {
 #[track_caller]
 fn assert_project_versions(project: &Project) {
     for (ver, output) in get_output_versions(project) {
-        assert_eq!(&ver, book::version::current(), "{}", output);
+        assert_eq!(&ver, book::version::current(), "{:?}", output);
     }
 }
 
@@ -34,7 +34,7 @@ fn version_check_load() {
 
     let expected = Version::new(1, 2, 3);
     for (ver, output) in get_output_versions(&build.project) {
-        assert_eq!(ver, expected, "{}", output);
+        assert_eq!(ver, expected, "{:?}", output);
     }
 }
 

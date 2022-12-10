@@ -351,7 +351,7 @@ impl Book {
         let mut parser = Parser::new(input, path, config);
         parser
             .parse(&mut self.songs)
-            .with_context(|| format!("Could not parse file `{}`", path))?;
+            .with_context(|| format!("Could not parse file {:?}", path))?;
 
         Ok(())
     }

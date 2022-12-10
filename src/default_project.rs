@@ -65,12 +65,12 @@ impl NodeResolved {
         };
         if let Some(dir_path) = dir_path {
             fs::create_dir_all(dir_path)
-                .with_context(|| format!("Could not create directory `{}`", dir_path))?;
+                .with_context(|| format!("Could not create directory {:?}", dir_path))?;
         }
 
         if let Self::File { path, content } = self {
             fs::write(path, content)
-                .with_context(|| format!("Could not initialize file `{}`", path))?;
+                .with_context(|| format!("Could not initialize file {:?}", path))?;
         }
 
         Ok(())
@@ -130,7 +130,7 @@ impl DefaultProjectResolved {
     pub fn create(self) -> Result<()> {
         let existing = self.nodes.iter().find(|n| n.path().exists());
         if let Some(existing) = existing {
-            bail!("File already exists: '{}'", existing.path());
+            bail!("File already exists: {:?}", existing.path());
         }
 
         for node in &self.nodes[..] {

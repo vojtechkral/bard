@@ -1,5 +1,4 @@
 use std::cell::RefCell;
-use std::convert::TryFrom;
 use std::fmt::Display;
 use std::io::{self, Write};
 use std::{env, fmt};
@@ -92,10 +91,7 @@ impl App {
             verbosity: opts.stdio.verbosity(),
             use_color,
             test_mode: false,
-            bard_exe: env::current_exe()
-                .map_err(Error::from)
-                .and_then(|p| PathBuf::try_from(p).map_err(Error::from))
-                .expect("Could not get path to bard self binary"),
+            bard_exe: env::current_exe().expect("Could not get path to bard self binary"),
         }
     }
 
@@ -233,11 +229,11 @@ impl App {
         }
         while let Some(line) = ps_lines
             .read_line()
-            .with_context(|| format!("Error reading output of program `{}`", program))?
+            .with_context(|| format!("Error reading output of program '{}'", program))?
         {
             if self.verbosity == 1 {
                 self.rewind_line();
-                eprint!("{}: ", prog_name);
+                eprint!("{}: ", prog_name.to_string_lossy());
             }
 
             if !self.test_mode {

@@ -49,7 +49,7 @@ fn line_read(mut lines: Vec<Line>, line: io::Result<String>, regex: &Regex) -> R
             .map(|m| Some(m.as_str().to_owned()))
             .with_context(|| {
                 format!(
-                    "No capture group in regex: `{}`, the sort key has to be in a capture group",
+                    "No capture group in regex: '{}', the sort key has to be in a capture group",
                     regex
                 )
             })?
@@ -63,16 +63,16 @@ fn line_read(mut lines: Vec<Line>, line: io::Result<String>, regex: &Regex) -> R
 }
 
 pub fn sort_lines(regex: &str, path: impl Into<PathBuf>) -> Result<usize> {
-    let regex = Regex::from_str(regex).with_context(|| format!("Invalid regex: `{}`", regex))?;
+    let regex = Regex::from_str(regex).with_context(|| format!("Invalid regex: '{}'", regex))?;
 
     let path = path.into();
-    let file = File::open(&path).with_context(|| format!("Could not open file `{}`", path))?;
+    let file = File::open(&path).with_context(|| format!("Could not open file {:?}", path))?;
     let reader = BufReader::new(file);
 
     let mut lines = reader
         .lines()
         .try_fold(Vec::new(), |lines, line| line_read(lines, line, &regex))
-        .with_context(|| format!("Could not sort file `{}`", path))?;
+        .with_context(|| format!("Could not sort file {:?}", path))?;
 
     let count = lines
         .as_mut_slice()
@@ -83,7 +83,7 @@ pub fn sort_lines(regex: &str, path: impl Into<PathBuf>) -> Result<usize> {
         })
         .sum();
 
-    let write_err = || format!("Could not write file `{}`", path);
+    let write_err = || format!("Could not write file {:?}", path);
     let mut file = File::create(&path)
         .map(BufWriter::new)
         .with_context(write_err)?;

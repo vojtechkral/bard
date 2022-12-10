@@ -11,10 +11,13 @@ fn project_script() {
 
     let out = fs::read_to_string(out_dir.join("out.toml")).unwrap();
     let out: HashMap<String, String> = toml::from_str(&out).unwrap();
-    assert_eq!(out["BARD"], build.app.bard_exe());
-    assert_eq!(out["OUTPUT"], out_dir.join("out.html"));
-    assert_eq!(out["PROJECT_DIR"], build.project.project_dir);
-    assert_eq!(out["OUTPUT_DIR"], out_dir);
+    assert_eq!(out["BARD"], build.app.bard_exe().to_str().unwrap());
+    assert_eq!(out["OUTPUT"], out_dir.join("out.html").to_str().unwrap());
+    assert_eq!(
+        out["PROJECT_DIR"],
+        build.project.project_dir.to_str().unwrap()
+    );
+    assert_eq!(out["OUTPUT_DIR"], out_dir.to_str().unwrap());
 
     // Build with post-processing disabled
     let build = Builder::build_with_name(TEST_PROJECTS / "script", "script-no-ps").unwrap();

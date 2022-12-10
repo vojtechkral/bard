@@ -42,16 +42,14 @@ fn tex_tools_tectonic_via_env() {
 #[test]
 fn tex_tools_env_full_path() {
     let tex_mock_exe = ExeBuilder::tex_mock_exe();
+    let tex_mock_exe = tex_mock_exe.to_str().unwrap();
     let builder = ExeBuilder::init("tex-tools-env-full-path")
         .unwrap()
         .with_env("BARD_TEX", format!("texlive:{}", tex_mock_exe))
         .run(&["make", "-kv"])
         .unwrap();
 
-    assert_first_line_contains(
-        builder.out_dir().join("songbook.pdf"),
-        tex_mock_exe.as_str(),
-    );
+    assert_first_line_contains(builder.out_dir().join("songbook.pdf"), tex_mock_exe);
 }
 
 #[test]

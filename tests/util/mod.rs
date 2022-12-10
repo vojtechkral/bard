@@ -42,28 +42,30 @@ impl<'rhs> ops::Div<&'rhs str> for ProjectPath {
 }
 
 #[track_caller]
-pub fn assert_file_contains<P: AsRef<Path>>(path: P, what: &str) {
-    let content = fs::read_to_string(path.as_ref()).unwrap();
+pub fn assert_file_contains(path: impl AsRef<Path>, what: &str) {
+    let path = path.as_ref();
+    let content = fs::read_to_string(path).unwrap();
     let hit = content.find(what);
     assert!(
         hit.is_some(),
-        "String `{}` not found in file: `{}`\nFile contents:\n{}",
+        "String '{}' not found in file: {:?}\nFile contents:\n{}",
         what,
-        path.as_ref(),
+        path,
         content
     );
 }
 
 #[track_caller]
-pub fn assert_first_line_contains<P: AsRef<Path>>(path: P, what: &str) {
-    let file = BufReader::new(File::open(path.as_ref()).unwrap());
+pub fn assert_first_line_contains(path: impl AsRef<Path>, what: &str) {
+    let path = path.as_ref();
+    let file = BufReader::new(File::open(path).unwrap());
     let line = file.lines().next().unwrap().unwrap();
     let hit = line.find(what);
     assert!(
         hit.is_some(),
-        "String `{}` not found in first line of file: `{}`\nFirst line: {}",
+        "String '{}' not found in first line of file: {:?}\nFirst line: {}",
         what,
-        path.as_ref(),
+        path,
         line
     );
 }
@@ -87,7 +89,7 @@ impl Builder {
         if rm {
             if path.exists() {
                 fs::remove_dir_all(&path).with_context(|| {
-                    format!("Couldn't remove previous test run data: `{}`", path)
+                    format!("Couldn't remove previous test run data: {:?}", path)
                 })?;
             }
         }
@@ -100,12 +102,12 @@ impl Builder {
         let dest = dest.as_ref();
 
         fs::create_dir_all(dest)
-            .with_context(|| format!("Couldn't create directory: `{}`", dest))?;
+            .with_context(|| format!("Couldn't create directory: {:?}", dest))?;
 
         let mut opts = CopyOptions::new();
         opts.content_only = true;
         dir::copy(src, dest, &opts)
-            .with_context(|| format!("Couldn't copy directory `{}` to `{}`", src, dest))?;
+            .with_context(|| format!("Couldn't copy directory {:?} to {:?}", src, dest))?;
         Ok(())
     }
 
@@ -138,7 +140,11 @@ impl Builder {
     }
 
     pub fn build(src_path: PathBuf) -> Result<Self> {
-        Self::build_inner(&src_path, src_path.file_name().unwrap(), false)
+        Self::build_inner(
+            &src_path,
+            src_path.file_name().unwrap().to_str().unwrap(),
+            false,
+        )
     }
 
     pub fn build_with_name(src_path: PathBuf, name: &str) -> Result<Self> {
@@ -152,7 +158,7 @@ impl Builder {
     pub fn init(app: &App, name: &str) -> Result<PathBuf> {
         let work_dir = Self::work_dir(name.as_ref(), true)?;
         fs::create_dir_all(&work_dir)
-            .with_context(|| format!("Could create directory: `{}`", work_dir))?;
+            .with_context(|| format!("Could create directory: {:?}", work_dir))?;
         bard::bard_init_at(&app, &work_dir).context("Failed to initialize")?;
         Ok(work_dir)
     }

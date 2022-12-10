@@ -7,7 +7,6 @@
 #![allow(clippy::new_ret_no_self)]
 #![allow(clippy::comparison_chain)]
 
-use std::convert::TryFrom;
 use std::env;
 use std::ffi::OsString;
 
@@ -90,16 +89,13 @@ impl Cli {
 }
 
 fn get_cwd() -> Result<PathBuf> {
-    env::current_dir()
-        .map_err(Error::from)
-        .and_then(|p| PathBuf::try_from(p).map_err(Error::from))
-        .context("Could not read current directory")
+    env::current_dir().context("Could not read current directory")
 }
 
 pub fn bard_init_at<P: AsRef<Path>>(app: &App, path: P) -> Result<()> {
     let path = path.as_ref();
 
-    app.status("Initialize", &format!("new project at {}", path));
+    app.status("Initialize", &format!("new project at {:?}", path));
     Project::init(path).context("Could not initialize a new project")?;
     app.success("Done!");
     Ok(())
@@ -135,7 +131,7 @@ pub fn bard_watch_at<P: AsRef<Path>>(app: &App, path: P, mut watch: Watch) -> Re
         app.status("Watching", "for changes in the project ...");
         match watch.watch(&project)? {
             WatchEvent::Change(paths) if paths.len() == 1 => {
-                app.indent(format!("Change detected at '{}' ...", paths[0].display()))
+                app.indent(format!("Change detected at {:?} ...", paths[0]))
             }
             WatchEvent::Change(..) => app.indent("Change detected ..."),
             WatchEvent::Cancel => break,

@@ -90,14 +90,14 @@ impl Watch {
     fn watch_files(&mut self, project: &Project) -> Result<()> {
         project.watch_paths().try_for_each(|path| {
             self.watcher
-                .watch(path.as_std_path(), RecursiveMode::NonRecursive)
+                .watch(path, RecursiveMode::NonRecursive)
                 .context("Error watching files")
         })
     }
 
     fn unwatch_files(&mut self, project: &Project) {
         for path in project.watch_paths() {
-            let _ = self.watcher.unwatch(path.as_std_path());
+            let _ = self.watcher.unwatch(path);
         }
     }
 }

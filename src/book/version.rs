@@ -56,7 +56,7 @@ pub fn compat_check(app: &App, tpl_path: &Path, tpl_version: &Version) {
     if current < tpl_version {
         // Template's AST is newer than this bard's AST
         app.warning(format!(
-            "The version of template `{}` is {}, which is newer than what this bard uses ({}).
+            "The version of template {:?} is {}, which is newer than what this bard uses ({}).
 Maybe this project was created with a newer bard version.
 This may cause errors while rendering...",
             tpl_path, tpl_version, current,
@@ -64,7 +64,7 @@ This may cause errors while rendering...",
     } else if current.major > tpl_version.major {
         // Template's AST major version is older than this bard's AST, incompatibly
         app.warning(
-            format!("The version of template `{}` is {}, which is from an older generation than what this bard uses ({}).
+            format!("The version of template {:?} is {}, which is from an older generation than what this bard uses ({}).
 This may cause errors while rendering. It may be needed to convert the template to the newer format.",
             tpl_path, tpl_version, current,
         ));
@@ -74,7 +74,7 @@ This may cause errors while rendering. It may be needed to convert the template 
         app.status(
             "Notice",
             format!(
-                "The version of template `{}` is {}. This version of bard supports {}.
+                "The version of template {:?} is {}. This version of bard supports {}.
 This is not a problem, but the new version may offer improvements.",
                 tpl_path, tpl_version, current,
             ),

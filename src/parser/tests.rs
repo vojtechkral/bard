@@ -10,7 +10,8 @@ use super::*;
 
 fn try_parse(input: &str, disable_xpose: bool) -> Result<Vec<Song>> {
     let mut songs = vec![];
-    let mut parser = Parser::new(input, "<test>".into(), ParserConfig::default());
+    let src_file = PathBuf::from("<test>");
+    let mut parser = Parser::new(input, &src_file, ParserConfig::default());
     parser.set_xp_disabled(disable_xpose);
     parser.parse(&mut songs)?;
     Ok(songs)
@@ -581,7 +582,7 @@ Yippie yea `X`yay!
 "#;
 
     let err = try_parse(input, false).unwrap_err();
-    assert_eq!(err.file, "<test>");
+    assert_eq!(err.file.as_os_str(), "<test>");
     assert_eq!(err.line, 7);
     assert_eq!(err.kind, ErrorKind::Transposition { chord: "X".into() });
 }
@@ -827,13 +828,13 @@ fn control_chars_error() {
 ";
 
     let err = try_parse(input, false).unwrap_err();
-    assert_eq!(err.file, "<test>");
+    assert_eq!(err.file.as_os_str(), "<test>");
     assert_eq!(err.line, 4);
     assert_eq!(err.kind, ErrorKind::ControlChar { char: 0 });
 
     let input = "\u{009f}";
     let err = try_parse(input, false).unwrap_err();
-    assert_eq!(err.file, "<test>");
+    assert_eq!(err.file.as_os_str(), "<test>");
     assert_eq!(err.line, 1);
     assert_eq!(err.kind, ErrorKind::ControlChar { char: 159 });
 }

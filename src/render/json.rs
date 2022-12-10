@@ -18,6 +18,6 @@ impl Render for RJson {
         File::create(output)
             .map_err(Error::from)
             .and_then(|mut f| serde_json::to_writer_pretty(&mut f, &context).map_err(Error::from))
-            .with_context(|| format!("Error writing output file: `{}`", output))
+            .with_context(|| format!("Error writing output file: {:?}", output))
     }
 }

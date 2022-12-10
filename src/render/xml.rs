@@ -250,6 +250,6 @@ impl Render for RXml {
                 f.write_all(b"\n")?;
                 Ok(())
             })
-            .with_context(|| format!("Error writing output file: `{}`", output))
+            .with_context(|| format!("Error writing output file: {:?}", output))
     }
 }
