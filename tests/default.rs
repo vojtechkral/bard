@@ -11,7 +11,6 @@ fn project_default() {
 }
 
 #[test]
-#[ignore = "requires TeX distribution"]
 fn project_default_postproess() {
     let _build = Builder::build_with_ps(ROOT / "default", "default-postprocess").unwrap();
 }
@@ -22,7 +21,6 @@ fn project_example() {
 }
 
 #[test]
-#[ignore = "requires TeX distribution"]
 fn project_example_postproess() {
     let _build = Builder::build_with_ps(ROOT / "example", "example-postprocess").unwrap();
 }

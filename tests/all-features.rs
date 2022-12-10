@@ -4,7 +4,6 @@ use std::fs;
 pub use util::*;
 
 #[test]
-#[ignore = "requires TeX distribution"]
 fn project_all_features() {
     let build = Builder::build_with_ps(TEST_PROJECTS / "all-features", "all-features").unwrap();
 
