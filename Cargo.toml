@@ -59,9 +59,6 @@ doctest = false
 bench = false
 doc = false
 
-[package.metadata.docs.rs]
-features = ["docs_rs_pls_dont_build_these_docs_this_is_internal_stuff"]
-
 [package.metadata.deb]
 depends = ""
 
