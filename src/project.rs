@@ -52,16 +52,32 @@ where
     Ok(meta)
 }
 
+fn pathbuf_relative_only<'de, D>(de: D) -> Result<PathBuf, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    let path = PathBuf::deserialize(de)?;
+    if !path.is_relative() {
+        let err = D::Error::custom(format!(
+            "Configured paths must be relative to the project directory. Path: {:?}",
+            path
+        ));
+        Err(err)
+    } else {
+        Ok(path)
+    }
+}
+
 #[derive(Deserialize, Debug)]
 pub struct Settings {
     // TODO: version
     songs: SongsGlobs,
 
-    #[serde(default = "dir_songs")]
+    #[serde(default = "dir_songs", deserialize_with = "pathbuf_relative_only")]
     dir_songs: PathBuf,
-    #[serde(default = "dir_templates")]
+    #[serde(default = "dir_templates", deserialize_with = "pathbuf_relative_only")]
     dir_templates: PathBuf,
-    #[serde(default = "dir_output")]
+    #[serde(default = "dir_output", deserialize_with = "pathbuf_relative_only")]
     dir_output: PathBuf,
     #[serde(default)]
     pub notation: Notation,
