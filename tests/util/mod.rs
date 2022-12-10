@@ -234,6 +234,7 @@ impl ExeBuilder {
 
     pub fn run(self, args: &[&str]) -> Result<Self> {
         Command::new(&self.bard_exe)
+            .env_clear()
             .env("PATH", &self.bin_dir)
             .envs(self.env.iter())
             .args(args)
