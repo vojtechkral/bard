@@ -1,9 +1,8 @@
-use std::borrow::Cow;
-use std::ffi::OsStr;
+use std::convert::{TryFrom, TryInto};
+use std::ffi::{OsStr, OsString};
 use std::io::{BufRead, Write};
 use std::ops::Deref;
 use std::process::{Command, Stdio};
-use std::str::FromStr;
 use std::time::Duration;
 use std::{env, fmt, fs, io, iter, thread};
 
@@ -28,10 +27,10 @@ pub enum TexDistro {
 }
 
 impl TexDistro {
-    fn default_program(&self) -> Option<String> {
+    fn default_program(&self) -> Option<OsString> {
         match self {
-            Self::TexLive => Some("xelatex".to_string()),
-            Self::Tectonic => Some("tectonic".to_string()),
+            Self::TexLive => Some("xelatex".to_string().into()),
+            Self::Tectonic => Some("tectonic".to_string().into()),
             Self::None => None,
         }
     }
@@ -54,16 +53,14 @@ impl<'de> Deserialize<'de> for TexDistro {
 #[derive(Clone, Debug)]
 pub struct TexConfig {
     distro: TexDistro,
-    program: Option<String>,
+    program: Option<OsString>,
 }
 
 impl TexConfig {
     fn try_from_env() -> Result<Option<Self>> {
-        match env::var("BARD_TEX") {
-            Ok(var) => var.parse().map(Some),
-            Err(env::VarError::NotPresent) => Ok(None),
-            Err(env::VarError::NotUnicode(..)) => bail!("BARD_TEX not valid Unicode"),
-        }
+        env::var_os("BARD_TEX")
+            .map(|var| Self::try_from(var.as_ref()))
+            .transpose()
     }
 
     fn with_distro(distro: TexDistro) -> Self {
@@ -114,14 +111,42 @@ impl TexConfig {
     }
 }
 
-impl FromStr for TexConfig {
-    type Err = Error;
+#[cfg(unix)]
+impl<'a> TryFrom<&'a OsStr> for TexConfig {
+    type Error = Error;
 
-    /// Syntax: `distro:program`
-    fn from_str(input: &str) -> Result<Self, Self::Err> {
-        let (distro, program) = input
-            .split_once(':')
-            .map_or((input, None), |(k, p)| (k, Some(p.to_string())));
+    fn try_from(input: &'a OsStr) -> Result<Self, Self::Error> {
+        use std::os::unix::ffi::{OsStrExt, OsStringExt};
+
+        let input = input.as_bytes();
+        let mut split = input.splitn(2, |&c| c == b':');
+        let distro = OsStr::from_bytes(split.next().unwrap()).to_string_lossy();
+        let program = split.next().map(|p| OsString::from_vec(p.to_owned()));
+        let distro: TexDistro = distro.parse().map_err(|_| {
+            anyhow!(
+                "Unexpected TeX distro type: '{}', possible choices are: {:?}.",
+                distro,
+                TexDistro::VARIANTS,
+            )
+        })?;
+
+        Ok(Self { distro, program })
+    }
+}
+#[cfg(windows)]
+impl<'a> TryFrom<&'a OsStr> for TexConfig {
+    type Error = Error;
+
+    fn try_from(input: &'a OsStr) -> Result<Self, Self::Error> {
+        use std::os::windows::ffi::{OsStrExt, OsStringExt};
+
+        const COLON: u16 = u16::from_le_bytes([b':', 0]);
+
+        let input: Vec<_> = input.encode_wide().collect();
+        let mut split = input.splitn(2, |&c| c == COLON);
+        let distro = OsString::from_wide(split.next().unwrap());
+        let distro = distro.to_string_lossy();
+        let program = split.next().map(|p| OsString::from_wide(p));
         let distro: TexDistro = distro.parse().map_err(|_| {
             anyhow!(
                 "Unexpected TeX distro type: '{}', possible choices are: {:?}.",
@@ -140,7 +165,7 @@ impl<'de> Deserialize<'de> for TexConfig {
         D: serde::Deserializer<'de>,
     {
         let input: &'de str = Deserialize::deserialize(deserializer)?;
-        input.parse().map_err(D::Error::custom)
+        OsStr::new(input).try_into().map_err(D::Error::custom)
     }
 }
 
@@ -149,7 +174,7 @@ impl fmt::Display for TexConfig {
         write!(f, "{}", self.distro)?;
 
         if let Some(program) = self.program.as_ref() {
-            write!(f, ":{}", program)?;
+            write!(f, ":{}", program.to_string_lossy())?;
         }
 
         Ok(())
@@ -157,7 +182,8 @@ impl fmt::Display for TexConfig {
 }
 
 /// Run a command and get first line from stdout, if any
-fn test_program(program: &str, arg1: &str) -> Result<String> {
+fn test_program(program: impl AsRef<OsStr>, arg1: &str) -> Result<String> {
+    let program = program.as_ref();
     let mut child = Command::new(program)
         .arg(arg1)
         .stdin(Stdio::null())
@@ -180,14 +206,15 @@ fn test_program(program: &str, arg1: &str) -> Result<String> {
     let first_line = stdout
         .lines()
         .next()
-        .ok_or_else(|| anyhow!("No output from program {}", program))??;
+        .ok_or_else(|| anyhow!("No output from program {:?}", program))??;
     if first_line.is_empty() || first_line.chars().all(|c| c.is_ascii_whitespace()) {
-        bail!("No output from program {}", program);
+        bail!("No output from program {:?}", program);
     }
     Ok(first_line)
 }
 
-fn run_program(app: &App, program: &str, args: &[&OsStr], cwd: &Path) -> Result<()> {
+fn run_program(app: &App, program: impl AsRef<OsStr>, args: &[&OsStr], cwd: &Path) -> Result<()> {
+    let program = program.as_ref();
     let mut child = Command::new(program)
         .args(args)
         .current_dir(cwd)
@@ -195,7 +222,7 @@ fn run_program(app: &App, program: &str, args: &[&OsStr], cwd: &Path) -> Result<
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
         .spawn()
-        .with_context(|| format!("Could not run program '{}'", program))?;
+        .with_context(|| format!("Could not run program {:?}", program))?;
 
     let mut ps_lines =
         ProcessLines::new(child.stdout.take().unwrap(), child.stderr.take().unwrap());
@@ -204,16 +231,17 @@ fn run_program(app: &App, program: &str, args: &[&OsStr], cwd: &Path) -> Result<
 
     let status = child
         .wait()
-        .with_context(|| format!("Error running program '{}'", program))?;
+        .with_context(|| format!("Error running program {:?}", program))?;
 
     if !status.success() && app.verbosity() == 1 {
-        let cmdline = iter::once(Cow::Borrowed(program))
-            .chain(args.iter().map(|arg| arg.to_string_lossy()))
-            .fold(String::new(), |mut cmdline, arg| {
-                cmdline.push_str(&arg);
-                cmdline.push(' ');
-                cmdline
-            });
+        let cmdline =
+            iter::once(&program)
+                .chain(args.iter())
+                .fold(String::new(), |mut cmdline, arg| {
+                    cmdline.push_str(&arg.to_string_lossy());
+                    cmdline.push(' ');
+                    cmdline
+                });
         eprintln!("{}", cmdline);
 
         let stderr = io::stderr();
@@ -347,7 +375,7 @@ impl TexTools {
         let program = self.config.program.as_ref().unwrap();
 
         if app.verbosity() >= 2 {
-            app.status("Command", format!("'{}' {:?}", program, args));
+            app.status("Command", format!("{:?} {:?}", program, args));
         }
 
         run_program(app, program, &args, job.cwd())?;
@@ -362,6 +390,31 @@ impl TexTools {
 #[cfg(all(test, unix))]
 mod tests {
     use super::*;
+
+    fn tex_config_parse(input: impl AsRef<OsStr>) -> Result<TexConfig> {
+        input.as_ref().try_into()
+    }
+
+    #[test]
+    fn tex_config_parsing() {
+        let config = tex_config_parse("texlive").unwrap();
+        assert_eq!(config.distro, TexDistro::TexLive);
+        assert_eq!(config.program, None);
+
+        let config = tex_config_parse("tectonic").unwrap();
+        assert_eq!(config.distro, TexDistro::Tectonic);
+        assert_eq!(config.program, None);
+
+        let config = tex_config_parse("texlive:foo:bar").unwrap();
+        assert_eq!(config.distro, TexDistro::TexLive);
+        assert_eq!(config.program, Some("foo:bar".to_string().into()));
+
+        let config = tex_config_parse("tectonic:foo:bar").unwrap();
+        assert_eq!(config.distro, TexDistro::Tectonic);
+        assert_eq!(config.program, Some("foo:bar".to_string().into()));
+
+        tex_config_parse("xxx").unwrap_err();
+    }
 
     #[test]
     fn test_test_program() {

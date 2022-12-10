@@ -1,4 +1,5 @@
 use std::cell::RefCell;
+use std::ffi::OsStr;
 use std::fmt::Display;
 use std::io::{self, Write};
 use std::{env, fmt};
@@ -215,7 +216,12 @@ impl App {
         });
     }
 
-    pub fn subprocess_output(&self, ps_lines: &mut ProcessLines, program: &str) -> Result<()> {
+    pub fn subprocess_output(
+        &self,
+        ps_lines: &mut ProcessLines,
+        program: impl AsRef<OsStr>,
+    ) -> Result<()> {
+        let program = program.as_ref();
         if self.verbosity == 0 {
             return Ok(());
         }
@@ -229,7 +235,7 @@ impl App {
         }
         while let Some(line) = ps_lines
             .read_line()
-            .with_context(|| format!("Error reading output of program '{}'", program))?
+            .with_context(|| format!("Error reading output of program {:?}", program))?
         {
             if self.verbosity == 1 {
                 self.rewind_line();
