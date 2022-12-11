@@ -1,3 +1,9 @@
+//! These tests are disable for Windows, because `PATH` overriding works in a weird way,
+//! it fails to apply to the `bard` subprocess, although it seems to work when `cmd` is used instead.
+//!
+//! This may or may not be a manifestation of <https://github.com/rust-lang/rust/issues/37519>.
+#![cfg(not(windows))]
+
 mod util;
 pub use util::*;
 
