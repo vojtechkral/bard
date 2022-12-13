@@ -75,6 +75,8 @@ pub struct App {
 
     /// bard self exe binary path
     bard_exe: PathBuf,
+    /// bard self name (for reporting)
+    self_name: &'static str,
 }
 
 impl App {
@@ -93,6 +95,7 @@ impl App {
             use_color,
             test_mode: false,
             bard_exe: env::current_exe().expect("Could not get path to bard self binary"),
+            self_name: "bard",
         }
     }
 
@@ -105,7 +108,16 @@ impl App {
             use_color: false,
             test_mode: true,
             bard_exe,
+            self_name: "bard",
         }
+    }
+
+    #[cfg(feature = "tectonic")]
+    pub fn new_as_tectonic() -> Self {
+        let mut this = Self::new(&MakeOpts::default());
+        this.verbosity = 1;
+        this.self_name = "tectonic";
+        this
     }
 
     pub fn post_process(&self) -> bool {
@@ -118,6 +130,10 @@ impl App {
 
     pub fn verbosity(&self) -> u32 {
         self.verbosity
+    }
+
+    pub fn use_color(&self) -> bool {
+        self.use_color
     }
 
     pub fn bard_exe(&self) -> &Path {
@@ -201,7 +217,11 @@ impl App {
             return;
         }
 
-        self.status_inner("bard error", color::BRIGHT_RED, &error);
+        self.status_inner(
+            format!("{} error", self.self_name),
+            color::BRIGHT_RED,
+            &error,
+        );
 
         let mut source = error.source();
         while let Some(err) = source {
@@ -230,13 +250,13 @@ impl App {
         &self,
         ps_lines: &mut ProcessLines,
         program: impl AsRef<OsStr>,
+        status: &str,
     ) -> Result<()> {
         let program = program.as_ref();
         if self.verbosity == 0 {
             return Ok(());
         }
 
-        let prog_name = Path::new(program).file_stem().unwrap();
         let stderr = io::stderr();
         let mut stderr = stderr.lock();
 
@@ -249,7 +269,7 @@ impl App {
         {
             if self.verbosity == 1 {
                 self.rewind_line();
-                eprint!("{}: ", prog_name.to_string_lossy());
+                eprint!("{}: ", status);
             }
 
             if !self.test_mode {

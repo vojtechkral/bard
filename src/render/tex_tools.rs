@@ -1,3 +1,4 @@
+use std::borrow::Cow;
 use std::convert::{TryFrom, TryInto};
 use std::ffi::{OsStr, OsString};
 use std::io::{BufRead, Write};
@@ -23,6 +24,7 @@ static TEX_TOOLS: Mutex<Option<TexTools>> = const_mutex(None);
 pub enum TexDistro {
     TexLive,
     Tectonic,
+    TectonicEmbedded,
     None,
 }
 
@@ -31,7 +33,7 @@ impl TexDistro {
         match self {
             Self::TexLive => Some("xelatex".to_string().into()),
             Self::Tectonic => Some("tectonic".to_string().into()),
-            Self::None => None,
+            _ => None,
         }
     }
 
@@ -82,7 +84,7 @@ impl TexConfig {
         let version = match self.distro {
             TexDistro::TexLive => test_program(self.program.as_ref().unwrap(), "-version")?,
             TexDistro::Tectonic => test_program(self.program.as_ref().unwrap(), "--version")?,
-            TexDistro::None => unreachable!(),
+            _ => unreachable!(),
         };
 
         app.indent(version);
@@ -112,11 +114,29 @@ impl TexConfig {
                     search_path
                 },
             ],
+            TexDistro::TectonicEmbedded => vec![
+                // With embedded tectonic the search path ToC workaround is done in tectonic_embed.
+                "tectonic".to_os_string(),
+                "-o".to_os_string(),
+                job.out_dir.to_os_string(),
+            ],
             TexDistro::None => unreachable!(),
         };
 
         args.extend(["--".to_os_string(), job.tex_file.to_os_string()]);
         args
+    }
+
+    /// Returns what should be the stderr status prefix when logging lines in scrolled mode,
+    /// see `App::subprocess_output()`.
+    fn program_status(&self) -> Cow<str> {
+        match self.distro {
+            TexDistro::TexLive | TexDistro::Tectonic => {
+                self.program.as_ref().unwrap().to_string_lossy()
+            }
+            TexDistro::TectonicEmbedded => "tectonic".into(),
+            TexDistro::None => unreachable!(),
+        }
     }
 }
 
@@ -227,6 +247,7 @@ fn run_program(
     program: impl AsRef<OsStr>,
     args: &[impl AsRef<OsStr>],
     cwd: &Path,
+    status: &str,
 ) -> Result<()> {
     let program = program.as_ref();
     if app.verbosity() >= 2 {
@@ -249,7 +270,7 @@ fn run_program(
     let mut ps_lines =
         ProcessLines::new(child.stdout.take().unwrap(), child.stderr.take().unwrap());
 
-    app.subprocess_output(&mut ps_lines, program)?;
+    app.subprocess_output(&mut ps_lines, program, status)?;
 
     let status = child
         .wait()
@@ -348,12 +369,20 @@ impl TexTools {
             return Self::set(config);
         }
 
-        // 3. No explicit config, try to probe automatically...
-
-        for kind in [TexDistro::TexLive, TexDistro::Tectonic] {
-            let mut config = TexConfig::with_distro(kind);
-            if config.probe(app).is_ok() {
-                return Self::set(config);
+        // 3. No explicit config
+        if cfg!(feature = "tectonic") {
+            // We have embedded tectonic...
+            let mut config = TexConfig::with_distro(TexDistro::TectonicEmbedded);
+            config.program = Some(app.bard_exe().to_owned().into());
+            app.indent("Using embedded Tectonic TeX.");
+            return Self::set(config);
+        } else {
+            // try to probe automatically...
+            for kind in [TexDistro::TexLive, TexDistro::Tectonic] {
+                let mut config = TexConfig::with_distro(kind);
+                if config.probe(app).is_ok() {
+                    return Self::set(config);
+                }
             }
         }
 
@@ -391,10 +420,11 @@ impl TexTools {
 
         let args = self.config.render_args(&job);
         let program = self.config.program.as_ref().unwrap();
+        let status = self.config.program_status();
 
-        run_program(app, program, &args, job.cwd())?;
+        run_program(app, program, &args, job.cwd(), &status)?;
         job.sort_toc()?;
-        run_program(app, program, &args, job.cwd())?;
+        run_program(app, program, &args, job.cwd(), &status)?;
         job.move_pdf()?;
 
         Ok(())

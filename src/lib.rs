@@ -22,6 +22,8 @@ pub mod parser;
 pub mod prelude;
 pub mod project;
 pub mod render;
+#[cfg(feature = "tectonic")]
+pub mod tectonic_embed;
 pub mod util;
 pub mod util_cmd;
 pub mod watch;
@@ -73,6 +75,10 @@ enum Cli {
     },
     #[command(subcommand, about = "Commandline utilities for postprocessing")]
     Util(UtilCmd),
+
+    #[cfg(feature = "tectonic")]
+    #[command(hide = true)]
+    Tectonic(tectonic_embed::Tectonic),
 }
 
 impl Cli {
@@ -84,6 +90,9 @@ impl Cli {
             Make { .. } => bard_make(app),
             Watch { .. } => bard_watch(app),
             Util(cmd) => cmd.run(app),
+
+            #[cfg(feature = "tectonic")]
+            Tectonic(tectonic) => tectonic.run(app),
         }
     }
 }
@@ -160,6 +169,9 @@ pub fn bard(args: &[OsString]) -> i32 {
         Cli::Make { opts } => App::new(opts),
         Cli::Watch { opts } => App::new(opts),
         Cli::Util(_) => App::new(&Default::default()),
+
+        #[cfg(feature = "tectonic")]
+        Cli::Tectonic(_) => App::new_as_tectonic(),
     };
 
     if let Err(err) = cli.run(&app) {
