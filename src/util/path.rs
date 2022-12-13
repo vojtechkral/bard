@@ -80,6 +80,7 @@ impl TempPath {
         let mut sufffix = String::with_capacity(Self::RAND_CHARS as usize + 1);
         for _ in 0..Self::RETRIES {
             sufffix.clear();
+            sufffix.push('.');
             for c in iter::repeat_with(fastrand::alphanumeric).take(Self::RAND_CHARS as usize) {
                 sufffix.push(c)
             }
