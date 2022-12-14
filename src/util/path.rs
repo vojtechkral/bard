@@ -110,6 +110,10 @@ impl TempPath {
     pub fn set_remove(&mut self, remove: bool) {
         self.remove = remove;
     }
+
+    pub fn to_os_string(&self) -> OsString {
+        self.path.as_os_str().to_owned()
+    }
 }
 
 impl Drop for TempPath {

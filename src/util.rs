@@ -1,3 +1,4 @@
+use std::ffi::OsString;
 use std::path::Path as StdPath;
 use std::process::{ChildStderr, ChildStdout, ExitStatus};
 use std::{fs, io, mem};
@@ -32,6 +33,18 @@ where
         self.rotate_left(size);
         self.truncate(self.len() - size);
         res
+    }
+}
+
+/// `str` utils
+
+pub trait StrExt {
+    fn to_os_string(&self) -> OsString;
+}
+
+impl StrExt for str {
+    fn to_os_string(&self) -> OsString {
+        self.to_string().into()
     }
 }
 

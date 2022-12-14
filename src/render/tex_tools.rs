@@ -4,7 +4,7 @@ use std::io::{BufRead, Write};
 use std::ops::Deref;
 use std::process::{Command, Stdio};
 use std::time::Duration;
-use std::{env, fmt, fs, io, iter, thread};
+use std::{env, fmt, fs, io, thread};
 
 use parking_lot::{const_mutex, Mutex, MutexGuard};
 use serde::de::Error as _;
@@ -13,7 +13,7 @@ use strum::{Display, EnumString, EnumVariantNames, VariantNames as _};
 
 use crate::app::App;
 use crate::prelude::*;
-use crate::util::{ExitStatusExt, ProcessLines, TempPath};
+use crate::util::{ExitStatusExt, ProcessLines, StrExt, TempPath};
 use crate::util_cmd;
 
 static TEX_TOOLS: Mutex<Option<TexTools>> = const_mutex(None);
@@ -89,24 +89,33 @@ impl TexConfig {
         Ok(())
     }
 
-    fn render_args<'j, 's: 'j>(&'s self, job: &'j TexRenderJob) -> Vec<&'j OsStr> {
+    fn render_args(&self, job: &TexRenderJob) -> Vec<OsString> {
         let mut args = match self.distro {
             TexDistro::TexLive => vec![
-                "-interaction=nonstopmode".as_ref(),
-                "-output-directory".as_ref(),
-                job.out_dir.as_os_str(),
+                "-interaction=nonstopmode".to_os_string(),
+                "-output-directory".to_os_string(),
+                job.out_dir.to_os_string(),
             ],
             TexDistro::Tectonic => vec![
-                "-k".as_ref(),
-                "-r".as_ref(),
-                "0".as_ref(),
-                "-o".as_ref(),
-                job.out_dir.as_os_str(),
+                "-k".to_os_string(),
+                "-r".to_os_string(),
+                "0".to_os_string(),
+                "-o".to_os_string(),
+                job.out_dir.to_os_string(),
+                // Also need to add the out dir to search path, because otherwise tectonic
+                // doesn't pickup the .toc file when -r 0.
+                // See https://github.com/tectonic-typesetting/tectonic/issues/981
+                "-Z".to_os_string(),
+                {
+                    let mut search_path = "search-path=".to_os_string();
+                    search_path.push(job.out_dir.as_os_str());
+                    search_path
+                },
             ],
             TexDistro::None => unreachable!(),
         };
 
-        args.extend(["--".as_ref(), job.tex_file.as_os_str()]);
+        args.extend(["--".to_os_string(), job.tex_file.to_os_string()]);
         args
     }
 }
@@ -213,8 +222,21 @@ fn test_program(program: impl AsRef<OsStr>, arg1: &str) -> Result<String> {
     Ok(first_line)
 }
 
-fn run_program(app: &App, program: impl AsRef<OsStr>, args: &[&OsStr], cwd: &Path) -> Result<()> {
+fn run_program(
+    app: &App,
+    program: impl AsRef<OsStr>,
+    args: &[impl AsRef<OsStr>],
+    cwd: &Path,
+) -> Result<()> {
     let program = program.as_ref();
+    if app.verbosity() >= 2 {
+        app.status_bare("Command", program.to_string_lossy());
+        for arg in args.iter() {
+            eprint!(" {}", arg.as_ref().to_string_lossy());
+        }
+        eprintln!();
+    }
+
     let mut child = Command::new(program)
         .args(args)
         .current_dir(cwd)
@@ -234,15 +256,11 @@ fn run_program(app: &App, program: impl AsRef<OsStr>, args: &[&OsStr], cwd: &Pat
         .with_context(|| format!("Error running program {:?}", program))?;
 
     if !status.success() && app.verbosity() == 1 {
-        let cmdline =
-            iter::once(&program)
-                .chain(args.iter())
-                .fold(String::new(), |mut cmdline, arg| {
-                    cmdline.push_str(&arg.to_string_lossy());
-                    cmdline.push(' ');
-                    cmdline
-                });
-        eprintln!("{}", cmdline);
+        app.status_bare("Command", program.to_string_lossy());
+        for arg in args.iter() {
+            eprint!(" {}", arg.as_ref().to_string_lossy());
+        }
+        eprintln!();
 
         let stderr = io::stderr();
         let mut stderr = stderr.lock();
@@ -373,10 +391,6 @@ impl TexTools {
 
         let args = self.config.render_args(&job);
         let program = self.config.program.as_ref().unwrap();
-
-        if app.verbosity() >= 2 {
-            app.status("Command", format!("{:?} {:?}", program, args));
-        }
 
         run_program(app, program, &args, job.cwd())?;
         job.sort_toc()?;

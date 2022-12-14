@@ -178,6 +178,16 @@ impl App {
         self.status_inner(verb, color::BRIGHT_CYAN, status);
     }
 
+    /// Like `status()`, but no newline
+    pub fn status_bare(&self, verb: &str, status: impl Display) {
+        if self.verbosity == 0 {
+            return;
+        }
+
+        self.color_print(color::BRIGHT_CYAN, format!("{:>12}", verb));
+        eprint!(" {}", status);
+    }
+
     pub fn success(&self, verb: impl Display) {
         self.status_inner(verb, color::BRIGHT_GREEN, "");
     }
