@@ -43,6 +43,7 @@ handlebars_helper!(hb_pre: |input: str| {
 pub struct RPdf {
     hb: HbRender,
     toc_sort_key: Option<String>,
+    tex_runs: u32,
 }
 
 impl RPdf {
@@ -56,6 +57,7 @@ impl RPdf {
         Ok(Self {
             hb,
             toc_sort_key: output.toc_sort_key.clone(),
+            tex_runs: output.tex_runs,
         })
     }
 }
@@ -63,16 +65,21 @@ impl RPdf {
 impl Render for RPdf {
     fn render(&self, app: &App, output: &Path, context: RenderContext) -> Result<()> {
         // Render TeX first
-        let mut job = TexRenderJob::new(output, app.keep_interm(), self.toc_sort_key.as_deref())?;
-        self.hb.render(&job.tex_file, context)?;
-
-        if !app.post_process() {
+        let tex_file = output.with_extension("tex");
+        self.hb.render(&tex_file, context)?;
+        if self.tex_runs == 0 || !app.post_process() {
             // TODO: test this
-            job.tex_file.set_remove(false);
             return Ok(());
         }
 
         // Run TeX
+        let job = TexRenderJob::new(
+            tex_file,
+            output,
+            app.keep_interm(),
+            self.toc_sort_key.as_deref(),
+            self.tex_runs - 1,
+        )?;
         TexTools::get().render_pdf(app, job)
     }
 

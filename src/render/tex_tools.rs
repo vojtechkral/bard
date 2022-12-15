@@ -96,21 +96,21 @@ impl TexConfig {
             TexDistro::TexLive => vec![
                 "-interaction=nonstopmode".to_os_string(),
                 "-output-directory".to_os_string(),
-                job.out_dir.to_os_string(),
+                job.tmp_dir.to_os_string(),
             ],
             TexDistro::Tectonic => vec![
                 "-k".to_os_string(),
                 "-r".to_os_string(),
                 "0".to_os_string(),
                 "-o".to_os_string(),
-                job.out_dir.to_os_string(),
+                job.tmp_dir.to_os_string(),
                 // Also need to add the out dir to search path, because otherwise tectonic
                 // doesn't pickup the .toc file when -r 0.
                 // See https://github.com/tectonic-typesetting/tectonic/issues/981
                 "-Z".to_os_string(),
                 {
                     let mut search_path = "search-path=".to_os_string();
-                    search_path.push(job.out_dir.as_os_str());
+                    search_path.push(job.tmp_dir.as_os_str());
                     search_path
                 },
             ],
@@ -118,7 +118,7 @@ impl TexConfig {
                 // With embedded tectonic the search path ToC workaround is done in tectonic_embed.
                 "tectonic".to_os_string(),
                 "-o".to_os_string(),
-                job.out_dir.to_os_string(),
+                job.tmp_dir.to_os_string(),
             ],
             TexDistro::None => unreachable!(),
         };
@@ -296,25 +296,33 @@ fn run_program(
 #[derive(Debug)]
 pub struct TexRenderJob<'a> {
     pub tex_file: TempPath,
-    out_dir: TempPath,
-    pdf_path: &'a Path,
+    tmp_dir: TempPath,
+    pdf_file: &'a Path,
     toc_sort_key: Option<&'a str>,
+    reruns: u32,
 }
 
 impl<'a> TexRenderJob<'a> {
-    pub fn new(pdf_path: &'a Path, keep: bool, toc_sort_key: Option<&'a str>) -> Result<Self> {
+    pub fn new(
+        tex_file: PathBuf,
+        pdf_path: &'a Path,
+        keep: bool,
+        toc_sort_key: Option<&'a str>,
+        reruns: u32,
+    ) -> Result<Self> {
         Ok(Self {
-            tex_file: TempPath::new_file(pdf_path.with_extension("tex"), !keep),
-            out_dir: TempPath::make_temp_dir(pdf_path, !keep)?,
-            pdf_path,
+            tex_file: TempPath::new_file(tex_file, !keep),
+            tmp_dir: TempPath::make_temp_dir(pdf_path, !keep)?,
+            pdf_file: pdf_path,
             toc_sort_key,
+            reruns,
         })
     }
 }
 
 impl<'a> TexRenderJob<'a> {
     fn cwd(&self) -> &'a Path {
-        self.pdf_path.parent().unwrap()
+        self.pdf_file.parent().unwrap()
     }
 
     fn sort_toc(&self) -> Result<()> {
@@ -324,7 +332,7 @@ impl<'a> TexRenderJob<'a> {
         };
 
         let tex_stem = self.tex_file.file_stem().unwrap();
-        let toc = self.out_dir.join_stem(tex_stem, ".toc");
+        let toc = self.tmp_dir.join_stem(tex_stem, ".toc");
 
         if toc.exists() {
             util_cmd::sort_lines(key, &toc)
@@ -336,9 +344,9 @@ impl<'a> TexRenderJob<'a> {
 
     fn move_pdf(&self) -> Result<()> {
         let tex_stem = self.tex_file.file_stem().unwrap();
-        let out_pdf = self.out_dir.join_stem(tex_stem, ".pdf");
-        fs::rename(&out_pdf, self.pdf_path)
-            .with_context(|| format!("Could not move to output file {:?}", self.pdf_path))
+        let out_pdf = self.tmp_dir.join_stem(tex_stem, ".pdf");
+        fs::rename(&out_pdf, self.pdf_file)
+            .with_context(|| format!("Could not move to output file {:?}", self.pdf_file))
     }
 }
 
@@ -423,10 +431,12 @@ impl TexTools {
         let status = self.config.program_status();
 
         run_program(app, program, &args, job.cwd(), &status)?;
-        job.sort_toc()?;
-        run_program(app, program, &args, job.cwd(), &status)?;
-        job.move_pdf()?;
+        for _ in 0..job.reruns {
+            job.sort_toc()?;
+            run_program(app, program, &args, job.cwd(), &status)?;
+        }
 
+        job.move_pdf()?;
         Ok(())
     }
 }

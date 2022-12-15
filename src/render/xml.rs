@@ -181,6 +181,7 @@ xml_write!(struct Output {
     toc_sort_key,
     sans_font,
     dpi,
+    tex_runs,
     script,
     book_overrides,
 } -> |w| {
@@ -193,6 +194,7 @@ xml_write!(struct Output {
         .field(sans_font)?
         .field_opt(toc_sort_key)?
         .field(dpi)?
+        .field(tex_runs)?
         .field_opt(script)?
 });
 

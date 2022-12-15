@@ -36,6 +36,18 @@ where
     }
 }
 
+impl<T> XmlWrite for Box<T>
+where
+    T: XmlWrite + ?Sized,
+{
+    fn write<W>(&self, writer: &mut Writer<W>) -> XmlResult<()>
+    where
+        W: io::Write,
+    {
+        T::write(self, writer)
+    }
+}
+
 impl<'a, T> XmlWrite for Cow<'a, T>
 where
     T: XmlWrite + Clone + ?Sized,
@@ -51,50 +63,25 @@ where
     }
 }
 
-impl XmlWrite for bool {
-    fn write<W>(&self, mut writer: &mut Writer<W>) -> XmlResult<()>
-    where
-        W: io::Write,
-    {
-        writer.write_text(self)
-    }
+macro_rules! impl_xmlwrite_text {
+    ($ty:ty) => {
+        impl XmlWrite for $ty {
+            fn write<W>(&self, mut writer: &mut Writer<W>) -> XmlResult<()>
+            where
+                W: io::Write,
+            {
+                writer.write_text(self)
+            }
+        }
+    };
+    ($($ty:ty),+) => {
+        $(impl_xmlwrite_text!($ty);)+
+    };
 }
 
-impl XmlWrite for f64 {
-    fn write<W>(&self, mut writer: &mut Writer<W>) -> XmlResult<()>
-    where
-        W: io::Write,
-    {
-        writer.write_text(self)
-    }
-}
-
-impl<'a> XmlWrite for &'a str {
-    fn write<W>(&self, mut writer: &mut Writer<W>) -> XmlResult<()>
-    where
-        W: io::Write,
-    {
-        writer.write_text(self)
-    }
-}
-
-impl XmlWrite for Box<str> {
-    fn write<W>(&self, mut writer: &mut Writer<W>) -> XmlResult<()>
-    where
-        W: io::Write,
-    {
-        writer.write_text(self)
-    }
-}
-
-impl XmlWrite for String {
-    fn write<W>(&self, mut writer: &mut Writer<W>) -> XmlResult<()>
-    where
-        W: io::Write,
-    {
-        writer.write_text(self)
-    }
-}
+impl_xmlwrite_text!(
+    bool, char, u8, u16, u32, u64, usize, i8, i16, i32, i64, isize, f32, f64, str, String
+);
 
 impl<I> XmlWrite for [I]
 where
@@ -108,18 +95,6 @@ where
             XmlWrite::write(item, writer)?;
         }
         Ok(())
-    }
-}
-
-impl<I> XmlWrite for Box<[I]>
-where
-    I: XmlWrite,
-{
-    fn write<W>(&self, writer: &mut Writer<W>) -> XmlResult<()>
-    where
-        W: io::Write,
-    {
-        XmlWrite::write(&**self, writer)
     }
 }
 
@@ -395,7 +370,7 @@ where
 {
     fn tag(self, name: &str) -> TagBuilder<'w, W>;
     fn write_value(&mut self, value: &impl XmlWrite) -> XmlResult<()>;
-    fn write_text(&mut self, text: &impl Display) -> XmlResult<()>;
+    fn write_text(&mut self, text: &(impl Display + ?Sized)) -> XmlResult<()>;
 }
 
 impl<'w, W> WriterExt<'w, W> for &'w mut Writer<W>
@@ -414,7 +389,7 @@ where
         XmlWrite::write(value, self)
     }
 
-    fn write_text(&mut self, text: &impl Display) -> XmlResult<()> {
+    fn write_text(&mut self, text: &(impl Display + ?Sized)) -> XmlResult<()> {
         let text = format!("{}", text);
         self.write_event(Event::Text(BytesText::new(&text)))
     }

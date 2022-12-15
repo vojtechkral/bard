@@ -56,6 +56,10 @@ fn default_dpi() -> f64 {
     144.0
 }
 
+fn default_tex_runs() -> u32 {
+    3
+}
+
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(deny_unknown_fields)]
 pub struct Output {
@@ -69,6 +73,8 @@ pub struct Output {
     pub toc_sort_key: Option<String>,
     #[serde(default = "default_dpi")]
     pub dpi: f64,
+    #[serde(default = "default_tex_runs")]
+    pub tex_runs: u32,
     pub script: Option<String>,
 
     #[serde(rename = "book", default, skip_serializing)]

@@ -20,6 +20,7 @@
       <format>xml</format>
       <sans_font>false</sans_font>
       <dpi>144</dpi>
+      <tex_runs>3</tex_runs>
     </output>
   </output>
   <!-- Software metadata -->
