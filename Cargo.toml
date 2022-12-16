@@ -28,10 +28,10 @@ comrak = { version = "0.15.0", default_features = false }
 console = "0.15.2"
 ctrlc = "3.1.3"
 fastrand = "1.8.0"
-globset = "0.4.8"
+globset = "=0.4.6" # pinned to allow (transitive) watchexec 1.17, which allows nix version with patched RUSTSEC
 handlebars = "4.3.3"
 html5ever = "0.26.0"
-image = { version = "0.24.1", default_features = false, features = ["png", "jpeg"] }
+image = {version = "=0.24.4", default_features = false, features = ["png", "jpeg"] } # FIXME: comment msrv
 lexical-sort = "0.3.1"
 nix = "0.26.0"
 notify = "5.0"
