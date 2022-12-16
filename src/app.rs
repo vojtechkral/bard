@@ -1,11 +1,10 @@
-use std::cell::RefCell;
+use std::env;
 use std::ffi::OsStr;
 use std::fmt::Display;
 use std::io::{self, Write};
-use std::{env, fmt};
 
-use term::color::{self, Color};
-use term::{Attr, StderrTerminal};
+use console::Color::{Cyan, Green, Red, Yellow};
+use console::{Color, Style, Term};
 
 use crate::prelude::*;
 use crate::util::ProcessLines;
@@ -62,37 +61,30 @@ impl From<StdioOpts> for MakeOpts {
 }
 
 /// Runtime config and stdio output fns.
+#[derive(Debug)]
 pub struct App {
     post_process: bool,
     keep_interm: bool,
 
     // stdio stuff
-    term: Option<RefCell<Box<StderrTerminal>>>,
+    term: Term,
     /// There are three levels: `0` = quiet, `1` = normal, `2` = verbose.
     verbosity: u32,
-    use_color: bool,
     test_mode: bool,
 
     /// bard self exe binary path
     bard_exe: PathBuf,
-    /// bard self name (for reporting)
+    /// bard self name for status reporting
     self_name: &'static str,
 }
 
 impl App {
     pub fn new(opts: &MakeOpts) -> Self {
-        let is_tty = atty::is(atty::Stream::Stderr);
-        let term = is_tty.then(term::stderr).flatten();
-        let use_color = opts.stdio.color.unwrap_or(true)
-            && is_tty
-            && term.as_ref().map_or(false, |t| t.supports_color()); // also checks for reset support
-
         Self {
             post_process: !opts.no_postprocess,
             keep_interm: opts.keep,
-            term: term.map(RefCell::new),
+            term: Term::stderr(),
             verbosity: opts.stdio.verbosity(),
-            use_color,
             test_mode: false,
             bard_exe: env::current_exe().expect("Could not get path to bard self binary"),
             self_name: "bard",
@@ -100,12 +92,13 @@ impl App {
     }
 
     pub fn with_test_mode(post_process: bool, bard_exe: PathBuf) -> Self {
+        console::set_colors_enabled_stderr(false);
+
         Self {
             post_process,
             keep_interm: true,
-            term: None,
+            term: Term::stderr(),
             verbosity: 2,
-            use_color: false,
             test_mode: true,
             bard_exe,
             self_name: "bard",
@@ -133,7 +126,7 @@ impl App {
     }
 
     pub fn use_color(&self) -> bool {
-        self.use_color
+        console::colors_enabled_stderr()
     }
 
     pub fn bard_exe(&self) -> &Path {
@@ -142,38 +135,20 @@ impl App {
 
     // stdio helpers
 
-    fn with_term<F, R>(&self, f: F)
-    where
-        F: FnOnce(&mut Box<StderrTerminal>) -> R,
-    {
-        let _ = self.term.as_ref().map(|cell| f(&mut cell.borrow_mut()));
-    }
-
-    fn color_print(&self, color: Color, text: impl Display) {
-        if self.use_color {
-            self.with_term(|term| {
-                let _ = term.fg(color);
-                let _ = term.attr(Attr::Bold);
-            });
-        }
-
-        eprint!("{}", text);
-
-        if self.use_color {
-            self.with_term(|term| term.reset());
-        }
+    fn color(&self, color: Color) -> Style {
+        self.term.style().fg(color).bright().bold()
     }
 
     fn indent_line(line: &str) {
         eprintln!("             {}", line);
     }
 
-    fn status_inner(&self, kind: impl Display, color: Color, status: impl Display) {
+    fn status_inner(&self, kind: impl Display, style: &Style, status: impl Display) {
         if self.verbosity == 0 {
             return;
         }
 
-        self.color_print(color, format!("{:>12}", kind));
+        eprint!("{:>12}", style.apply_to(kind));
         let status = format!("{}", status);
         let mut lines = status.lines();
         let first = lines.next().unwrap_or("");
@@ -191,7 +166,7 @@ impl App {
     }
 
     pub fn status(&self, verb: &str, status: impl Display) {
-        self.status_inner(verb, color::BRIGHT_CYAN, status);
+        self.status_inner(verb, &self.color(Cyan), status);
     }
 
     /// Like `status()`, but no newline
@@ -200,16 +175,15 @@ impl App {
             return;
         }
 
-        self.color_print(color::BRIGHT_CYAN, format!("{:>12}", verb));
-        eprint!(" {}", status);
+        eprint!("{:>12} {}", self.color(Cyan).apply_to(verb), status);
     }
 
     pub fn success(&self, verb: impl Display) {
-        self.status_inner(verb, color::BRIGHT_GREEN, "");
+        self.status_inner(verb, &self.color(Green), "");
     }
 
     pub fn warning(&self, msg: impl Display) {
-        self.status_inner("Warning", color::BRIGHT_YELLOW, msg);
+        self.status_inner("Warning", &self.color(Yellow), msg);
     }
 
     pub fn error(&self, error: Error) {
@@ -217,33 +191,18 @@ impl App {
             return;
         }
 
-        self.status_inner(
-            format!("{} error", self.self_name),
-            color::BRIGHT_RED,
-            &error,
-        );
+        let color = self.color(Red);
+        self.status_inner(format!("{} error", self.self_name), &color, &error);
 
         let mut source = error.source();
         while let Some(err) = source {
             let err_str = format!("{}", err);
             for line in err_str.lines() {
-                self.color_print(color::BRIGHT_RED, "  | ");
-                eprintln!("{}", line);
+                eprintln!("  {} {}", color.apply_to("|"), line);
             }
 
             source = err.source();
         }
-    }
-
-    pub fn rewind_line(&self) {
-        if self.verbosity == 0 {
-            return;
-        }
-
-        self.with_term(|term| {
-            term.cursor_up()?;
-            term.delete_line()
-        });
     }
 
     pub fn subprocess_output(
@@ -268,7 +227,7 @@ impl App {
             .with_context(|| format!("Error reading output of program {:?}", program))?
         {
             if self.verbosity == 1 {
-                self.rewind_line();
+                let _ = self.term.clear_last_lines(1);
                 eprint!("{}: ", status);
             }
 
@@ -282,24 +241,9 @@ impl App {
             }
         }
         if self.verbosity == 1 {
-            self.rewind_line();
+            let _ = self.term.clear_last_lines(1);
         }
 
         Ok(())
-    }
-}
-
-impl fmt::Debug for App {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let term = self.term.is_some();
-        f.debug_struct("App")
-            .field("post_process", &self.post_process)
-            .field("keep_interm", &self.keep_interm)
-            .field("term", &term)
-            .field("verbosity", &self.verbosity)
-            .field("use_color", &self.use_color)
-            .field("test_mode", &self.test_mode)
-            .field("bard_exe", &self.bard_exe)
-            .finish()
     }
 }
