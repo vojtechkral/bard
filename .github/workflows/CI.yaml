@@ -66,11 +66,7 @@ jobs:
           cargo install cargo-outdated --version ${{ env.CARGO_OUTDATED }} --root cargo-tools --target-dir cargo-tools-build
           cargo install cargo-audit --version ${{ env.CARGO_AUDIT }} --root cargo-tools --target-dir cargo-tools-build
       - name: Clippy
-        uses: actions-rs/clippy-check@v1
-        with:
-          name: Clippy Output
-          token: ${{ secrets.GITHUB_TOKEN }}
-          args: --all-features
+        run: cargo clippy --no-deps -- -D warnings
       - name: Outdated dependencies
         # TODO: add support for githubActions format in cargo-outdated directly?
         shell: python
@@ -86,7 +82,7 @@ jobs:
           outdated = output['dependencies']
 
           for dep in outdated:
-              msg = "project: {}, compat: {}, latest: {}, kind: {}".format(dep['project'], dep['compat'], dep['latest'], dep['kind'])
+              msg = "{}: project: {}, compat: {}, latest: {}, kind: {}".format(dep['name'], dep['project'], dep['compat'], dep['latest'], dep['kind'])
               print("::warning title=Outdated dependency '{}'::{}".format(dep['name'], msg))
       - name: Audit
         run: |
