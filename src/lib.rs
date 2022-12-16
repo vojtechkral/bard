@@ -104,7 +104,7 @@ fn get_cwd() -> Result<PathBuf> {
 pub fn bard_init_at<P: AsRef<Path>>(app: &App, path: P) -> Result<()> {
     let path = path.as_ref();
 
-    app.status("Initialize", &format!("new project at {:?}", path));
+    app.status("Initialize", format!("new project at {:?}", path));
     Project::init(path).context("Could not initialize a new project")?;
     app.success("Done!");
     Ok(())
@@ -112,7 +112,7 @@ pub fn bard_init_at<P: AsRef<Path>>(app: &App, path: P) -> Result<()> {
 
 pub fn bard_init(app: &App) -> Result<()> {
     let cwd = get_cwd()?;
-    bard_init_at(app, &cwd)
+    bard_init_at(app, cwd)
 }
 
 pub fn bard_make_at<P: AsRef<Path>>(app: &App, path: P) -> Result<Project> {
@@ -127,7 +127,7 @@ pub fn bard_make_at<P: AsRef<Path>>(app: &App, path: P) -> Result<Project> {
 pub fn bard_make(app: &App) -> Result<()> {
     let cwd = get_cwd()?;
 
-    bard_make_at(app, &cwd)?;
+    bard_make_at(app, cwd)?;
     app.success("Done!");
     Ok(())
 }
@@ -159,7 +159,7 @@ pub fn bard_watch(app: &App) -> Result<()> {
         cancellation.cancel();
     });
 
-    bard_watch_at(app, &cwd, watch)
+    bard_watch_at(app, cwd, watch)
 }
 
 pub fn bard(args: &[OsString]) -> i32 {

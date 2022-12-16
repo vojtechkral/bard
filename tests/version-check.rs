@@ -13,7 +13,7 @@ fn get_output_versions(project: &Project) -> Vec<(Version, PathBuf)> {
     // Imperative code so that track_caller works
     let mut res = vec![];
     for o in &project.settings.output {
-        let renderer = Renderer::new(project, &o).unwrap();
+        let renderer = Renderer::new(project, o).unwrap();
         if let Some(ver) = renderer.version() {
             res.push((ver, o.file.clone()));
         }

@@ -29,7 +29,7 @@ fn main() {
     tex.set_extension("pdf");
     let pdf = tex.file_name().unwrap();
 
-    let mut dest = File::create(&out_dir.join(pdf)).unwrap();
+    let mut dest = File::create(out_dir.join(pdf)).unwrap();
     for arg in env::args() {
         dest.write_all(arg.as_bytes()).unwrap();
         dest.write_all(b"\n").unwrap();

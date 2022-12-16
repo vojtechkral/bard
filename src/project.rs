@@ -162,7 +162,7 @@ impl Project {
             )
         })?;
 
-        app.status("Loading", &format!("project at {:?}", project_dir));
+        app.status("Loading", format!("project at {:?}", project_dir));
 
         let settings = Settings::from_file(&project_file, &project_dir)?;
         let book = Book::new(&settings);

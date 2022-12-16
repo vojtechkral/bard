@@ -345,7 +345,7 @@ impl<'a> TexRenderJob<'a> {
     fn move_pdf(&self) -> Result<()> {
         let tex_stem = self.tex_file.file_stem().unwrap();
         let out_pdf = self.tmp_dir.join_stem(tex_stem, ".pdf");
-        fs::rename(&out_pdf, self.pdf_file)
+        fs::rename(out_pdf, self.pdf_file)
             .with_context(|| format!("Could not move to output file {:?}", self.pdf_file))
     }
 }

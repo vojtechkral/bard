@@ -18,7 +18,7 @@ fn npx(args: &[&str]) {
     eprintln!("{}", cmdline);
 
     let success = Command::new(cmd)
-        .args(&*args)
+        .args(args)
         .stdin(Stdio::null())
         .status()
         .unwrap()
@@ -44,7 +44,7 @@ fn hbs_js_parse() {
     let out = out_dir.join("out");
 
     // Parse each template with JS handlebars
-    for default in &DEFAULT_TEMPLATES[..] {
+    for default in DEFAULT_TEMPLATES {
         let mut path = ROOT / "src/render/templates/";
         path.push(default.filename);
         npx(&[

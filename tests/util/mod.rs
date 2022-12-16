@@ -86,12 +86,9 @@ impl Builder {
     pub fn work_dir(name: &str, rm: bool) -> Result<PathBuf> {
         let path = tmp_dir().join(name);
 
-        if rm {
-            if path.exists() {
-                fs::remove_dir_all(&path).with_context(|| {
-                    format!("Couldn't remove previous test run data: {:?}", path)
-                })?;
-            }
+        if rm && path.exists() {
+            fs::remove_dir_all(&path)
+                .with_context(|| format!("Couldn't remove previous test run data: {:?}", path))?;
         }
 
         Ok(path)
@@ -148,7 +145,7 @@ impl Builder {
     }
 
     pub fn build_with_name(src_path: PathBuf, name: &str) -> Result<Self> {
-        Self::build_inner(&src_path, name, false)
+        Self::build_inner(src_path, name, false)
     }
 
     pub fn build_with_ps(src_path: impl AsRef<Path>, name: &str) -> Result<Self> {
@@ -156,10 +153,10 @@ impl Builder {
     }
 
     pub fn init(app: &App, name: &str) -> Result<PathBuf> {
-        let work_dir = Self::work_dir(name.as_ref(), true)?;
+        let work_dir = Self::work_dir(name, true)?;
         fs::create_dir_all(&work_dir)
             .with_context(|| format!("Could create directory: {:?}", work_dir))?;
-        bard::bard_init_at(&app, &work_dir).context("Failed to initialize")?;
+        bard::bard_init_at(app, &work_dir).context("Failed to initialize")?;
         Ok(work_dir)
     }
 

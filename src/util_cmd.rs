@@ -27,7 +27,7 @@ impl UtilCmd {
 
         match self {
             SortLines { regex, file } => {
-                if sort_lines(&regex, &file)? == 0 {
+                if sort_lines(&regex, file)? == 0 {
                     app.warning("sort-lines: No lines matched the regex.");
                 }
                 Ok(())
