@@ -29,8 +29,8 @@ fn assert_project_versions(project: &Project) {
 }
 
 #[test]
-fn version_check_load() {
-    let build = Builder::build(TEST_PROJECTS / "version-check").unwrap();
+fn ast_version_check_load() {
+    let build = Builder::build(TEST_PROJECTS / "ast-version-check").unwrap();
 
     let expected = Version::new(1, 2, 3);
     for (ver, output) in get_output_versions(&build.project) {
@@ -39,13 +39,13 @@ fn version_check_load() {
 }
 
 #[test]
-fn version_check_default_project() {
-    let build = Builder::build_with_name(ROOT / "default", "version-check-default").unwrap();
+fn ast_version_check_default_project() {
+    let build = Builder::build_with_name(ROOT / "default", "ast-version-check-default").unwrap();
     assert_project_versions(&build.project);
 }
 
 #[test]
-fn version_check_example_project() {
-    let build = Builder::build_with_name(ROOT / "example", "version-check-example").unwrap();
+fn ast_version_check_example_project() {
+    let build = Builder::build_with_name(ROOT / "example", "ast-version-check-example").unwrap();
     assert_project_versions(&build.project);
 }
