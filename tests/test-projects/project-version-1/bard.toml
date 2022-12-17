@@ -1,0 +1,20 @@
+songs = [
+    "yippie.md",
+]
+
+notation = "english"
+
+[[output]]
+file = "songbook.tex"
+sans_font = false
+process = "latexmk -xelatex -interaction=nonstopmode {{file}}"
+
+[[output]]
+file = "songbook.html"
+sans_font = false
+
+[book]
+title = "My Songbook"
+subtitle = "(You can edit that title!)"
+chorus_label = "Ch"
+title_note = "(And this note too...)"
