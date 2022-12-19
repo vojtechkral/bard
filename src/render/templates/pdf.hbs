@@ -34,12 +34,13 @@
 \usepackage{marginnote}
 \usepackage{amssymb}
 
-%% Page style
+%% Page style / pagination
 \makepagestyle{songs}
+\newcommand\ThePage\{{ {{~#if output.sans_font }}\sffamily{{/if}}\thepage}}
 % Hack: Right pagination is moved right by using the margin
-\makeoddfoot{songs}{}{}{\marginnote{\hspace{2mm}$\langle$\thepage$\rangle$}}
+\makeoddfoot{songs}{}{}{\marginnote{\hspace{2mm}$\langle$\ThePage$\rangle$}}
 % Hack: Left pagination is moved left with a kern
-\makeevenfoot{songs}{\kern-8mm$\langle$\thepage$\rangle$}{}{}
+\makeevenfoot{songs}{\kern-8mm$\langle$\ThePage$\rangle$}{}{}
 % Patch cleardoublepage to not get blank pages after title & contents pages:
 \renewcommand\cleardoublepage{\clearpage}
 
@@ -64,6 +65,13 @@
 % Hide section numbers in the ToC:
 \renewcommand\numberline[1]{}
 \renewcommand\cftdotsep{1}
+{{~#if output.sans_font }}
+% sans_font support
+\renewcommand{\cftchapterfont}{\normalfont\sffamily}
+\renewcommand{\cftsectionfont}{\normalfont\sffamily}
+\renewcommand{\cftchapterpagefont}{\normalfont\sffamily}
+\renewcommand{\cftsectionpagefont}{\normalfont\sffamily}
+{{~/if}}
 
 %% Hyperlinks setup
 \hypersetup{
