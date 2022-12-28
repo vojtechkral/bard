@@ -5,6 +5,8 @@
 //!
 //! The API is provided by the `Parser` type, it's `parse()` method is the entry point.
 
+use std::cell::{Cell, Ref, RefCell, RefMut};
+use std::fmt;
 use std::mem;
 use std::str;
 
@@ -29,56 +31,61 @@ const FALLBACK_TITLE: &str = "[Untitled]";
 static EXTENSION: Lazy<Regex> = Lazy::new(|| Regex::new(r"(^|\s)(!+)(\S+)").unwrap());
 
 #[derive(Error, PartialEq, Eq, Clone, Debug)]
-enum ErrorKind {
+pub enum DiagKind {
     #[error("Control character not allowed: 0x{char:x}")]
     ControlChar { char: u32 },
     #[error("Unrecognized chord: {chord}")]
     Transposition { chord: BStr },
 }
 
-/// Parser error type.
+impl DiagKind {
+    pub fn is_error(&self) -> bool {
+        match self {
+            Self::ControlChar { .. } => true,
+            Self::Transposition { .. } => true,
+        }
+    }
+}
+
+/// Parser diagnostic report type.
 ///
-/// Reports filename, line number and kind of error occured.
+/// Reports kind of diagnostic (error or warning), filename, line number and containts the specific error/warning.
 /// The line number is 1-indexed.
 #[derive(Error, PartialEq, Eq, Clone, Debug)]
 #[error("{file}:{line}: {kind}")]
-pub struct Error {
-    file: PathBuf,
-    line: u32,
-    kind: ErrorKind,
+pub struct Diagnostic {
+    pub file: PathBuf,
+    pub line: u32,
+    pub kind: DiagKind,
 }
 
-impl Error {
-    pub fn control_char(file: &Path, line: u32, char: u32) -> Self {
-        Self {
-            file: file.to_owned(),
-            line,
-            kind: ErrorKind::ControlChar { char },
-        }
-    }
-
-    pub fn transposition(file: &Path, mut node: AstRef<'_>, chord: BStr) -> Self {
-        // Comrak actually doesn't set the start_line for some elements (code),
-        // so we try to find the line number by looking at parent nodes.
-        // FIXME: This is a hack, report or fix at comrak.
-        let mut line = node.data.borrow().start_line;
-        while line == 0 {
-            node = match node.parent() {
-                Some(n) => n,
-                None => break,
-            };
-            line = node.data.borrow().start_line;
-        }
-
-        Self {
-            file: file.into(),
-            line: line + 1, // make the line number 1-indexed
-            kind: ErrorKind::Transposition { chord },
-        }
+impl Diagnostic {
+    #[inline]
+    pub fn is_error(&self) -> bool {
+        self.kind.is_error()
     }
 }
 
-type Result<T, E = Error> = std::result::Result<T, E>;
+pub trait DiagSink {
+    fn report(&self, diagnostic: Diagnostic);
+}
+
+impl<F> DiagSink for F
+where
+    F: Fn(Diagnostic),
+{
+    fn report(&self, diagnostic: Diagnostic) {
+        (self)(diagnostic)
+    }
+}
+
+impl<'a> DiagSink for &'a RefCell<Vec<Diagnostic>> {
+    fn report(&self, diagnostic: Diagnostic) {
+        self.borrow_mut().push(diagnostic);
+    }
+}
+
+type Result<T, E = ()> = std::result::Result<T, E>;
 
 // Since parser takes an UTF-8 string as input, we don't have to error-check
 // when converting bytes to strings.
@@ -252,6 +259,12 @@ trait NodeExt<'a> {
     /// convert HTML elements into `Inline::HtmlTag`s,
     /// interleaved plain text to `Inline::Text`s and append to `target`.
     fn parse_html(&self, target: &mut Vec<Inline>);
+
+    /// Get the line number where in the source md this node is defined.
+    /// If the node spans multiple lines, the number of the first one is returned.
+    ///
+    /// The line unmber is 1-indexed (unlike in comrak).
+    fn source_line(&self) -> u32;
 }
 
 impl<'a> NodeExt<'a> for AstNode<'a> {
@@ -417,6 +430,23 @@ impl<'a> NodeExt<'a> for AstNode<'a> {
 
         html::parse_html(html, target);
     }
+
+    fn source_line(&self) -> u32 {
+        // Comrak actually doesn't set the start_line for some elements (code),
+        // so we try to find the line number by looking at parent nodes.
+        // FIXME: This is a hack, report or fix at comrak.
+        let mut line = self.data.borrow().start_line;
+        let mut node = self;
+        while line == 0 {
+            node = match node.parent() {
+                Some(n) => n,
+                None => break,
+            };
+            line = node.data.borrow().start_line;
+        }
+
+        line
+    }
 }
 
 #[derive(Debug)]
@@ -523,32 +553,25 @@ impl ChordBuilder {
 struct VerseBuilder<'a> {
     label: VerseLabel,
     paragraphs: Vec<Paragraph>,
-    xp: Transposition,
-    src_file: &'a Path,
+    ctx: &'a ParserCtx<'a>,
 }
 
 impl<'a> VerseBuilder<'a> {
-    fn new(label: VerseLabel, xp: Transposition, src_file: &'a Path) -> Self {
+    fn new(label: VerseLabel, ctx: &'a ParserCtx<'a>) -> Self {
         Self {
             label,
             paragraphs: vec![],
-            xp,
-            src_file,
+            ctx,
         }
     }
 
-    fn with_p_nodes<I>(
-        label: VerseLabel,
-        xp: Transposition,
-        src_file: &'a Path,
-        mut nodes: I,
-    ) -> Result<Self>
+    fn with_p_nodes<I>(label: VerseLabel, ctx: &'a ParserCtx<'a>, nodes: I) -> Self
     where
         I: Iterator<Item = AstRef<'a>>,
     {
-        nodes.try_fold(Self::new(label, xp, src_file), |mut this, node| {
-            this.add_p_node(node)?;
-            Ok(this)
+        nodes.fold(Self::new(label, ctx), |mut this, node| {
+            this.add_p_node(node);
+            this
         })
     }
 
@@ -574,10 +597,10 @@ impl<'a> VerseBuilder<'a> {
                     target.push(Inline::text(preceding));
                 }
 
-                if inline.is_xpose() && !self.xp.disabled {
+                if inline.is_xpose() && !self.ctx.xp().disabled {
                     // Update transposition state and throw the inline away,
                     // we're normally not keeping them in the AST
-                    self.xp.update(inline.unwrap_xpose());
+                    self.ctx.xp_mut().update(inline.unwrap_xpose());
 
                     // If the extension is first on the line (ie. no leading ws)
                     // then we should consume the following whitespace char
@@ -602,30 +625,30 @@ impl<'a> VerseBuilder<'a> {
         }
     }
 
-    fn collect_inlines(&mut self, node: AstRef) -> Result<Vec<Inline>> {
-        node.children().try_fold(vec![], |mut vec, node| {
-            self.make_inlines(node, &mut vec)?;
-            Ok(vec)
+    fn collect_inlines(&mut self, node: AstRef) -> Vec<Inline> {
+        node.children().fold(vec![], |mut vec, node| {
+            self.make_inlines(node, &mut vec);
+            vec
         })
     }
 
     /// Generate `Inline`s out of this inline node.
     /// Also recursively applies to children when applicable.
-    fn make_inlines(&mut self, node: AstRef, target: &mut Vec<Inline>) -> Result<()> {
+    fn make_inlines(&mut self, node: AstRef, target: &mut Vec<Inline>) {
         assert!(!node.is_block());
 
         let single = match &node.data.borrow().value {
             NodeValue::Text(..) => {
                 self.parse_text(node, target);
-                return Ok(());
+                return;
             }
             NodeValue::SoftBreak | NodeValue::LineBreak => Inline::Break,
             NodeValue::HtmlInline(..) => {
                 node.parse_html(target);
-                return Ok(());
+                return;
             }
-            NodeValue::Emph => Inline::Emph(self.collect_inlines(node)?.into()),
-            NodeValue::Strong => Inline::Strong(self.collect_inlines(node)?.into()),
+            NodeValue::Emph => Inline::Emph(self.collect_inlines(node).into()),
+            NodeValue::Strong => Inline::Strong(self.collect_inlines(node).into()),
             NodeValue::Link(link) => {
                 let mut children = node.children();
                 let text = children.next().unwrap();
@@ -644,7 +667,7 @@ impl<'a> VerseBuilder<'a> {
                 );
                 Inline::Image(img)
             }
-            NodeValue::FootnoteReference(..) => return Ok(()),
+            NodeValue::FootnoteReference(..) => return,
 
             // TODO: Ensure extensions are not enabled through a test
             other => {
@@ -653,10 +676,9 @@ impl<'a> VerseBuilder<'a> {
         };
 
         target.push(single);
-        Ok(())
     }
 
-    fn add_p_inner(&mut self, node: AstRef) -> Result<()> {
+    fn add_p_inner(&mut self, node: AstRef) {
         assert!(node.is_p());
 
         let mut para: Vec<Inline> = vec![];
@@ -669,10 +691,12 @@ impl<'a> VerseBuilder<'a> {
                 }
 
                 let mut new_cb = ChordBuilder::new(code);
-                if self.xp.is_some() {
-                    new_cb
-                        .transpose(&self.xp)
-                        .map_err(|chord| Error::transposition(self.src_file, c, chord))?;
+                let xp = self.ctx.xp();
+                if xp.is_some() {
+                    if let Err(chord) = new_cb.transpose(&xp) {
+                        self.ctx
+                            .report_diag(c.source_line(), DiagKind::Transposition { chord });
+                    }
                 }
 
                 if new_cb.baseline {
@@ -686,16 +710,16 @@ impl<'a> VerseBuilder<'a> {
                     cb.finalize(&mut para);
                 }
 
-                self.make_inlines(c, &mut para)?;
+                self.make_inlines(c, &mut para);
             } else {
                 // c must be another inline element.
                 // See if a chord is currently open
                 if let Some(cb) = cb.as_mut() {
                     // Add the inlines to the current chord
-                    self.make_inlines(c, cb.inlines_mut())?;
+                    self.make_inlines(c, cb.inlines_mut());
                 } else {
                     // Otherwise just push as a standalone inline
-                    self.make_inlines(c, &mut para)?;
+                    self.make_inlines(c, &mut para);
                 }
             }
         }
@@ -707,12 +731,10 @@ impl<'a> VerseBuilder<'a> {
         if !para.is_empty() {
             self.paragraphs.push(para.into());
         }
-
-        Ok(())
     }
 
     /// Add node containing a paragraph (or multiple ones in case of nested lists)
-    fn add_p_node(&mut self, node: AstRef) -> Result<()> {
+    fn add_p_node(&mut self, node: AstRef) {
         // This is called from SongBuilder, ie. if we come across a List
         // or a BlockQuote here, that means it must be a nested one,
         // as top-level ones are handled in SongBuilder.
@@ -721,7 +743,7 @@ impl<'a> VerseBuilder<'a> {
         match &node.data.borrow().value {
             NodeValue::Paragraph => self.add_p_inner(node),
             NodeValue::BlockQuote | NodeValue::List(..) | NodeValue::Item(..) => {
-                node.children().try_for_each(|c| self.add_p_node(c))
+                node.children().for_each(|c| self.add_p_node(c))
             }
 
             NodeValue::HtmlBlock(..) => {
@@ -730,16 +752,14 @@ impl<'a> VerseBuilder<'a> {
                 if !inlines.is_empty() {
                     self.paragraphs.push(inlines.into());
                 }
-                Ok(())
             }
 
-            _ => Ok(()), // ignored
+            _ => {} // ignored
         }
     }
 
-    fn finalize(self) -> (Verse, Transposition) {
-        let verse = Verse::new(self.label, self.paragraphs);
-        (verse, self.xp)
+    fn finalize(self) -> Verse {
+        Verse::new(self.label, self.paragraphs)
     }
 }
 
@@ -750,17 +770,16 @@ struct SongBuilder<'a> {
     subtitles: Vec<BStr>,
     verse: Option<VerseBuilder<'a>>,
     blocks: Vec<Block>,
-    xp: Transposition,
     verse_num: u32,
-    src_file: &'a Path,
+    ctx: &'a ParserCtx<'a>,
 }
 
 impl<'a> SongBuilder<'a> {
-    fn new(nodes: &'a [AstRef<'a>], config: &ParserConfig, src_file: &'a Path) -> Self {
+    fn new(nodes: &'a [AstRef<'a>], ctx: &'a ParserCtx<'a>) -> Self {
         // Read song title or use fallback
         let (title, nodes) = match nodes.first() {
             Some(n) if n.is_h(1) => (n.as_plaintext(), &nodes[1..]),
-            _ => (config.fallback_title.clone(), nodes),
+            _ => (ctx.fallback_title.clone(), nodes),
         };
 
         // Collect subtitles - H2s following the title (if any)
@@ -779,9 +798,9 @@ impl<'a> SongBuilder<'a> {
             subtitles,
             verse: None,
             blocks: vec![],
-            xp: Transposition::new(config.notation, config.xp_disabled),
+            // xp: Transposition::new(ctx.config.notation, ctx.config.xp_disabled),
             verse_num: 0,
-            src_file,
+            ctx,
         }
     }
 
@@ -792,11 +811,7 @@ impl<'a> SongBuilder<'a> {
 
     fn verse_mut(&mut self) -> &mut VerseBuilder<'a> {
         if self.verse.is_none() {
-            self.verse = Some(VerseBuilder::new(
-                VerseLabel::None {},
-                self.xp.clone(),
-                self.src_file,
-            ));
+            self.verse = Some(VerseBuilder::new(VerseLabel::None {}, self.ctx));
         }
 
         self.verse.as_mut().unwrap()
@@ -804,20 +819,18 @@ impl<'a> SongBuilder<'a> {
 
     fn verse_finalize(&mut self) {
         if let Some(verse) = self.verse.take() {
-            let (verse, xp) = verse.finalize();
-            self.blocks.push(Block::Verse(verse));
-            self.xp = xp;
+            self.blocks.push(Block::Verse(verse.finalize()));
         }
     }
 
-    fn parse_bq(&mut self, bq: AstRef, level: u32) -> Result<()> {
+    fn parse_bq(&mut self, bq: AstRef, level: u32) {
         assert!(bq.is_bq());
 
         let mut prev_bq = false;
         for c in bq.children() {
             if c.is_bq() {
                 self.verse_finalize();
-                self.parse_bq(c, level + 1)?;
+                self.parse_bq(c, level + 1);
                 prev_bq = true;
             } else {
                 if prev_bq {
@@ -827,25 +840,23 @@ impl<'a> SongBuilder<'a> {
 
                 if self.verse.is_none() {
                     let label = VerseLabel::Chorus(Some(level));
-                    let verse = VerseBuilder::new(label, self.xp.clone(), self.src_file);
+                    let verse = VerseBuilder::new(label, self.ctx);
                     self.verse = Some(verse);
                 }
 
-                self.verse_mut().add_p_node(c)?;
+                self.verse_mut().add_p_node(c);
             }
         }
-
-        Ok(())
     }
 
-    fn parse(&mut self) -> Result<()> {
+    fn parse(mut self) -> Self {
         for node in self.nodes.iter() {
             if !node.is_p() {
                 self.verse_finalize();
             }
 
             match &node.data.borrow().value {
-                NodeValue::Paragraph => self.verse_mut().add_p_node(node)?,
+                NodeValue::Paragraph => self.verse_mut().add_p_node(node),
 
                 NodeValue::List(list) if matches!(list.list_type, ListType::Ordered) => {
                     for item in node.children() {
@@ -853,12 +864,7 @@ impl<'a> SongBuilder<'a> {
                         self.verse_finalize();
 
                         let label = VerseLabel::Verse(self.next_verse_num());
-                        let verse = VerseBuilder::with_p_nodes(
-                            label,
-                            self.xp.clone(),
-                            self.src_file,
-                            item.children(),
-                        )?;
+                        let verse = VerseBuilder::with_p_nodes(label, self.ctx, item.children());
                         self.verse = Some(verse);
                     }
                 }
@@ -874,11 +880,11 @@ impl<'a> SongBuilder<'a> {
                     self.blocks.push(Block::BulletList(list));
                 }
 
-                NodeValue::BlockQuote => self.parse_bq(node, 1)?,
+                NodeValue::BlockQuote => self.parse_bq(node, 1),
 
                 NodeValue::Heading(h) if h.level >= 3 => {
                     let label = VerseLabel::Custom(node.as_plaintext().into());
-                    self.verse = Some(VerseBuilder::new(label, self.xp.clone(), self.src_file));
+                    self.verse = Some(VerseBuilder::new(label, self.ctx));
                 }
 
                 NodeValue::ThematicBreak => {
@@ -901,7 +907,7 @@ impl<'a> SongBuilder<'a> {
             }
         }
 
-        Ok(())
+        self
     }
 
     fn finalize(mut self) -> Song {
@@ -924,7 +930,7 @@ impl<'a> SongBuilder<'a> {
             title: self.title.into(),
             subtitles: self.subtitles.into(),
             blocks: self.blocks,
-            notation: self.xp.src_notation,
+            notation: self.ctx.xp().src_notation,
         };
 
         song.postprocess();
@@ -966,6 +972,11 @@ impl<'s, 'a> Iterator for SongsIter<'s, 'a> {
             Some(mem::take(&mut self.slice))
         }
     }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        let n = self.slice.iter().filter(|node| node.is_h(1)).count();
+        (n, Some(n))
+    }
 }
 
 #[derive(Debug)]
@@ -995,25 +1006,87 @@ impl Default for ParserConfig {
     }
 }
 
-#[derive(Debug)]
-pub struct Parser<'i> {
-    input: &'i str,
-    src_file: &'i Path,
-    config: ParserConfig,
+struct ParserCtx<'d> {
+    fallback_title: String,
+    xp: RefCell<Transposition>,
+    input_file: PathBuf,
+    diag_sink: Box<dyn DiagSink + 'd>,
+    error_seen: Cell<bool>,
 }
 
-impl<'i> Parser<'i> {
-    pub fn new(input: &'i str, src_file: &'i Path, config: ParserConfig) -> Self {
+impl<'d> ParserCtx<'d> {
+    fn new(config: ParserConfig, input_file: &Path, diag_sink: Box<dyn DiagSink + 'd>) -> Self {
+        Self {
+            fallback_title: config.fallback_title,
+            xp: RefCell::new(Transposition::new(config.notation, config.xp_disabled)),
+            input_file: input_file.to_owned(),
+            diag_sink,
+            error_seen: Cell::new(false),
+        }
+    }
+
+    fn xp(&self) -> Ref<'_, Transposition> {
+        self.xp.borrow()
+    }
+
+    fn xp_mut(&self) -> RefMut<'_, Transposition> {
+        self.xp.borrow_mut()
+    }
+
+    fn report_diag(&self, line: u32, kind: DiagKind) {
+        if kind.is_error() {
+            self.error_seen.set(true);
+        }
+
+        self.diag_sink.report(Diagnostic {
+            file: self.input_file.clone(),
+            line,
+            kind,
+        });
+    }
+
+    fn diag_result<T>(&self, value: T) -> Result<T, ()> {
+        if self.error_seen.get() {
+            Err(())
+        } else {
+            Ok(value)
+        }
+    }
+}
+
+impl<'d> fmt::Debug for ParserCtx<'d> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("ParserCtx")
+            .field("fallback_title", &self.fallback_title)
+            .field("xp", &self.xp)
+            .field("diag_sink", &format!("{:p}", self.diag_sink))
+            .field("error_seen", &self.error_seen)
+            .finish()
+    }
+}
+
+#[derive(Debug)]
+pub struct Parser<'i, 'd> {
+    input: &'i str,
+    ctx: ParserCtx<'d>,
+}
+
+impl<'i, 'd> Parser<'i, 'd> {
+    pub fn new(
+        input: &'i str,
+        input_file: &Path,
+        config: ParserConfig,
+        diagnostic_sink: impl DiagSink + 'd,
+    ) -> Self {
         Self {
             input,
-            src_file,
-            config,
+            ctx: ParserCtx::new(config, input_file, Box::new(diagnostic_sink)),
         }
     }
 
     #[cfg(test)]
     fn set_xp_disabled(&mut self, disabled: bool) {
-        self.config.xp_disabled = disabled;
+        self.ctx.xp_mut().disabled = disabled;
     }
 
     fn comrak_config() -> ComrakOptions {
@@ -1047,18 +1120,19 @@ impl<'i> Parser<'i> {
 
     /// Verify input doesn't contain disallowed control chars,
     /// which are all of them except LF, TAB, and CR.
-    fn check_control_chars(&self) -> Result<()> {
+    fn check_control_chars(&mut self) -> Result<()> {
         for (num, line) in self.input.lines().enumerate() {
             for c in line.chars() {
                 // The Lines iterator already takes care of \n and \r,
                 // only need to check for \t here:
                 if c.is_control() && c != '\t' {
-                    return Err(Error::control_char(self.src_file, num as u32 + 1, c as u32));
+                    self.ctx
+                        .report_diag(num as u32 + 1, DiagKind::ControlChar { char: c as u32 });
                 }
             }
         }
 
-        Ok(())
+        self.ctx.diag_result(())
     }
 
     /// Parsing is done in four steps:
@@ -1083,23 +1157,23 @@ impl<'i> Parser<'i> {
     ///
     /// The `Result` is one or more `Song` structures which are appended to the `songs` vec passed in.
     /// See the `book` module where the bard AST is defined.
-    pub fn parse<'s>(&mut self, songs: &'s mut Vec<Song>) -> Result<&'s mut [Song]> {
+    pub fn parse<'s>(&mut self) -> Result<Vec<Song>> {
         self.check_control_chars()?;
 
         let arena = Arena::new();
         let root = comrak::parse_document(&arena, self.input, &Self::comrak_config());
         let root_elems: Vec<_> = root.children().collect();
+        let songs_iter = SongsIter::new(&root_elems);
+        let songs = Vec::with_capacity(songs_iter.size_hint().0);
+        let songs = songs_iter.fold(songs, |mut songs, nodes| {
+            nodes.iter().for_each(|node| node.preprocess(&arena));
 
-        let orig_len = songs.len();
-        for song_nodes in SongsIter::new(&root_elems) {
-            song_nodes.iter().for_each(|node| node.preprocess(&arena));
+            let song = SongBuilder::new(nodes, &self.ctx);
+            songs.push(song.parse().finalize());
+            songs
+        });
 
-            let mut song = SongBuilder::new(song_nodes, &self.config, self.src_file);
-            song.parse()?;
-            songs.push(song.finalize());
-        }
-
-        Ok(&mut songs[orig_len..])
+        self.ctx.diag_result(songs)
     }
 }
 

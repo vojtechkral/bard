@@ -12,6 +12,9 @@ use crate::app::App;
 use crate::book::{self, Book, Song, SongRef};
 use crate::default_project::DEFAULT_PROJECT;
 use crate::music::Notation;
+use crate::parser::Diagnostic;
+use crate::parser::Parser;
+use crate::parser::ParserConfig;
 use crate::prelude::*;
 use crate::render::tex_tools::TexConfig;
 use crate::render::tex_tools::TexTools;
@@ -175,11 +178,9 @@ impl Project {
             book,
         };
 
-        project.input_paths = project
-            .collect_input_paths()
+        project
+            .load_md_files(app)
             .context("Failed to load input files")?;
-        project.book.load_files(&project.input_paths)?;
-        project.book.postprocess();
 
         Ok(project)
     }
@@ -198,18 +199,41 @@ impl Project {
         }
     }
 
-    pub fn init<P: AsRef<Path>>(project_dir: P) -> Result<()> {
-        DEFAULT_PROJECT.resolve(project_dir.as_ref()).create()
-    }
-
-    fn collect_input_paths(&mut self) -> Result<Vec<PathBuf>> {
+    fn load_md_files(&mut self, app: &App) -> Result<()> {
         let input_set = InputSet::new(&self.settings.dir_songs)?;
-
-        self.settings
+        self.input_paths = self
+            .settings
             .songs
             .iter()
             .try_fold(input_set, InputSet::apply_glob)?
-            .finalize()
+            .finalize()?;
+
+        let diag_sink = move |diag: Diagnostic| {
+            if diag.is_error() {
+                app.error_generic(diag);
+            } else {
+                app.warning(diag);
+            }
+        };
+
+        for path in self.input_paths.iter() {
+            let source = fs::read_to_string(path)?;
+            let config = ParserConfig::new(self.settings.notation);
+            let rel_path = path.strip_prefix(&self.project_dir).unwrap_or(path);
+            let mut parser = Parser::new(&source, rel_path, config, &diag_sink);
+            let songs = parser
+                .parse()
+                .map_err(|_| anyhow!("Could not parse file {:?}", path))?;
+            self.book.add_songs(songs);
+        }
+
+        self.book.postprocess();
+
+        Ok(())
+    }
+
+    pub fn init<P: AsRef<Path>>(project_dir: P) -> Result<()> {
+        DEFAULT_PROJECT.resolve(project_dir.as_ref()).create()
     }
 
     pub fn book_section(&self) -> &Metadata {

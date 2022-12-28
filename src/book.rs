@@ -1,14 +1,10 @@
 //! AST of a bard songbook
 
 use std::collections::BTreeMap;
-use std::fs;
-use std::str;
 
 use serde::Serialize;
 
 use crate::music::Notation;
-use crate::parser::{Parser, ParserConfig};
-use crate::prelude::*;
 use crate::project::Settings;
 use crate::util::{sort_lexical_by, BStr};
 
@@ -346,43 +342,15 @@ impl Book {
         }
     }
 
-    fn add_md(&mut self, input: &str, path: &Path) -> Result<()> {
-        let config = ParserConfig::new(self.notation);
-        let mut parser = Parser::new(input, path, config);
-        parser
-            .parse(&mut self.songs)
-            .with_context(|| format!("Could not parse file {:?}", path))?;
-
-        Ok(())
-    }
-
-    pub fn add_md_str(&mut self, source: &str) -> Result<()> {
-        static STR_PATH: &str = "<buffer>";
-        self.add_md(source, Path::new(&STR_PATH))
-    }
-
-    pub fn add_md_file<P: AsRef<Path>>(&mut self, path: P) -> Result<()> {
-        let path = path.as_ref();
-        let source = fs::read_to_string(path)?;
-
-        self.add_md(&source, path)
-    }
-
-    pub fn load_files<P: AsRef<Path>>(&mut self, input_paths: &[P]) -> Result<()> {
-        for path in input_paths.iter() {
-            let path = path.as_ref();
-            self.add_md_file(path)?;
-        }
-
-        self.songs.shrink_to_fit();
-
-        Ok(())
+    pub fn add_songs(&mut self, mut songs: Vec<Song>) {
+        self.songs.reserve(songs.len());
+        self.songs.extend(songs.drain(..));
     }
 
     /// Book-level postprocessing.
     /// Currently this is generation of the songs_sorted vec.
-    /// This is unrelated to song postprocessing.
     pub fn postprocess(&mut self) {
+        self.songs.shrink_to_fit();
         self.songs_sorted = self.songs.iter().enumerate().map(SongRef::new).collect();
         sort_lexical_by(&mut self.songs_sorted, |songref| songref.title.as_ref());
     }

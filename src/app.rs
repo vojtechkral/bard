@@ -205,6 +205,10 @@ impl App {
         }
     }
 
+    pub fn error_generic(&self, msg: impl Display) {
+        self.status_inner("Error", &self.color(Red), msg);
+    }
+
     pub fn subprocess_output(
         &self,
         ps_lines: &mut ProcessLines,

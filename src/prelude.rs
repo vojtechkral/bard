@@ -1,5 +1,6 @@
 //! Crate-wide definitions.
 
+pub use std::convert::{TryFrom, TryInto};
 pub use std::path::{Path, PathBuf};
 
 pub use anyhow::{anyhow, bail, Context as _, Error, Result};
