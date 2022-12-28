@@ -38,9 +38,9 @@
 \makepagestyle{songs}
 \newcommand\ThePage\{{ {{~#if output.sans_font }}\sffamily{{/if}}\thepage}}
 % Hack: Right pagination is moved right by using the margin
-\makeoddfoot{songs}{}{}{\marginnote{\hspace{2mm}$\langle$\ThePage$\rangle$}}
+\makeoddfoot{songs}{}{}{\marginnote{\hspace{2mm}\ThePage}}
 % Hack: Left pagination is moved left with a kern
-\makeevenfoot{songs}{\kern-8mm$\langle$\ThePage$\rangle$}{}{}
+\makeevenfoot{songs}{\kern-8mm\ThePage}{}{}
 % Patch cleardoublepage to not get blank pages after title & contents pages:
 \renewcommand\cleardoublepage{\clearpage}
 
