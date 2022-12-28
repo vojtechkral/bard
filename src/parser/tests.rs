@@ -8,18 +8,18 @@ use super::*;
 
 // Parsing helpers
 
-fn try_parse(input: &str, disable_xp: bool) -> Result<Vec<Song>, Vec<Diagnostic>> {
+fn try_parse(input: &str, disable_xp: bool) -> (Vec<Diagnostic>, Result<Vec<Song>, ()>) {
     let src_file = PathBuf::from("<test>");
     let sink = RefCell::new(vec![]);
     let mut parser = Parser::new(input, &src_file, ParserConfig::default(), &sink);
     parser.set_xp_disabled(disable_xp);
     let res = parser.parse();
     drop(parser);
-    res.map_err(|_| sink.into_inner())
+    (sink.into_inner(), res)
 }
 
 fn parse(input: &str, disable_xpose: bool) -> Vec<Song> {
-    try_parse(input, disable_xpose).unwrap()
+    try_parse(input, disable_xpose).1.unwrap()
 }
 
 fn parse_one(input: &str) -> Song {
@@ -581,7 +581,8 @@ Yippie yea `X`yay!
 Yippie yea `Y`yay!
 "#;
 
-    let diag = try_parse(input, false).unwrap_err();
+    let (diag, res) = try_parse(input, false);
+    res.unwrap_err();
 
     assert!(diag[0].is_error());
     assert_eq!(diag[0].file.as_os_str(), "<test>");
@@ -740,18 +741,24 @@ fn parse_html() {
 </foo>
 
 <table>
-Second paragraph of the first verse.
+Text in the first HTML block.
 </table>
 
 2. Second verse with <bar baz="1">inline html</bar>.
 
 <qux>
-Second paragraph of `C`the second verse.
+Text in the second HTML block. This one is quite long.
+Lorem ipsum dolor sit amet, consectetur adipiscing elit,
+sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
 </qux>
 Trailing text.
 "#;
 
-    parse_one(input).assert_json_eq(song(
+    let (diag, res) = try_parse(input, false);
+
+    let songs = res.unwrap();
+    assert_eq!(songs.len(), 1);
+    songs[0].assert_json_eq(song(
         "Song",
         [],
         "english",
@@ -759,13 +766,7 @@ Trailing text.
             b_html([i_tag("foo", [])]),
             ver_verse(1, [p([i_text("First verse.")])]),
             b_html([i_tag("/foo", [])]),
-            b_html([
-                i_tag("table", []),
-                i_break(),
-                i_text("Second paragraph of the first verse."),
-                i_break(),
-                i_tag("/table", []),
-            ]),
+            b_html([i_tag("table", []), i_tag("/table", [])]),
             ver_verse(
                 2,
                 [p([
@@ -776,17 +777,33 @@ Trailing text.
                     i_text("."),
                 ])],
             ),
-            b_html([
-                i_tag("qux", []),
-                i_break(),
-                i_text("Second paragraph of `C`the second verse."),
-                i_break(),
-                i_tag("/qux", []),
-                i_break(),
-                i_text("Trailing text."),
-            ]),
+            b_html([i_tag("qux", []), i_tag("/qux", [])]),
         ],
     ));
+
+    assert!(diag.iter().all(|d| d.file.as_os_str() == "<test>"));
+    let [diag1, diag2, diag3]: [_; 3] = diag.try_into().unwrap();
+    assert_eq!(diag1.line, 11);
+    assert_eq!(
+        diag1.kind,
+        DiagKind::HtmlIgnoredText {
+            text: "Text in the first HTML block.".into()
+        }
+    );
+    assert_eq!(diag2.line, 17);
+    assert_eq!(
+        diag2.kind,
+        DiagKind::HtmlIgnoredText {
+            text: "Text in the second HTML block. T (...)".into()
+        }
+    );
+    assert_eq!(diag3.line, 21);
+    assert_eq!(
+        diag3.kind,
+        DiagKind::HtmlIgnoredText {
+            text: "Trailing text.".into()
+        }
+    );
 }
 
 #[test]
@@ -814,15 +831,7 @@ fn parse_crlf_html() {
         "Song",
         [],
         "english",
-        [b_html([
-            i_tag("foo", []),
-            i_break(),
-            i_text("line1"),
-            i_break(),
-            i_text("line2"),
-            i_break(),
-            i_tag("/foo", []),
-        ])],
+        [b_html([i_tag("foo", []), i_tag("/foo", [])])],
     ));
 }
 
@@ -834,14 +843,16 @@ fn control_chars_error() {
 2. Second verse.\0
 ";
 
-    let diag = try_parse(input, false).unwrap_err();
+    let (diag, res) = try_parse(input, false);
+    res.unwrap_err();
     assert!(diag[0].is_error());
     assert_eq!(diag[0].file.as_os_str(), "<test>");
     // assert_eq!(diag[0].line, 4);  // TODO: <-
     assert_eq!(diag[0].kind, DiagKind::ControlChar { char: 0 });
 
     let input = "\u{009f}";
-    let diag = try_parse(input, false).unwrap_err();
+    let (diag, res) = try_parse(input, false);
+    res.unwrap_err();
     assert!(diag[0].is_error());
     assert_eq!(diag[0].file.as_os_str(), "<test>");
     // assert_eq!(diag[0].line, 1);  // TODO: <-

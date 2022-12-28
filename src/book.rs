@@ -344,7 +344,7 @@ impl Book {
 
     pub fn add_songs(&mut self, mut songs: Vec<Song>) {
         self.songs.reserve(songs.len());
-        self.songs.extend(songs.drain(..));
+        self.songs.append(&mut songs);
     }
 
     /// Book-level postprocessing.

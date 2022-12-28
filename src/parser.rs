@@ -36,6 +36,8 @@ pub enum DiagKind {
     ControlChar { char: u32 },
     #[error("Unrecognized chord: {chord}")]
     Transposition { chord: BStr },
+    #[error("Text in HTML block ignored: \"{text}\"\nYou may need a blank line between the HTML block and the following text.")]
+    HtmlIgnoredText { text: BStr },
 }
 
 impl DiagKind {
@@ -43,6 +45,20 @@ impl DiagKind {
         match self {
             Self::ControlChar { .. } => true,
             Self::Transposition { .. } => true,
+            Self::HtmlIgnoredText { .. } => false,
+        }
+    }
+
+    fn html_ignored_text(text: &str) -> Self {
+        const MAX_LEN: usize = 32;
+        let mut truncated = String::with_capacity(text.len().min(MAX_LEN + 5));
+        truncated.extend(text.chars().take(32));
+        if truncated.len() < text.len() {
+            truncated.push_str(" (...)");
+        }
+
+        Self::HtmlIgnoredText {
+            text: truncated.into(),
         }
     }
 }
@@ -256,14 +272,13 @@ trait NodeExt<'a> {
     fn preprocess(&'a self, arena: &'a Arena<'a>);
 
     /// Parse the html snippet using a 3rd party HTML parser,
-    /// convert HTML elements into `Inline::HtmlTag`s,
-    /// interleaved plain text to `Inline::Text`s and append to `target`.
-    fn parse_html(&self, target: &mut Vec<Inline>);
+    /// convert HTML elements into `Inline::HtmlTag`s and append to `target`.
+    fn parse_html(&self, target: &mut Vec<Inline>, ctx: &ParserCtx);
 
     /// Get the line number where in the source md this node is defined.
     /// If the node spans multiple lines, the number of the first one is returned.
     ///
-    /// The line unmber is 1-indexed (unlike in comrak).
+    /// The line unmber is 1-indexed.
     fn source_line(&self) -> u32;
 }
 
@@ -419,7 +434,7 @@ impl<'a> NodeExt<'a> for AstNode<'a> {
         }
     }
 
-    fn parse_html(&self, target: &mut Vec<Inline>) {
+    fn parse_html(&self, target: &mut Vec<Inline>, ctx: &ParserCtx) {
         let this = self.data.borrow();
         let html = match &this.value {
             NodeValue::HtmlBlock(b) => b.literal.as_slice(),
@@ -428,7 +443,7 @@ impl<'a> NodeExt<'a> for AstNode<'a> {
             _ => panic!("HTML can only be parsed from HTML nodes."),
         };
 
-        html::parse_html(html, target);
+        html::parse_html(html, target, self.source_line(), ctx);
     }
 
     fn source_line(&self) -> u32 {
@@ -644,7 +659,7 @@ impl<'a> VerseBuilder<'a> {
             }
             NodeValue::SoftBreak | NodeValue::LineBreak => Inline::Break,
             NodeValue::HtmlInline(..) => {
-                node.parse_html(target);
+                node.parse_html(target, self.ctx);
                 return;
             }
             NodeValue::Emph => Inline::Emph(self.collect_inlines(node).into()),
@@ -748,7 +763,7 @@ impl<'a> VerseBuilder<'a> {
 
             NodeValue::HtmlBlock(..) => {
                 let mut inlines = vec![];
-                node.parse_html(&mut inlines);
+                node.parse_html(&mut inlines, self.ctx);
                 if !inlines.is_empty() {
                     self.paragraphs.push(inlines.into());
                 }
@@ -897,7 +912,7 @@ impl<'a> SongBuilder<'a> {
 
                 NodeValue::HtmlBlock(..) => {
                     let mut inlines = vec![];
-                    node.parse_html(&mut inlines);
+                    node.parse_html(&mut inlines, self.ctx);
                     if !inlines.is_empty() {
                         self.blocks.push(Block::HtmlBlock(inlines.into()));
                     }
@@ -1157,7 +1172,8 @@ impl<'i, 'd> Parser<'i, 'd> {
     ///
     /// The `Result` is one or more `Song` structures which are appended to the `songs` vec passed in.
     /// See the `book` module where the bard AST is defined.
-    pub fn parse<'s>(&mut self) -> Result<Vec<Song>> {
+    #[allow(clippy::result_unit_err)]
+    pub fn parse(&mut self) -> Result<Vec<Song>> {
         self.check_control_chars()?;
 
         let arena = Arena::new();

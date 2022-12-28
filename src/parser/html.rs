@@ -12,36 +12,27 @@ use html5ever::tokenizer::{
     Tag, TagKind, Token, TokenSink, TokenSinkResult, Tokenizer, TokenizerOpts, TokenizerResult,
 };
 
-use super::utf8;
+use super::{utf8, DiagKind, ParserCtx};
 use crate::book::{HtmlTag, Inline};
 use crate::util::BStr;
 
-/// An intermediate inline, like `Inline`,
-/// but only subset that can be contained in HTML blocks
-/// and growable (for appending from tokenizer).
-enum SemiInline {
-    Text(String),
-    Break,
-    HtmlTag(HtmlTag),
+struct Sink<'c> {
+    inlines: Vec<HtmlTag>,
+    start_line: u32,
+    text_buffer: String,
+    text_start_line: u32,
+    ctx: &'c ParserCtx<'c>,
 }
 
-impl From<SemiInline> for Inline {
-    fn from(semi: SemiInline) -> Self {
-        match semi {
-            SemiInline::Text(s) => Inline::text(s),
-            SemiInline::Break => Inline::Break,
-            SemiInline::HtmlTag(t) => Inline::HtmlTag(t),
+impl<'c> Sink<'c> {
+    fn new(start_line: u32, ctx: &'c ParserCtx<'c>) -> Self {
+        Self {
+            inlines: vec![],
+            start_line,
+            text_buffer: String::new(),
+            text_start_line: 0,
+            ctx,
         }
-    }
-}
-
-struct Sink {
-    inlines: Vec<SemiInline>,
-}
-
-impl Sink {
-    fn new() -> Self {
-        Self { inlines: vec![] }
     }
 
     fn append_tag(&mut self, tag: Tag) {
@@ -63,54 +54,53 @@ impl Sink {
             .collect();
 
         let tag = HtmlTag { name, attrs };
-        self.inlines.push(SemiInline::HtmlTag(tag));
+        self.inlines.push(tag);
     }
 
-    fn append_text(&mut self, text: &str) {
-        // Nb. The HTML parse doesn't emit \r (even if in input).
-        // This is covered by a parser test.
+    fn append_text(&mut self, text: &str, line_num: u32) {
+        // Text within HTML blocks is ignored, but it is accumulated here
+        // so that a warning can be emitted.
 
-        let mut split = text.split('\n');
-
-        let first = split.next().unwrap(); // There will always be at least the prefix
-        if !first.is_empty() {
-            if let Some(SemiInline::Text(s)) = self.inlines.last_mut() {
-                s.push_str(first);
-            } else {
-                self.inlines.push(SemiInline::Text(first.to_string()));
-            }
+        let text = text.trim();
+        if text.is_empty() {
+            return;
         }
 
-        for s in split {
-            self.inlines.push(SemiInline::Break);
-            if !s.is_empty() {
-                self.inlines.push(SemiInline::Text(s.to_string()));
-            }
+        if self.text_buffer.is_empty() {
+            self.text_start_line = line_num;
         }
+        self.text_buffer.push_str(text);
     }
 
-    fn finalize(self, target: &mut Vec<Inline>) {
-        let Self { mut inlines } = self;
-
-        // There's typically a trailing break returned by the parse,
-        // remove that:
-        if let Some(SemiInline::Break) = inlines.last() {
-            inlines.pop();
+    fn ignored_text_warn(&mut self) {
+        if self.text_buffer.is_empty() {
+            return;
         }
 
-        for semi in inlines.drain(..) {
-            target.push(semi.into())
-        }
+        let line = self.start_line + self.text_start_line - 1; // -1 because both are 1-indexed
+        self.ctx
+            .report_diag(line, DiagKind::html_ignored_text(&self.text_buffer));
+        self.text_buffer.clear();
+    }
+
+    fn finalize(mut self, target: &mut Vec<Inline>) {
+        self.ignored_text_warn();
+        target.reserve(self.inlines.len());
+        target.extend(self.inlines.drain(..).map(Inline::HtmlTag));
     }
 }
 
-impl TokenSink for Sink {
+impl<'d> TokenSink for Sink<'d> {
     type Handle = ();
 
-    fn process_token(&mut self, token: Token, _line_num: u64) -> TokenSinkResult<Self::Handle> {
+    fn process_token(&mut self, token: Token, line_num: u64) -> TokenSinkResult<Self::Handle> {
+        if !matches!(&token, Token::CharacterTokens(_)) {
+            self.ignored_text_warn();
+        }
+
         match token {
             Token::TagToken(tag) => self.append_tag(tag),
-            Token::CharacterTokens(s) => self.append_text(&s),
+            Token::CharacterTokens(s) => self.append_text(&s, line_num as _),
 
             Token::NullCharacterToken => {
                 panic!("Control characters should not have been left in input.")
@@ -127,8 +117,8 @@ impl TokenSink for Sink {
     }
 }
 
-pub fn parse_html(html: &[u8], target: &mut Vec<Inline>) {
-    let sink = Sink::new();
+pub(super) fn parse_html(html: &[u8], target: &mut Vec<Inline>, start_line: u32, ctx: &ParserCtx) {
+    let sink = Sink::new(start_line, ctx);
     let mut tokenizer = Tokenizer::new(sink, TokenizerOpts::default());
     let mut queue = BufferQueue::new();
 

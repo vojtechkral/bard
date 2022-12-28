@@ -220,7 +220,7 @@ impl Project {
             let source = fs::read_to_string(path)?;
             let config = ParserConfig::new(self.settings.notation);
             let rel_path = path.strip_prefix(&self.project_dir).unwrap_or(path);
-            let mut parser = Parser::new(&source, rel_path, config, &diag_sink);
+            let mut parser = Parser::new(&source, rel_path, config, diag_sink);
             let songs = parser
                 .parse()
                 .map_err(|_| anyhow!("Could not parse file {:?}", path))?;
