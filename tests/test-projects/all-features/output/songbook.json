@@ -351,6 +351,23 @@
           ]
         },
         {
+          "type": "b-html-block",
+          "inlines": [
+            {
+              "type": "i-tag",
+              "name": "foo",
+              "attrs": {}
+            },
+            {
+              "type": "i-tag",
+              "name": "bar",
+              "attrs": {
+                "baz": "1"
+              }
+            }
+          ]
+        },
+        {
           "type": "b-verse",
           "label": {
             "chorus": 1
@@ -606,6 +623,18 @@
                   }
                 ]
               }
+            ],
+            [
+              {
+                "type": "i-tag",
+                "name": "/foo",
+                "attrs": {}
+              },
+              {
+                "type": "i-tag",
+                "name": "/bar",
+                "attrs": {}
+              }
             ]
           ]
         },
@@ -743,6 +772,10 @@
               }
             ]
           ]
+        },
+        {
+          "type": "b-pre",
+          "text": "Code block.\nCode block.\nCode block.\n"
         }
       ],
       "notation": "german"

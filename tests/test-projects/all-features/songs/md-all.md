@@ -20,10 +20,15 @@ _‘Tis you, **’tis `C_` you must** `Dm`go and `G7`I must `C`bide._
 !+1
 !nashville
 
+<foo>
+<bar baz="1">
+
 > `G7`But come ye `Am`back when `F`summer’s `G7`in the `C`meadow
 Or when the `Am`valley’s `F`hushed and `Em`white with `D7`snow `G7`
 ‘Tis I’ll be `C`here in `F_` sunshine or in `C`sha`Am`dow.
 Oh Danny `C`Boy, oh Danny `F`Boy, I `G7`love you `C`so.
+
+</foo></bar>
 
 ### Second verse
 \
@@ -45,3 +50,9 @@ If you’ll not fail to tell me that you love me
 I’ll sleep in peace until you come to me.
 
 ![hills](hills.jpg "center")
+
+```
+Code block.
+Code block.
+Code block.
+```

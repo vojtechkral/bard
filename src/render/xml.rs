@@ -132,7 +132,7 @@ xml_write!(enum Block |w| {
     BulletList(l) => { w.write_value(l)?; },
     HorizontalLine => { w.tag("hr").finish()?; },
     Pre { text } => { w.tag("pre").content()?.text(text)?.finish()?; },
-    HtmlBlock(i) => { w.tag("i").content()?.many(i)?.finish()?; },
+    HtmlBlock(i) => { w.tag("html-block").content()?.many(i)?.finish()?; },
 });
 
 xml_write!(struct Song {

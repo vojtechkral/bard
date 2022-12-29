@@ -77,6 +77,12 @@
           </chord>
         </p>
       </verse>
+      <html-block>
+        <tag name="foo"/>
+        <tag name="bar">
+          <baz>1</baz>
+        </tag>
+      </html-block>
       <verse label="1" label-type="chorus">
         <p>
           <chord backticks="1" baseline="false" chord="6b7">But come ye </chord>
@@ -99,6 +105,10 @@
           <chord backticks="1" baseline="false" chord="6b7">love you </chord>
           <chord backticks="1" baseline="false" chord="1#">so.</chord>
         </p>
+        <p>
+          <tag name="/foo"/>
+          <tag name="/bar"/>
+        </p>
       </verse>
       <verse label="Second verse" label-type="custom">
         <p>
@@ -119,6 +129,10 @@
           <image class="center" path="hills.jpg" title="hills"/>
         </p>
       </verse>
+      <pre>Code block.
+Code block.
+Code block.
+</pre>
     </song>
     <song notation="german" title="Wildcard 1">
       <verse label-type="chorus">
