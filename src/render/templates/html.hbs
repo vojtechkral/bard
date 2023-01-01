@@ -11,11 +11,11 @@
     <style type="text/css">
       body {
           {{#if output.sans_font}}
-            font-family: 'NotoSans';
+            font-family: 'NotoSans', sans;
             line-height: 1.25;
             font-size: 1.05em;
           {{else}}
-            font-family: 'DroidSerif';
+            font-family: 'DroidSerif', serif;
           {{/if}}
 
           /* Background pattern from Toptal Subtle Patterns
@@ -27,6 +27,7 @@
         border: 3px solid #eaeaea;
         border-bottom: none;
         width: max-content;
+        min-width: 35em;
         margin: 2em auto 0 auto;
         background-color: white;
       }
@@ -120,7 +121,7 @@
       }
 
       tr.chord td {
-        font-family: 'NotoSans';
+        font-family: 'NotoSans', sans;
         font-size: 85%;
         color: red;
         position: relative;

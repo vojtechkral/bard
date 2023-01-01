@@ -11,12 +11,10 @@ notation = "english"
 
 [[output]]
 file = "songbook.pdf"
-sans_font = false
 dpi = 144
 
 [[output]]
 file = "songbook.html"
-sans_font = false
 
 [[output]]
 file = "songbook.hovorka.xml"

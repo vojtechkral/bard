@@ -8,11 +8,9 @@ notation = "english"
 
 [[output]]
 file = "songbook.pdf"
-sans_font = false
 
 [[output]]
 file = "songbook.html"
-sans_font = false
 
 [book]
 title = "My Songbook"
