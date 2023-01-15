@@ -67,6 +67,22 @@ impl ByteSliceExt for Vec<u8> {
     }
 }
 
+/// Apply a function to anything, like `let` in Kotlin.
+pub trait Apply: Sized {
+    fn apply<F, R>(self, f: F) -> R
+    where
+        F: FnOnce(Self) -> R;
+}
+
+impl<T> Apply for T {
+    fn apply<F, R>(self, f: F) -> R
+    where
+        F: FnOnce(Self) -> R,
+    {
+        f(self)
+    }
+}
+
 /// ExitStatus extension
 pub trait ExitStatusExt {
     fn into_result(self) -> Result<()>;

@@ -23,7 +23,7 @@ pub struct StdioOpts {
 }
 
 impl StdioOpts {
-    fn verbosity(&self) -> u32 {
+    fn verbosity(&self) -> u8 {
         match (self.quiet, self.verbose) {
             (false, false) => 1,
             (false, true) => 2,
@@ -44,9 +44,10 @@ pub struct MakeOpts {
     #[arg(
         short = 'k',
         long,
-        help = "Keep intermediate output files in the output directory"
+        help = "Keep the TeX file when generating PDF. Use twice to keep TeX build directory as well.",
+        action = clap::ArgAction::Count,
     )]
-    pub keep: bool,
+    pub keep: u8,
     #[clap(flatten)]
     pub stdio: StdioOpts,
 }
@@ -60,16 +61,29 @@ impl From<StdioOpts> for MakeOpts {
     }
 }
 
+pub mod verbosity {
+    pub const QUIET: u8 = 0;
+    pub const NORMAL: u8 = 1;
+    pub const VERBOSE: u8 = 2;
+}
+
+pub mod keeplevel {
+    pub const NONE: u8 = 0;
+    pub const TEX_ONLY: u8 = 1;
+    pub const ALL: u8 = 2;
+}
+
 /// Runtime config and stdio output fns.
 #[derive(Debug)]
 pub struct App {
     post_process: bool,
-    keep_interm: bool,
+    /// See `keeplevel` for levels.
+    keep_interm: u8,
 
     // stdio stuff
     term: Term,
-    /// There are three levels: `0` = quiet, `1` = normal, `2` = verbose.
-    verbosity: u32,
+    /// See `verbosity` for levels.
+    verbosity: u8,
     test_mode: bool,
 
     /// bard self exe binary path
@@ -96,7 +110,7 @@ impl App {
 
         Self {
             post_process,
-            keep_interm: true,
+            keep_interm: keeplevel::ALL,
             term: Term::stderr(),
             verbosity: 2,
             test_mode: true,
@@ -117,11 +131,11 @@ impl App {
         self.post_process
     }
 
-    pub fn keep_interm(&self) -> bool {
+    pub fn keep_interm(&self) -> u8 {
         self.keep_interm
     }
 
-    pub fn verbosity(&self) -> u32 {
+    pub fn verbosity(&self) -> u8 {
         self.verbosity
     }
 

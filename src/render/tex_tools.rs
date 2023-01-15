@@ -11,7 +11,7 @@ use serde::de::Error as _;
 use serde::Deserialize;
 use strum::{Display, EnumString, EnumVariantNames, VariantNames as _};
 
-use crate::app::App;
+use crate::app::{keeplevel, verbosity, App};
 use crate::prelude::*;
 use crate::util::{ExitStatusExt, ProcessLines, StrExt, TempPath};
 use crate::util_cmd;
@@ -249,7 +249,7 @@ fn run_program(
     status: &str,
 ) -> Result<()> {
     let program = program.as_ref();
-    if app.verbosity() >= 2 {
+    if app.verbosity() >= verbosity::VERBOSE {
         app.status_bare("Command", program.to_string_lossy());
         for arg in args.iter() {
             eprint!(" {}", arg.as_ref().to_string_lossy());
@@ -275,7 +275,7 @@ fn run_program(
         .wait()
         .with_context(|| format!("Error running program {:?}", program))?;
 
-    if !status.success() && app.verbosity() == 1 {
+    if !status.success() && app.verbosity() == verbosity::NORMAL {
         app.status_bare("Command", program.to_string_lossy());
         for arg in args.iter() {
             eprint!(" {}", arg.as_ref().to_string_lossy());
@@ -305,13 +305,13 @@ impl<'a> TexRenderJob<'a> {
     pub fn new(
         tex_file: PathBuf,
         pdf_path: &'a Path,
-        keep: bool,
+        keep: u8,
         toc_sort_key: Option<&'a str>,
         reruns: u32,
     ) -> Result<Self> {
         Ok(Self {
-            tex_file: TempPath::new_file(tex_file, !keep),
-            tmp_dir: TempPath::make_temp_dir(pdf_path, !keep)?,
+            tex_file: TempPath::new_file(tex_file, keep < keeplevel::TEX_ONLY),
+            tmp_dir: TempPath::make_temp_dir(pdf_path, keep < keeplevel::ALL)?,
             pdf_file: pdf_path,
             toc_sort_key,
             reruns,

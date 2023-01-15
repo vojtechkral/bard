@@ -9,6 +9,7 @@ use std::process::Command;
 use std::process::Stdio;
 
 use bard::app::App;
+use bard::util::Apply;
 use bard::util::ExitStatusExt;
 use fs_extra::dir::{self, CopyOptions};
 
@@ -177,6 +178,7 @@ pub struct ExeBuilder {
     pub work_dir: PathBuf,
     bin_dir: PathBuf,
     bard_exe: PathBuf,
+    custom_path: bool,
     env: HashMap<String, String>,
 }
 
@@ -200,27 +202,30 @@ impl ExeBuilder {
             work_dir,
             bin_dir,
             bard_exe: Self::bard_exe(),
+            custom_path: false,
             env: HashMap::new(),
         })
     }
 
-    pub fn with_xelatex_bin(self) -> Self {
+    pub fn with_xelatex_bin(mut self) -> Self {
         let mock_exe = Self::tex_mock_exe();
         let mut target = self.bin_dir.join("xelatex");
         if let Some(ext) = mock_exe.extension() {
             target.set_extension(ext);
         }
         fs::copy(&mock_exe, &target).unwrap();
+        self.custom_path = true;
         self
     }
 
-    pub fn with_tectonic_bin(self) -> Self {
+    pub fn with_tectonic_bin(mut self) -> Self {
         let mock_exe = Self::tex_mock_exe();
         let mut target = self.bin_dir.join("tectonic");
         if let Some(ext) = mock_exe.extension() {
             target.set_extension(ext);
         }
         fs::copy(&mock_exe, &target).unwrap();
+        self.custom_path = true;
         self
     }
 
@@ -231,8 +236,13 @@ impl ExeBuilder {
 
     pub fn run(self, args: &[&str]) -> Result<Self> {
         Command::new(&self.bard_exe)
-            .env_clear()
-            .env("PATH", &self.bin_dir)
+            .apply(|mut cmd| {
+                dbg!(self.custom_path);
+                if self.custom_path {
+                    cmd.env_clear().env("PATH", &self.bin_dir);
+                }
+                cmd
+            })
             .envs(self.env.iter())
             .args(args)
             .current_dir(&self.work_dir)
@@ -249,6 +259,25 @@ impl ExeBuilder {
 
     pub fn out_dir(&self) -> PathBuf {
         self.work_dir.join("output")
+    }
+
+    pub fn output(&self, filename: &str) -> PathBuf {
+        self.out_dir().join(filename)
+    }
+
+    pub fn find_tmp_dir(&self, output: &str) -> Option<PathBuf> {
+        let prefix = format!("{}.", output);
+        self.out_dir()
+            .read_dir()
+            .unwrap()
+            .map(|entry| entry.unwrap().path())
+            .find(|p| {
+                p.file_name()
+                    .unwrap()
+                    .to_str()
+                    .map(|name| name.starts_with(&prefix))
+                    == Some(true)
+            })
     }
 }
 
