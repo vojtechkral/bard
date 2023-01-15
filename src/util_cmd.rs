@@ -10,13 +10,11 @@ use crate::util::sort_lexical_by;
 
 #[derive(clap::Parser)]
 pub enum UtilCmd {
-    #[command(about = "Alphabetically sorts lines of a file in-place")]
+    /// Alphabetically sorts lines of a file in-place
     SortLines {
-        #[arg(
-            help = "Regular expression that extracts the sort key from each line via a capture group"
-        )]
+        /// Regular expression that extracts the sort key from each line via a capture group
         regex: String,
-        #[arg(help = "The file whose lines to sort, in-place")]
+        /// The file whose lines to sort, in-place
         file: String,
     },
 }

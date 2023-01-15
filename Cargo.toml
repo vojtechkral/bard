@@ -23,7 +23,7 @@ path = "src/main.rs"
 [dependencies]
 anyhow = "1.0.26"
 atty = "0.2.14"
-clap = { version = "4.0.2", default_features = false, features = ["std", "help", "usage", "error-context", "suggestions", "derive"] }
+clap = { version = "~4.0.2", default_features = false, features = ["std", "help", "usage", "error-context", "suggestions", "derive"] } # 4.0 due to MSRV
 comrak = { version = "0.15.0", default_features = false }
 console = "0.15.2"
 ctrlc = "3.1.3"

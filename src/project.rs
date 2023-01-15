@@ -73,7 +73,6 @@ where
 
 #[derive(Deserialize, Debug)]
 pub struct Settings {
-    // TODO: version
     songs: SongsGlobs,
 
     #[serde(default = "dir_songs", deserialize_with = "pathbuf_relative_only")]
@@ -92,7 +91,7 @@ pub struct Settings {
 }
 
 impl Settings {
-    fn version() -> u32 {
+    pub fn version() -> u32 {
         let major = env!("CARGO_PKG_VERSION_MAJOR");
         major.parse().unwrap()
     }

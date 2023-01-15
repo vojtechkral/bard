@@ -21,19 +21,21 @@ impl<T> TectonicResultExt<T> for Result<T, tectonic::Error> {
     }
 }
 
+/// Embedded Tectonic interface, used internally by bard when rendering PDFs.
+/// This interface is private and NOT recommended for general usage.
 #[derive(clap::Parser)]
-#[clap(
-    about = "Embedded Tectonic interface, used internally by bard when rendering PDFs.
-This interface is private and NOT recommended for general usage."
-)]
 pub struct Tectonic {
-    #[arg(short, default_value_t = true, help = "Keep intermediate files")]
+    /// Keep intermediate files
+    #[arg(short, default_value_t = true)]
     keep: bool,
-    #[arg(short, default_value_t = 0, help = "Max number of re-runs")]
+    /// Max number of re-runs
+    #[arg(short, default_value_t = 0)]
     reruns: u32,
-    #[arg(short, help = "Output directory path")]
+    /// Output directory path
+    #[arg(short)]
     out_dir: Option<PathBuf>,
 
+    /// Input TeX file
     input: PathBuf,
 }
 

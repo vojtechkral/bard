@@ -9,16 +9,16 @@ use console::{Color, Style, Term};
 use crate::prelude::*;
 use crate::util::ProcessLines;
 
-#[derive(clap::Parser, Clone, Default, Debug)]
+#[derive(clap::Parser, Clone, Default)]
 pub struct StdioOpts {
-    #[arg(short, long, help = "Be more verbose")]
+    /// Be more verbose
+    #[arg(short, long)]
     pub verbose: bool,
-    #[arg(short, long, help = "Suppress output")]
+    /// Suppress output
+    #[arg(short, long)]
     pub quiet: bool,
-    #[arg(
-        long,
-        help = "Whether to use colored output (auto-detected by default)"
-    )]
+    /// Whether to use colored output (auto-detected by default)
+    #[arg(long)]
     pub color: Option<bool>,
 }
 
@@ -33,20 +33,13 @@ impl StdioOpts {
     }
 }
 
-#[derive(clap::Parser, Clone, Default, Debug)]
+#[derive(clap::Parser, Clone, Default)]
 pub struct MakeOpts {
-    #[arg(
-        short = 'p',
-        long,
-        help = "Don't run post-processing steps, ie. TeX and scripts, if any"
-    )]
+    /// Don't run post-processing steps, ie. TeX and scripts, if any
+    #[arg(short = 'p', long)]
     pub no_postprocess: bool,
-    #[arg(
-        short = 'k',
-        long,
-        help = "Keep the TeX file when generating PDF. Use twice to keep TeX build directory as well.",
-        action = clap::ArgAction::Count,
-    )]
+    /// Keep the TeX file when generating PDF. Use twice to keep TeX build directory as well.
+    #[arg(short = 'k', long, action = clap::ArgAction::Count)]
     pub keep: u8,
     #[clap(flatten)]
     pub stdio: StdioOpts,

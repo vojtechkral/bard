@@ -11,7 +11,7 @@ use std::env;
 use std::ffi::OsString;
 
 use app::{App, MakeOpts, StdioOpts};
-use clap::Parser as _;
+use clap::{CommandFactory as _, Parser as _};
 use serde::Serialize;
 
 pub mod app;
@@ -29,17 +29,17 @@ pub mod util_cmd;
 pub mod watch;
 
 use crate::prelude::*;
-use crate::project::Project;
+use crate::project::{Project, Settings};
 use crate::util_cmd::UtilCmd;
 use crate::watch::{Watch, WatchEvent};
 
 #[derive(Serialize, Clone, Debug)]
 pub struct ProgramMeta {
-    name: &'static str,
-    version: &'static str,
-    description: &'static str,
-    homepage: &'static str,
-    authors: &'static str,
+    pub name: &'static str,
+    pub version: &'static str,
+    pub description: &'static str,
+    pub homepage: &'static str,
+    pub authors: &'static str,
 }
 
 pub const PROGRAM_META: ProgramMeta = ProgramMeta {
@@ -54,26 +54,59 @@ pub const PROGRAM_META: ProgramMeta = ProgramMeta {
 #[command(
     version = env!("CARGO_PKG_VERSION"),
     about = "bard: A Markdown-based songbook compiler",
+    help_expected = true,
+    disable_version_flag = true,
 )]
-enum Cli {
-    #[command(about = "Initialize a new bard project skeleton in this directory")]
+struct Cli {
+    #[command(subcommand)]
+    cmd: Option<Command>,
+
+    /// Print program version in semver format
+    #[arg(short = 'V', long, conflicts_with = "version_settings")]
+    pub version: bool,
+    /// Print project settings file version in semver format
+    #[arg(long, conflicts_with = "version_ast")]
+    pub version_settings: bool,
+    /// Print project template AST version in semver format
+    #[arg(long, conflicts_with = "version")]
+    pub version_ast: bool,
+}
+
+impl Cli {
+    fn print_version(&self) -> bool {
+        if self.version {
+            println!("{}", PROGRAM_META.version);
+        }
+        if self.version_settings {
+            println!("{}", Settings::version());
+        }
+        if self.version_ast {
+            println!("{}", book::version::current());
+        }
+
+        self.version || self.version_settings || self.version_ast
+    }
+}
+
+#[derive(clap::Parser)]
+enum Command {
+    /// Initialize a new bard project skeleton in this directory
     Init {
         #[clap(flatten)]
         opts: StdioOpts,
     },
-    #[command(about = "Build the current project")]
+    /// Build the current project"
     Make {
         #[clap(flatten)]
         opts: MakeOpts,
     },
-    #[command(
-        about = "Like make, but keep runing and rebuild each time there's a change in project files"
-    )]
+    /// Like make, but keep runing and rebuild each time there's a change in project files
     Watch {
         #[clap(flatten)]
         opts: MakeOpts,
     },
-    #[command(subcommand, about = "Commandline utilities for postprocessing")]
+    /// Commandline utilities for postprocessing
+    #[command(subcommand)]
     Util(UtilCmd),
 
     #[cfg(feature = "tectonic")]
@@ -81,9 +114,9 @@ enum Cli {
     Tectonic(tectonic_embed::Tectonic),
 }
 
-impl Cli {
+impl Command {
     fn run(self, app: &App) -> Result<()> {
-        use Cli::*;
+        use Command::*;
 
         match self {
             Init { .. } => bard_init(app),
@@ -164,17 +197,28 @@ pub fn bard_watch(app: &App) -> Result<()> {
 
 pub fn bard(args: &[OsString]) -> i32 {
     let cli = Cli::parse_from(args);
-    let app = match &cli {
-        Cli::Init { opts } => App::new(&opts.clone().into()),
-        Cli::Make { opts } => App::new(opts),
-        Cli::Watch { opts } => App::new(opts),
-        Cli::Util(_) => App::new(&Default::default()),
+    if cli.print_version() {
+        return 0;
+    }
 
-        #[cfg(feature = "tectonic")]
-        Cli::Tectonic(_) => App::new_as_tectonic(),
+    let cmd = if let Some(cmd) = cli.cmd {
+        cmd
+    } else {
+        let _ = Cli::command().print_help();
+        return 0;
     };
 
-    if let Err(err) = cli.run(&app) {
+    let app = match &cmd {
+        Command::Init { opts } => App::new(&opts.clone().into()),
+        Command::Make { opts } => App::new(opts),
+        Command::Watch { opts } => App::new(opts),
+        Command::Util(_) => App::new(&Default::default()),
+
+        #[cfg(feature = "tectonic")]
+        Command::Tectonic(_) => App::new_as_tectonic(),
+    };
+
+    if let Err(err) = cmd.run(&app) {
         app.error(err);
         1
     } else {
