@@ -174,6 +174,10 @@ impl Builder {
     }
 }
 
+pub fn bard_exe() -> PathBuf {
+    env!("CARGO_BIN_EXE_bard").into()
+}
+
 pub struct ExeBuilder {
     pub work_dir: PathBuf,
     bin_dir: PathBuf,
@@ -183,10 +187,6 @@ pub struct ExeBuilder {
 }
 
 impl ExeBuilder {
-    pub fn bard_exe() -> PathBuf {
-        env!("CARGO_BIN_EXE_bard").into()
-    }
-
     pub fn tex_mock_exe() -> PathBuf {
         env!("CARGO_BIN_EXE_tex-mock").into()
     }
@@ -201,7 +201,7 @@ impl ExeBuilder {
         Ok(Self {
             work_dir,
             bin_dir,
-            bard_exe: Self::bard_exe(),
+            bard_exe: bard_exe(),
             custom_path: false,
             env: HashMap::new(),
         })
@@ -226,6 +226,11 @@ impl ExeBuilder {
         }
         fs::copy(&mock_exe, &target).unwrap();
         self.custom_path = true;
+        self
+    }
+
+    pub fn custom_path(mut self, custom_path: bool) -> Self {
+        self.custom_path = custom_path;
         self
     }
 

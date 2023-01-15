@@ -7,6 +7,7 @@
 mod util;
 pub use util::*;
 
+#[cfg(not(feature = "tectonic"))]
 #[test]
 fn tex_tools_default_xelatex() {
     // Use xelatex when both xelatex and tectonic are available
@@ -20,6 +21,7 @@ fn tex_tools_default_xelatex() {
     assert_first_line_contains(builder.out_dir().join("songbook.pdf"), "xelatex");
 }
 
+#[cfg(not(feature = "tectonic"))]
 #[test]
 fn tex_tools_tectonic() {
     // Use tectonic when it's the only one available
@@ -69,4 +71,16 @@ fn tex_tools_none() {
         .unwrap();
 
     assert!(builder.out_dir().join("songbook.tex").exists());
+}
+
+#[cfg(feature = "tectonic")]
+#[test]
+fn tex_tools_tectonic_embed() {
+    let builder = ExeBuilder::init("tex-tools-tectonic-embed")
+        .unwrap()
+        .custom_path(true) // ie. PATH should point to an empty dir
+        .run(&["make", "-kv"])
+        .unwrap();
+
+    // assert!(builder.out_dir().join("songbook.pdf").exists());
 }

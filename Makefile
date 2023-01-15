@@ -27,7 +27,7 @@ test:
 	cargo nextest run --run-ignored all
 
 .PHONY: check
-check: test msrv audit lint
+check: test test-tectonic msrv audit lint
 
 .PHONY: examples
 examples:
@@ -44,16 +44,21 @@ examples:
 
 VCPKG_REV = 6f7ffeb18f99796233b958aaaf14ec7bd4fb64b2
 
-target/vcpkg/vcpkg:
-	git clone https://github.com/Microsoft/vcpkg.git -- target/vcpkg
-	cd target/vcpkg && git checkout $(VCPKG_REV)
-	VCPKG_DISABLE_METRICS=1 target/vcpkg/bootstrap-vcpkg.sh
-	echo 'set(VCPKG_BUILD_TYPE release)'
+target-tectonic/vcpkg/vcpkg:
+	git clone https://github.com/Microsoft/vcpkg.git -- target-tectonic/vcpkg
+	cd target-tectonic/vcpkg && git checkout $(VCPKG_REV)
+	VCPKG_DISABLE_METRICS=1 target-tectonic/vcpkg/bootstrap-vcpkg.sh
+	echo 'set(VCPKG_BUILD_TYPE release)' >> target-tectonic/vcpkg/triplets/x64-linux.cmake
 
 .PHONY: with-tectonic-linux
-with-tectonic-linux: target/vcpkg/vcpkg
-	target/vcpkg/vcpkg install fontconfig freetype 'harfbuzz[icu,graphite2]'
-	VCPKG_ROOT="$(PWD)/target/vcpkg" TECTONIC_DEP_BACKEND=vcpkg cargo build --features tectonic
+with-tectonic-linux: target-tectonic/vcpkg/vcpkg
+	target-tectonic/vcpkg/vcpkg install fontconfig freetype 'harfbuzz[icu,graphite2]'
+	CARGO_TARGET_DIR=target-tectonic VCPKG_ROOT="$(PWD)/target-tectonic/vcpkg" TECTONIC_DEP_BACKEND=vcpkg cargo build --features tectonic
+
+.PHONY: with-tectonic-linux
+test-tectonic: target-tectonic/vcpkg/vcpkg
+	target-tectonic/vcpkg/vcpkg install fontconfig freetype 'harfbuzz[icu,graphite2]'
+	CARGO_TARGET_DIR=target-tectonic VCPKG_ROOT="$(PWD)/target-tectonic/vcpkg" TECTONIC_DEP_BACKEND=vcpkg cargo nextest run --run-ignored all --features tectonic
 
 target/vcpkg/vcpkg.exe:
 	git clone https://github.com/Microsoft/vcpkg.git -- target/vcpkg
