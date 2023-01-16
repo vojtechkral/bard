@@ -24,6 +24,7 @@ path = "src/main.rs"
 anyhow = "1.0.26"
 atty = "0.2.14"
 clap = { version = "~4.0.2", default_features = false, features = ["std", "help", "usage", "error-context", "suggestions", "derive"] } # 4.0 due to MSRV
+clap_lex = "=0.3.0" # Due to MSRV of ^
 comrak = { version = "0.15.0", default_features = false }
 console = "0.15.2"
 ctrlc = "3.1.3"
