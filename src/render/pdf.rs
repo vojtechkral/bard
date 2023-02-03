@@ -25,6 +25,7 @@ fn latex_escape(input: &str, pre_spaces: bool) -> String {
             '~' => res.push_str("{\\textasciitilde}"),
             '^' => res.push_str("{\\textasciicircum}"),
             '\\' => res.push_str("{\\textbackslash}"),
+            '"' => res.push_str("''"), // the " character may combine with other characters like '> to make » or with } which causes errors
             c => res.push(c),
         }
     }
