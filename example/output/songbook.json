@@ -182,7 +182,7 @@
               },
               {
                 "type": "i-text",
-                "text": "‘Tis you, ’tis "
+                "text": "Tis you, tis "
               },
               {
                 "type": "i-chord",
@@ -383,7 +383,7 @@
               },
               {
                 "type": "i-text",
-                "text": "‘Tis I’ll be "
+                "text": "Tis I’ll be "
               },
               {
                 "type": "i-chord",
@@ -529,7 +529,7 @@
               },
               {
                 "type": "i-text",
-                "text": "And kneel and say an ”Ave” there for me."
+                "text": "And kneel and say an “Ave” there for me."
               }
             ]
           ]
@@ -638,7 +638,7 @@
                 "inlines": [
                   {
                     "type": "i-text",
-                    "text": "I'd step my foot on a steamboat"
+                    "text": "I’d step my foot on a steamboat"
                   }
                 ]
               },
@@ -869,7 +869,7 @@
                 "inlines": [
                   {
                     "type": "i-text",
-                    "text": "I was a goin' over"
+                    "text": "I was a goin’ over"
                   }
                 ]
               },
@@ -981,7 +981,7 @@
                 "inlines": [
                   {
                     "type": "i-text",
-                    "text": " \"Stand and deliver,"
+                    "text": " “Stand and deliver,"
                   }
                 ]
               },
@@ -1001,7 +1001,7 @@
                 "inlines": [
                   {
                     "type": "i-text",
-                    "text": "you are a bold deceiver!\""
+                    "text": "you are a bold deceiver!”"
                   }
                 ]
               }
@@ -1069,7 +1069,7 @@
               },
               {
                 "type": "i-text",
-                "text": "There's "
+                "text": "There’s "
               },
               {
                 "type": "i-chord",
@@ -1214,7 +1214,7 @@
               },
               {
                 "type": "i-text",
-                "text": "And for sure 't was no wonder"
+                "text": "And for sure ’t was no wonder"
               },
               {
                 "type": "i-break"
@@ -1264,7 +1264,7 @@
             [
               {
                 "type": "i-text",
-                "text": "'Twas early in the morning"
+                "text": "‘Twas early in the morning"
               },
               {
                 "type": "i-break"
@@ -1306,7 +1306,7 @@
               },
               {
                 "type": "i-text",
-                "text": "I couldn't shoot the water"
+                "text": "I couldn’t shoot the water"
               },
               {
                 "type": "i-break"
@@ -1422,7 +1422,7 @@
                 "inlines": [
                   {
                     "type": "i-text",
-                    "text": "bloomin'"
+                    "text": "bloomin’"
                   }
                 ]
               },
@@ -1501,7 +1501,7 @@
                 "inlines": [
                   {
                     "type": "i-text",
-                    "text": "bloomin' "
+                    "text": "bloomin’ "
                   }
                 ]
               },
@@ -1576,7 +1576,7 @@
             [
               {
                 "type": "i-text",
-                "text": "And we'll "
+                "text": "And we’ll "
               },
               {
                 "type": "i-chord",
@@ -1672,7 +1672,7 @@
                 "inlines": [
                   {
                     "type": "i-text",
-                    "text": "bloomin' "
+                    "text": "bloomin’ "
                   }
                 ]
               },
@@ -1767,7 +1767,7 @@
               },
               {
                 "type": "i-text",
-                "text": "All the wild flowers o' the mountain."
+                "text": "All the wild flowers o’ the mountain."
               },
               {
                 "type": "i-break"
@@ -1807,14 +1807,14 @@
               },
               {
                 "type": "i-text",
-                "text": "And return wi' their spoils"
+                "text": "And return wi’ their spoils"
               },
               {
                 "type": "i-break"
               },
               {
                 "type": "i-text",
-                "text": "Tae the bower o' my dearie."
+                "text": "Tae the bower o’ my dearie."
               },
               {
                 "type": "i-break"
@@ -1840,14 +1840,14 @@
             [
               {
                 "type": "i-text",
-                "text": "If my true love she'll not come"
+                "text": "If my true love she’ll not come"
               },
               {
                 "type": "i-break"
               },
               {
                 "type": "i-text",
-                "text": "Then I'll surely find another"
+                "text": "Then I’ll surely find another"
               },
               {
                 "type": "i-break"
@@ -1861,7 +1861,7 @@
               },
               {
                 "type": "i-text",
-                "text": "All around the bloomin' heather."
+                "text": "All around the bloomin’ heather."
               },
               {
                 "type": "i-break"
