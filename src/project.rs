@@ -28,6 +28,8 @@ use input::{InputSet, SongsGlobs};
 mod output;
 pub use output::{Format, Output};
 
+pub type Metadata = BTreeMap<Box<str>, Value>;
+
 type TomlMap = toml::map::Map<String, Value>;
 
 fn dir_songs() -> PathBuf {
@@ -41,8 +43,6 @@ fn dir_templates() -> PathBuf {
 fn dir_output() -> PathBuf {
     "output".into()
 }
-
-pub type Metadata = BTreeMap<Box<str>, Value>;
 
 fn meta_default_chorus_label<'de, D>(de: D) -> Result<Metadata, D::Error>
 where
@@ -71,6 +71,10 @@ where
     }
 }
 
+fn default_smart_punctuation() -> bool {
+    true
+}
+
 #[derive(Deserialize, Debug)]
 pub struct Settings {
     songs: SongsGlobs,
@@ -81,8 +85,11 @@ pub struct Settings {
     dir_templates: PathBuf,
     #[serde(default = "dir_output", deserialize_with = "pathbuf_relative_only")]
     dir_output: PathBuf,
+
     #[serde(default)]
     pub notation: Notation,
+    #[serde(default = "default_smart_punctuation")]
+    pub smart_punctuation: bool,
     tex: Option<TexConfig>,
 
     pub output: Vec<Output>,
@@ -217,7 +224,7 @@ impl Project {
 
         for path in self.input_paths.iter() {
             let source = fs::read_to_string(path)?;
-            let config = ParserConfig::new(self.settings.notation);
+            let config = ParserConfig::new(self.settings.notation, self.settings.smart_punctuation);
             let rel_path = path.strip_prefix(&self.project_dir).unwrap_or(path);
             let mut parser = Parser::new(&source, rel_path, config, diag_sink);
             let songs = parser

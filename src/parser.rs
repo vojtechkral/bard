@@ -999,14 +999,16 @@ pub struct ParserConfig {
     pub notation: Notation,
     pub fallback_title: String,
     pub xp_disabled: bool,
+    pub smart_punctuation: bool, // FIXME: tests
 }
 
 impl ParserConfig {
-    pub fn new(notation: Notation) -> Self {
+    pub fn new(notation: Notation, smart_punctuation: bool) -> Self {
         Self {
             notation,
             fallback_title: FALLBACK_TITLE.into(),
             xp_disabled: false,
+            smart_punctuation,
         }
     }
 }
@@ -1017,6 +1019,7 @@ impl Default for ParserConfig {
             notation: Notation::default(),
             fallback_title: FALLBACK_TITLE.into(),
             xp_disabled: false,
+            smart_punctuation: true,
         }
     }
 }
@@ -1027,6 +1030,7 @@ struct ParserCtx<'d> {
     input_file: PathBuf,
     diag_sink: Box<dyn DiagSink + 'd>,
     error_seen: Cell<bool>,
+    smart_punctuation: bool,
 }
 
 impl<'d> ParserCtx<'d> {
@@ -1037,6 +1041,7 @@ impl<'d> ParserCtx<'d> {
             input_file: input_file.to_owned(),
             diag_sink,
             error_seen: Cell::new(false),
+            smart_punctuation: config.smart_punctuation,
         }
     }
 
@@ -1093,10 +1098,8 @@ impl<'i, 'd> Parser<'i, 'd> {
         config: ParserConfig,
         diagnostic_sink: impl DiagSink + 'd,
     ) -> Self {
-        Self {
-            input,
-            ctx: ParserCtx::new(config, input_file, Box::new(diagnostic_sink)),
-        }
+        let ctx = ParserCtx::new(config, input_file, Box::new(diagnostic_sink));
+        Self { input, ctx }
     }
 
     #[cfg(test)]
@@ -1104,7 +1107,7 @@ impl<'i, 'd> Parser<'i, 'd> {
         self.ctx.xp_mut().disabled = disabled;
     }
 
-    fn comrak_config() -> ComrakOptions {
+    fn comrak_config(smart_punctuation: bool) -> ComrakOptions {
         ComrakOptions {
             extension: ComrakExtensionOptions {
                 strikethrough: false,
@@ -1119,7 +1122,7 @@ impl<'i, 'd> Parser<'i, 'd> {
                 front_matter_delimiter: None,
             },
             parse: ComrakParseOptions {
-                smart: false,
+                smart: smart_punctuation,
                 default_info_string: None,
             },
             render: ComrakRenderOptions {
@@ -1177,7 +1180,8 @@ impl<'i, 'd> Parser<'i, 'd> {
         self.check_control_chars()?;
 
         let arena = Arena::new();
-        let root = comrak::parse_document(&arena, self.input, &Self::comrak_config());
+        let config = Self::comrak_config(self.ctx.smart_punctuation);
+        let root = comrak::parse_document(&arena, self.input, &config);
         let root_elems: Vec<_> = root.children().collect();
         let songs_iter = SongsIter::new(&root_elems);
         let songs = Vec::with_capacity(songs_iter.size_hint().0);
