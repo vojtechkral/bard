@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::sync::mpsc;
 
 use serde::Serialize;
 use serde_json::json;
@@ -7,39 +8,71 @@ use serde_json::Value::{self as Json, Null};
 use super::*;
 
 // Parsing helpers
-
-fn try_parse(input: &str, disable_xp: bool) -> (Vec<Diagnostic>, Result<Vec<Song>, ()>) {
-    let src_file = PathBuf::from("<test>");
-    let sink = RefCell::new(vec![]);
-    let mut parser = Parser::new(input, &src_file, ParserConfig::default(), &sink);
-    parser.set_xp_disabled(disable_xp);
-    let res = parser.parse();
-    drop(parser);
-    (sink.into_inner(), res)
+struct TetsParser<'a> {
+    parser: Parser<'a, 'static>,
+    rx: mpsc::Receiver<Diagnostic>,
 }
 
-fn parse(input: &str, disable_xpose: bool) -> Vec<Song> {
-    try_parse(input, disable_xpose).1.unwrap()
-}
+impl<'a> TetsParser<'a> {
+    fn new(input: &'a str, config: ParserConfig) -> Self {
+        let src_file = PathBuf::from("<test>");
+        let (tx, rx) = mpsc::channel();
+        let parser = Parser::new(input, &src_file, config, tx);
+        Self { parser, rx }
+    }
 
-fn parse_one(input: &str) -> Song {
-    let [song]: [_; 1] = parse(input, false).try_into().unwrap();
-    song
-}
+    fn parse(self) -> (Result<Vec<Song>>, Vec<Diagnostic>) {
+        let Self { mut parser, rx } = self;
+        let res = parser.parse();
+        let diag = rx.try_iter().collect();
+        (res, diag)
+    }
 
-fn parse_one_para(input: &str) -> Paragraph {
-    let blocks = parse_one(input).blocks;
-    let block = Vec::from(blocks).drain(..).next().unwrap();
-    match block {
-        Block::Verse(v) => Vec::from(v.paragraphs).drain(..).next().unwrap(),
-        _ => panic!("First block in this Song isn't a Verse"),
+    fn parse_one(self) -> Song {
+        let [song]: [_; 1] = self.parse().0.unwrap().try_into().unwrap();
+        song
+    }
+
+    fn parse_one_para(self) -> Paragraph {
+        let blocks = self.parse_one().blocks;
+        let block = Vec::from(blocks).drain(..).next().unwrap();
+        match block {
+            Block::Verse(v) => Vec::from(v.paragraphs).drain(..).next().unwrap(),
+            _ => panic!("First block in this Song isn't a Verse"),
+        }
     }
 }
 
-fn get_verse(song: &Song, block_num: usize) -> &Verse {
-    match &song.blocks[block_num] {
-        Block::Verse(verse) => verse,
-        b => panic!("Unexpected block type: {:?}", b),
+fn try_parse(input: &str, xp_disabled: bool) -> (Result<Vec<Song>>, Vec<Diagnostic>) {
+    let config = ParserConfig::default().xp_disabled(xp_disabled);
+    let parser = TetsParser::new(input, config);
+    parser.parse()
+}
+
+fn parse(input: &str, xp_disabled: bool) -> Vec<Song> {
+    try_parse(input, xp_disabled).0.unwrap()
+}
+
+fn parse_one(input: &str) -> Song {
+    let parser = TetsParser::new(input, ParserConfig::default());
+    parser.parse_one()
+}
+
+fn parse_one_para(input: &str) -> Paragraph {
+    let parser = TetsParser::new(input, ParserConfig::default());
+    parser.parse_one_para()
+}
+
+trait SongExt {
+    fn get_verse(&self, block_num: usize) -> &Verse;
+}
+
+impl SongExt for Song {
+    fn get_verse(&self, block_num: usize) -> &Verse {
+        match &self.blocks[block_num] {
+            Block::Verse(verse) => verse,
+            b => panic!("Unexpected block type: {:?}", b),
+        }
     }
 }
 
@@ -422,6 +455,7 @@ fn parse_chords_baseline() {
 # Song
 1. `D_` abc `_D` `  G_  ` `   _D_G_  ` `  __ __ C_D __ __  `
 "#;
+    // NB. Markdown removes one matching leading and trailing space from inline code.
     parse_one_para(input).assert_json_eq(json!([
         i_chord("D", Null, 1, Baseline),
         i_text(" abc "),
@@ -581,7 +615,7 @@ Yippie yea `X`yay!
 Yippie yea `Y`yay!
 "#;
 
-    let (diag, res) = try_parse(input, false);
+    let (res, diag) = try_parse(input, false);
     res.unwrap_err();
 
     assert!(diag[0].is_error());
@@ -618,14 +652,14 @@ fn parse_verse_numbering() {
 
     let songs = parse(input, true);
 
-    assert_eq!(get_verse(&songs[0], 0).label, VerseLabel::Verse(1));
-    assert_eq!(get_verse(&songs[0], 2).label, VerseLabel::Verse(2));
-    assert_eq!(get_verse(&songs[0], 4).label, VerseLabel::Verse(3));
+    assert_eq!(songs[0].get_verse(0).label, VerseLabel::Verse(1));
+    assert_eq!(songs[0].get_verse(2).label, VerseLabel::Verse(2));
+    assert_eq!(songs[0].get_verse(4).label, VerseLabel::Verse(3));
 
-    assert_eq!(get_verse(&songs[1], 0).label, VerseLabel::Verse(1));
-    assert_eq!(get_verse(&songs[1], 1).label, VerseLabel::Verse(2));
-    assert_eq!(get_verse(&songs[1], 4).label, VerseLabel::Verse(3));
-    assert_eq!(get_verse(&songs[1], 5).label, VerseLabel::Verse(4));
+    assert_eq!(songs[1].get_verse(0).label, VerseLabel::Verse(1));
+    assert_eq!(songs[1].get_verse(1).label, VerseLabel::Verse(2));
+    assert_eq!(songs[1].get_verse(4).label, VerseLabel::Verse(3));
+    assert_eq!(songs[1].get_verse(5).label, VerseLabel::Verse(4));
 }
 
 #[test]
@@ -754,7 +788,7 @@ sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
 Trailing text.
 "#;
 
-    let (diag, res) = try_parse(input, false);
+    let (res, diag) = try_parse(input, false);
 
     let songs = res.unwrap();
     assert_eq!(songs.len(), 1);
@@ -807,6 +841,19 @@ Trailing text.
 }
 
 #[test]
+fn parse_punctuation() {
+    let input = r#"# Song
+
+"Hello", 'World!' ...
+"#;
+    parse_one_para(input).assert_json_eq(json!([i_text("“Hello”, ‘World!’ …"),]));
+
+    let output2 =
+        TetsParser::new(input, ParserConfig::new(Notation::default(), false)).parse_one_para();
+    output2.assert_json_eq(json!([i_text(r#""Hello", 'World!' ..."#),]));
+}
+
+#[test]
 fn parse_crlf() {
     let input = b"# Song\r\n\r\n1. First verse.\r\n\r\n```\r\npre1\r\npre2\r\n```";
 
@@ -843,7 +890,7 @@ fn control_chars_error() {
 2. Second verse.\0
 ";
 
-    let (diag, res) = try_parse(input, false);
+    let (res, diag) = try_parse(input, false);
     res.unwrap_err();
     assert!(diag[0].is_error());
     assert_eq!(diag[0].file.as_os_str(), "<test>");
@@ -851,7 +898,7 @@ fn control_chars_error() {
     assert_eq!(diag[0].kind, DiagKind::ControlChar { char: 0 });
 
     let input = "\u{009f}";
-    let (diag, res) = try_parse(input, false);
+    let (res, diag) = try_parse(input, false);
     res.unwrap_err();
     assert!(diag[0].is_error());
     assert_eq!(diag[0].file.as_os_str(), "<test>");

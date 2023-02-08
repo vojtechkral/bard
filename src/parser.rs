@@ -9,6 +9,7 @@ use std::cell::{Cell, Ref, RefCell, RefMut};
 use std::fmt;
 use std::mem;
 use std::str;
+use std::sync::mpsc;
 
 use comrak::nodes::{AstNode, ListType, NodeCode, NodeValue};
 use comrak::{ComrakExtensionOptions, ComrakOptions, ComrakParseOptions, ComrakRenderOptions};
@@ -95,9 +96,9 @@ where
     }
 }
 
-impl<'a> DiagSink for &'a RefCell<Vec<Diagnostic>> {
+impl DiagSink for mpsc::Sender<Diagnostic> {
     fn report(&self, diagnostic: Diagnostic) {
-        self.borrow_mut().push(diagnostic);
+        let _ = self.send(diagnostic);
     }
 }
 
@@ -999,7 +1000,7 @@ pub struct ParserConfig {
     pub notation: Notation,
     pub fallback_title: String,
     pub xp_disabled: bool,
-    pub smart_punctuation: bool, // FIXME: tests
+    pub smart_punctuation: bool,
 }
 
 impl ParserConfig {
@@ -1010,6 +1011,11 @@ impl ParserConfig {
             xp_disabled: false,
             smart_punctuation,
         }
+    }
+
+    pub fn xp_disabled(mut self, xp_disabled: bool) -> Self {
+        self.xp_disabled = xp_disabled;
+        self
     }
 }
 
@@ -1100,11 +1106,6 @@ impl<'i, 'd> Parser<'i, 'd> {
     ) -> Self {
         let ctx = ParserCtx::new(config, input_file, Box::new(diagnostic_sink));
         Self { input, ctx }
-    }
-
-    #[cfg(test)]
-    fn set_xp_disabled(&mut self, disabled: bool) {
-        self.ctx.xp_mut().disabled = disabled;
     }
 
     fn comrak_config(smart_punctuation: bool) -> ComrakOptions {
