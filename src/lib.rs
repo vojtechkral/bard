@@ -6,6 +6,7 @@
 
 #![allow(clippy::new_ret_no_self)]
 #![allow(clippy::comparison_chain)]
+#![allow(clippy::uninlined_format_args)]
 
 use std::env;
 use std::ffi::OsString;
