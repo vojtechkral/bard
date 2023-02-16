@@ -60,6 +60,12 @@ impl RPdf {
             tex_runs: output.tex_runs,
         })
     }
+
+    /// Disables compilation of tex into pdf. The resulting output will bew .tex file
+    pub fn disable_tex_compile(mut self) -> RPdf {
+        self.tex_runs = 0;
+        self
+    }
 }
 
 impl Render for RPdf {

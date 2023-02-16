@@ -12,6 +12,7 @@ use crate::util::PathBufExt;
 #[strum(serialize_all = "lowercase")]
 pub enum Format {
     Pdf,
+    Tex,
     Html,
     Hovorka,
     Json,
@@ -40,6 +41,7 @@ impl Format {
 
         Ok(match ext.to_str().unwrap_or("") {
             "pdf" => Self::Pdf,
+            "tex" => Self::Tex,
             "html" => Self::Html,
             "json" => Self::Json,
             "xml" => Self::Xml,
@@ -108,7 +110,7 @@ impl Output {
 
     pub fn template_path(&self) -> Option<&Path> {
         match self.format() {
-            Format::Pdf | Format::Html | Format::Hovorka => self.template.as_deref(),
+            Format::Pdf | Format::Tex | Format::Html | Format::Hovorka => self.template.as_deref(),
             Format::Json | Format::Xml => None,
         }
     }

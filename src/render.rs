@@ -75,6 +75,7 @@ impl<'a> Renderer<'a> {
     pub fn new(project: &'a Project, output: &'a Output) -> Result<Self> {
         let render: Box<dyn Render> = match output.format() {
             Format::Pdf => Box::new(RPdf::new(project, output)?),
+            Format::Tex => Box::new(RPdf::new(project, output)?.disable_tex_compile()),
             Format::Html => Box::new(RHtml::new(project, output)?),
             Format::Hovorka => Box::new(RHovorka::new(project, output)?),
             Format::Json => Box::new(RJson::new()),
