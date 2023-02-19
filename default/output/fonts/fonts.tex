@@ -1,8 +1,12 @@
 % This file is used by the generated TeX file for font settings.
 % Note that the Path here is relative to the `output` directory
 % rather than `output/fonts` because that's where the .tex file is generated.
+%
+% NB. the fonts are renamed as BardSerif and BardSans from their real names
+% so that they can be changed more easily. The fonts are really Droid Serif
+% and Noto Sans (by default).
 
-\setromanfont{DroidSerif}[
+\setromanfont{BardSerif}[
     Path = ./fonts/,
     Extension = .ttf,
     UprightFont = *-Regular,
@@ -11,7 +15,7 @@
     BoldItalicFont = *-BoldItalic
 ]
 
-\setsansfont{NotoSans}[
+\setsansfont{BardSans}[
     Path = ./fonts/,
     Extension = .ttf,
     UprightFont = *-Regular,

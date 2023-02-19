@@ -1,45 +1,51 @@
-/* This CSS is linked by the generated HTML file for font settings. */
+/*
+ * This CSS is linked by the generated HTML file for font settings.
+ *
+ * NB. the fonts are renamed as BardSerif and BardSans from their real names
+ * so that they can be changed more easily. The fonts are really Droid Serif
+ * and Noto Sans (by default).
+ */
 
-/* Droid Serif */
+/* Serif font */
 @font-face {
-    font-family: 'DroidSerif';
-    src: url('DroidSerif-Regular.ttf')  format('truetype');
+    font-family: 'BardSerif';
+    src: url('BardSerif-Regular.ttf')  format('truetype');
 }
 @font-face {
-    font-family: 'DroidSerif';
+    font-family: 'BardSerif';
     font-weight: bold;
-    src: url('DroidSerif-Bold.ttf')  format('truetype');
+    src: url('BardSerif-Bold.ttf')  format('truetype');
 }
 @font-face {
-    font-family: 'DroidSerif';
+    font-family: 'BardSerif';
     font-style: italic;
-    src: url('DroidSerif-Italic.ttf')  format('truetype');
+    src: url('BardSerif-Italic.ttf')  format('truetype');
 }
 @font-face {
-    font-family: 'DroidSerif';
+    font-family: 'BardSerif';
     font-weight: bold;
     font-style: italic;
-    src: url('DroidSerif-BoldItalic.ttf')  format('truetype');
+    src: url('BardSerif-BoldItalic.ttf')  format('truetype');
 }
 
-/* Noto Sans */
+/* Sans font */
 @font-face {
-    font-family: 'NotoSans';
-    src: url('NotoSans-Regular.ttf')  format('truetype');
+    font-family: 'BardSans';
+    src: url('BardSans-Regular.ttf')  format('truetype');
 }
 @font-face {
-    font-family: 'NotoSans';
+    font-family: 'BardSans';
     font-weight: bold;
-    src: url('NotoSans-Bold.ttf')  format('truetype');
+    src: url('BardSans-Bold.ttf')  format('truetype');
 }
 @font-face {
-    font-family: 'NotoSans';
+    font-family: 'BardSans';
     font-style: italic;
-    src: url('NotoSans-Italic.ttf')  format('truetype');
+    src: url('BardSans-Italic.ttf')  format('truetype');
 }
 @font-face {
-    font-family: 'NotoSans';
+    font-family: 'BardSans';
     font-weight: bold;
     font-style: italic;
-    src: url('NotoSans-BoldItalic.ttf')  format('truetype');
+    src: url('BardSans-BoldItalic.ttf')  format('truetype');
 }
