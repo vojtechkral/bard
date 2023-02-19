@@ -52,6 +52,10 @@ impl Format {
     }
 }
 
+fn default_font_size() -> u32 {
+    12
+}
+
 fn default_dpi() -> f64 {
     144.0
 }
@@ -69,6 +73,8 @@ pub struct Output {
     pub format: Option<Format>,
     #[serde(default)]
     pub sans_font: bool,
+    #[serde(default = "default_font_size")]
+    pub font_size: u32,
     pub toc_sort_key: Option<String>,
     #[serde(default = "default_dpi")]
     pub dpi: f64,

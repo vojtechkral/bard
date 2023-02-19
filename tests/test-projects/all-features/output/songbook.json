@@ -1031,6 +1031,7 @@
   "output": {
     "format": "json",
     "sans_font": false,
+    "font_size": 12,
     "toc_sort_key": null,
     "dpi": 144.0,
     "tex_runs": 3,
