@@ -8,7 +8,6 @@ notation = "english"
 
 [[output]]
 file = "songbook.html"
-template = "html.hbs"
 
 [book]
 title = "My Songbook"
