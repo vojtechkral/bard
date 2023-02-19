@@ -61,7 +61,6 @@ fn default_tex_runs() -> u32 {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-#[serde(deny_unknown_fields)]
 pub struct Output {
     #[serde(skip_serializing)]
     pub file: PathBuf,
