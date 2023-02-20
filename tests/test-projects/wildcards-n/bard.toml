@@ -1,0 +1,15 @@
+version = 2
+
+songs = [
+    "a-*.md",
+    "b-*.md",
+    "c-*.md",
+]
+
+notation = "english"
+
+[[output]]
+file = "songbook.html"
+
+[book]
+title = "My Songbook"

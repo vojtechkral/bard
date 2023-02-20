@@ -1,4 +1,4 @@
-use std::iter;
+use std::slice;
 
 use globset::Glob;
 use serde::Deserialize;
@@ -14,16 +14,15 @@ pub enum SongsGlobs {
 }
 
 impl SongsGlobs {
-    pub fn iter(&self) -> impl Iterator<Item = &str> {
-        let mut pos = 0;
+    pub fn iter(&self) -> impl Iterator<Item = &str> + '_ {
+        let items = match self {
+            Self::One(one) => slice::from_ref(one),
+            Self::Many(many) => many.as_slice(),
+        };
 
-        iter::from_fn(move || match self {
-            Self::One(s) => Some(s.as_str()),
-            Self::Many(v) => v.get(pos).map(|s| {
-                pos += 1;
-                s.as_str()
-            }),
-        })
+        (0..)
+            .into_iter()
+            .map_while(move |i| items.get(i).map(move |s| s.as_str()))
     }
 }
 
