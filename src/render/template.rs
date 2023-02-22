@@ -256,7 +256,7 @@ impl HelperDef for VersionCheckHelper {
 
 /// Simple math helper, which can do the usual arithmetic operations on integers and floats. Tries to handle most edge-cases and provide useful error message to the user.
 ///
-/// Usage: `{{ math 5 "+" 3 }}`, `{{ math 23.8 / -1.5}}`, `{{ math "3" "*" 8.5 }}`
+/// Usage: `{{ math 5 "+" 3 }}`, `{{ math 23.8 "/" -1.5 }}`, `{{ math "3" "*" 8.5 }}`
 ///
 /// Supported operations:
 ///    - \+ addition
