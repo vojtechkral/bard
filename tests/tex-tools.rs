@@ -76,15 +76,13 @@ fn tex_tools_none() {
 #[cfg(not(feature = "tectonic"))]
 #[test]
 fn tex_tools_set_embedded_without_feature() {
-    let app = Builder::app(false);
-    let project_dir = init_project(&app, "tex-tools-set-embedded-without-feature").unwrap();
-    modify_settings(&project_dir, |mut settings| {
-        settings.insert("tex".to_string(), "tectonic-embedded".into());
-        Ok(settings)
-    })
-    .unwrap();
+    let err =
+        Builder::init_modify_build("tex-tools-set-embedded-without-feature", |mut settings| {
+            settings.insert("tex".to_string(), "tectonic-embedded".into());
+            Ok(settings)
+        })
+        .unwrap_err();
 
-    let err = bard::bard_make_at(&app, &project_dir).unwrap_err();
     let err = format!("{:?}", err);
     assert!(
         err.contains("This bard binary was not built with embedded Tectonic."),

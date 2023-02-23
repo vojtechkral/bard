@@ -180,13 +180,21 @@ impl Builder {
     }
 
     pub fn init_and_build(name: &str) -> Result<Self> {
+        Self::init_modify_build(name, |settings| Ok(settings))
+    }
+
+    pub fn init_modify_build(
+        name: &str,
+        f: impl FnOnce(toml::Table) -> Result<toml::Table>,
+    ) -> Result<Self> {
         let app = Self::app(false);
-        let work_dir = init_project(&app, name)?;
-        let project = bard::bard_make_at(&app, &work_dir)?;
+        let project_dir = init_project(&app, name)?;
+        modify_settings(&project_dir, f)?;
+        let project = bard::bard_make_at(&app, &project_dir)?;
 
         Ok(Self {
             project,
-            dir: work_dir,
+            dir: project_dir,
             app,
         })
     }
