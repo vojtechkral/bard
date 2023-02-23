@@ -3,12 +3,13 @@ use std::ffi::{OsStr, OsString};
 use std::io::{BufRead, Write};
 use std::ops::Deref;
 use std::process::{Command, Stdio};
+use std::str::FromStr;
 use std::time::Duration;
 use std::{env, fmt, fs, io, thread};
 
 use parking_lot::{const_mutex, Mutex, MutexGuard};
 use serde::de::Error as _;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use strum::{Display, EnumString, EnumVariantNames, VariantNames as _};
 
 use crate::app::{keeplevel, verbosity, App};
@@ -28,26 +29,17 @@ pub enum TexDistro {
 }
 
 impl TexDistro {
-    fn default_program(&self) -> Option<OsString> {
+    fn default_program(&self, app: &App) -> Option<OsString> {
         match self {
             Self::Xelatex => Some("xelatex".to_string().into()),
             Self::Tectonic => Some("tectonic".to_string().into()),
+            Self::TectonicEmbedded => Some(app.bard_exe().to_owned().into()),
             _ => None,
         }
     }
 
     fn is_none(&self) -> bool {
         matches!(self, Self::None)
-    }
-}
-
-impl<'de> Deserialize<'de> for TexDistro {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: serde::Deserializer<'de>,
-    {
-        let input: &'de str = Deserialize::deserialize(deserializer)?;
-        input.parse().map_err(D::Error::custom)
     }
 }
 
@@ -71,18 +63,34 @@ impl TexConfig {
         }
     }
 
+    fn with_embedded_tectonic(app: &App) -> Self {
+        Self {
+            distro: TexDistro::TectonicEmbedded,
+            program: TexDistro::TectonicEmbedded.default_program(app),
+        }
+    }
+
     fn probe(&mut self, app: &App) -> Result<()> {
         if self.distro.is_none() {
             return Ok(());
         }
 
         if self.program.is_none() {
-            self.program = self.distro.default_program();
+            self.program = self.distro.default_program(app);
         }
 
         let version = match self.distro {
             TexDistro::Xelatex => test_program(self.program.as_ref().unwrap(), "-version")?,
             TexDistro::Tectonic => test_program(self.program.as_ref().unwrap(), "--version")?,
+            #[cfg(not(feature = "tectonic"))]
+            TexDistro::TectonicEmbedded => {
+                bail!("This bard binary was not built with embedded Tectonic.")
+            }
+            #[cfg(feature = "tectonic")]
+            TexDistro::TectonicEmbedded => {
+                *self = Self::with_embedded_tectonic(app);
+                "Tectonic (embedded)".to_string()
+            }
             _ => unreachable!(),
         };
 
@@ -187,13 +195,24 @@ impl<'a> TryFrom<&'a OsStr> for TexConfig {
     }
 }
 
+impl FromStr for TexConfig {
+    type Err = Error;
+
+    fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
+        let os: &OsStr = s.as_ref();
+        Self::try_from(os)
+    }
+}
+
 impl<'de> Deserialize<'de> for TexConfig {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: serde::Deserializer<'de>,
     {
-        let input: &'de str = Deserialize::deserialize(deserializer)?;
-        OsStr::new(input).try_into().map_err(D::Error::custom)
+        let input: Cow<'de, str> = Deserialize::deserialize(deserializer)?;
+        OsStr::new(input.as_ref())
+            .try_into()
+            .map_err(D::Error::custom)
     }
 }
 
@@ -206,6 +225,16 @@ impl fmt::Display for TexConfig {
         }
 
         Ok(())
+    }
+}
+
+impl Serialize for TexConfig {
+    fn serialize<S>(&self, serializer: S) -> std::result::Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        let s = self.to_string();
+        s.serialize(serializer)
     }
 }
 
@@ -379,9 +408,7 @@ impl TexTools {
         // 3. No explicit config
         if cfg!(feature = "tectonic") {
             // We have embedded tectonic...
-            let mut config = TexConfig::with_distro(TexDistro::TectonicEmbedded);
-            config.program = Some(app.bard_exe().to_owned().into());
-            app.indent("Using embedded Tectonic TeX.");
+            let config = TexConfig::with_embedded_tectonic(app);
             return Self::set(config);
         } else {
             // try to probe automatically...
@@ -444,33 +471,29 @@ impl TexTools {
 mod tests {
     use super::*;
 
-    fn tex_config_parse(input: impl AsRef<OsStr>) -> Result<TexConfig> {
-        input.as_ref().try_into()
-    }
-
     #[test]
     fn tex_config_parsing() {
-        let config = tex_config_parse("xelatex").unwrap();
+        let config: TexConfig = ("xelatex").parse().unwrap();
         assert_eq!(config.distro, TexDistro::Xelatex);
         assert_eq!(config.program, None);
 
-        let config = tex_config_parse("tectonic").unwrap();
+        let config: TexConfig = ("tectonic").parse().unwrap();
         assert_eq!(config.distro, TexDistro::Tectonic);
         assert_eq!(config.program, None);
 
-        let config = tex_config_parse("xelatex:foo:bar").unwrap();
+        let config: TexConfig = ("xelatex:foo:bar").parse().unwrap();
         assert_eq!(config.distro, TexDistro::Xelatex);
         assert_eq!(config.program, Some("foo:bar".to_string().into()));
 
-        let config = tex_config_parse("tectonic:foo:bar").unwrap();
+        let config: TexConfig = ("tectonic:foo:bar").parse().unwrap();
         assert_eq!(config.distro, TexDistro::Tectonic);
         assert_eq!(config.program, Some("foo:bar".to_string().into()));
 
-        let config = tex_config_parse("tectonic-embedded").unwrap();
+        let config: TexConfig = ("tectonic-embedded").parse().unwrap();
         assert_eq!(config.distro, TexDistro::TectonicEmbedded);
         assert_eq!(config.program, None);
 
-        tex_config_parse("xxx").unwrap_err();
+        TexConfig::from_str("xxx").unwrap_err();
     }
 
     #[test]
