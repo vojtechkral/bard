@@ -53,7 +53,7 @@ fn tex_tools_env_full_path() {
     let tex_mock_exe = tex_mock_exe.to_str().unwrap();
     let builder = ExeBuilder::init("tex-tools-env-full-path")
         .unwrap()
-        .with_env("BARD_TEX", format!("texlive:{}", tex_mock_exe))
+        .with_env("BARD_TEX", format!("xelatex:{}", tex_mock_exe))
         .run(&["make", "-kv"])
         .unwrap();
 

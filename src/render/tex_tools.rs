@@ -19,9 +19,9 @@ use crate::util_cmd;
 static TEX_TOOLS: Mutex<Option<TexTools>> = const_mutex(None);
 
 #[derive(EnumString, EnumVariantNames, Display, Clone, Copy, PartialEq, Eq, Debug)]
-#[strum(ascii_case_insensitive, serialize_all = "lowercase")]
+#[strum(ascii_case_insensitive, serialize_all = "kebab-case")]
 pub enum TexDistro {
-    TexLive,
+    Xelatex,
     Tectonic,
     TectonicEmbedded,
     None,
@@ -30,7 +30,7 @@ pub enum TexDistro {
 impl TexDistro {
     fn default_program(&self) -> Option<OsString> {
         match self {
-            Self::TexLive => Some("xelatex".to_string().into()),
+            Self::Xelatex => Some("xelatex".to_string().into()),
             Self::Tectonic => Some("tectonic".to_string().into()),
             _ => None,
         }
@@ -81,7 +81,7 @@ impl TexConfig {
         }
 
         let version = match self.distro {
-            TexDistro::TexLive => test_program(self.program.as_ref().unwrap(), "-version")?,
+            TexDistro::Xelatex => test_program(self.program.as_ref().unwrap(), "-version")?,
             TexDistro::Tectonic => test_program(self.program.as_ref().unwrap(), "--version")?,
             _ => unreachable!(),
         };
@@ -92,7 +92,7 @@ impl TexConfig {
 
     fn render_args(&self, job: &TexRenderJob) -> Vec<OsString> {
         let mut args = match self.distro {
-            TexDistro::TexLive => vec![
+            TexDistro::Xelatex => vec![
                 "-interaction=nonstopmode".to_os_string(),
                 "-output-directory".to_os_string(),
                 job.tmp_dir.to_os_string(),
@@ -130,7 +130,7 @@ impl TexConfig {
     /// see `App::subprocess_output()`.
     fn program_status(&self) -> Cow<str> {
         match self.distro {
-            TexDistro::TexLive | TexDistro::Tectonic => {
+            TexDistro::Xelatex | TexDistro::Tectonic => {
                 self.program.as_ref().unwrap().to_string_lossy()
             }
             TexDistro::TectonicEmbedded => "tectonic".into(),
@@ -385,7 +385,7 @@ impl TexTools {
             return Self::set(config);
         } else {
             // try to probe automatically...
-            for kind in [TexDistro::TexLive, TexDistro::Tectonic] {
+            for kind in [TexDistro::Xelatex, TexDistro::Tectonic] {
                 let mut config = TexConfig::with_distro(kind);
                 if config.probe(app).is_ok() {
                     return Self::set(config);
@@ -450,21 +450,25 @@ mod tests {
 
     #[test]
     fn tex_config_parsing() {
-        let config = tex_config_parse("texlive").unwrap();
-        assert_eq!(config.distro, TexDistro::TexLive);
+        let config = tex_config_parse("xelatex").unwrap();
+        assert_eq!(config.distro, TexDistro::Xelatex);
         assert_eq!(config.program, None);
 
         let config = tex_config_parse("tectonic").unwrap();
         assert_eq!(config.distro, TexDistro::Tectonic);
         assert_eq!(config.program, None);
 
-        let config = tex_config_parse("texlive:foo:bar").unwrap();
-        assert_eq!(config.distro, TexDistro::TexLive);
+        let config = tex_config_parse("xelatex:foo:bar").unwrap();
+        assert_eq!(config.distro, TexDistro::Xelatex);
         assert_eq!(config.program, Some("foo:bar".to_string().into()));
 
         let config = tex_config_parse("tectonic:foo:bar").unwrap();
         assert_eq!(config.distro, TexDistro::Tectonic);
         assert_eq!(config.program, Some("foo:bar".to_string().into()));
+
+        let config = tex_config_parse("tectonic-embedded").unwrap();
+        assert_eq!(config.distro, TexDistro::TectonicEmbedded);
+        assert_eq!(config.program, None);
 
         tex_config_parse("xxx").unwrap_err();
     }
