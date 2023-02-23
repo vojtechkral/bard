@@ -285,16 +285,19 @@ jobs:
         with:
           name: bard-linux
           path: target/x86_64-unknown-linux-musl/release/bard
+          if-no-files-found: error
       - name: Upload deb package
         uses: actions/upload-artifact@v3
         with:
           name: bard-linux
           path: target/debian/bard.deb
+          if-no-files-found: error
       - name: Upload rpm package
         uses: actions/upload-artifact@v3
         with:
           name: bard-linux
           path: target/generate-rpm/bard.rpm
+          if-no-files-found: error
 
   build-windows:
     name: Windows build
@@ -327,11 +330,13 @@ jobs:
       - name: Build
         run: |
           cargo build --locked --release
+          Rename-Item -Path target\release\bard.exe -NewName bard-no-tectonic.exe
       - name: Upload Windows exe
         uses: actions/upload-artifact@v3
         with:
           name: bard-windows
-          path: target/release/bard.exe
+          path: target/release/bard-no-tectonic.exe
+          if-no-files-found: error
 
   deploy-docker:
     name: Deploy to DockerHub
@@ -392,4 +397,4 @@ jobs:
             ./bard-linux/bard
             ./bard-linux/bard.deb
             ./bard-linux/bard.rpm
-            ./bard-windows/bard.exe
+            ./bard-windows/bard-no-tectonic.exe
