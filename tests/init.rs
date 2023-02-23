@@ -12,7 +12,7 @@ fn init_and_build() {
 #[test]
 fn init_doesnt_overwrite_1() {
     let test_content = "test\n";
-    let work_dir = Builder::work_dir("init-overwrite-1", true).unwrap();
+    let work_dir = work_dir("init-overwrite-1", true).unwrap();
     let songs_dir = work_dir.join("songs");
     let test_file = songs_dir.join("yippie.md");
     let project_file = work_dir.join("bard.toml");
@@ -36,7 +36,7 @@ fn init_doesnt_overwrite_1() {
 
 #[test]
 fn init_doesnt_overwrite_2() {
-    let work_dir = Builder::work_dir("init-overwrite-2", true).unwrap();
+    let work_dir = work_dir("init-overwrite-2", true).unwrap();
     let out_dir = work_dir.join("output");
     let project_file = work_dir.join("bard.toml");
     fs::create_dir_all(&out_dir).unwrap();

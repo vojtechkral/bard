@@ -1,4 +1,4 @@
-//! These tests are disable for Windows, because `PATH` overriding works in a weird way,
+//! These tests are disabled for Windows, because `PATH` overriding works in a weird way,
 //! it fails to apply to the `bard` subprocess, although it seems to work when `cmd` is used instead.
 //!
 //! This may or may not be a manifestation of <https://github.com/rust-lang/rust/issues/37519>.
@@ -73,14 +73,49 @@ fn tex_tools_none() {
     assert!(builder.out_dir().join("songbook.tex").exists());
 }
 
+#[cfg(not(feature = "tectonic"))]
+#[test]
+fn tex_tools_set_embedded_without_feature() {
+    let app = Builder::app(false);
+    let project_dir = init_project(&app, "tex-tools-set-embedded-without-feature").unwrap();
+    modify_settings(&project_dir, |mut settings| {
+        settings.insert("tex".to_string(), "tectonic-embedded".into());
+        Ok(settings)
+    })
+    .unwrap();
+
+    let err = bard::bard_make_at(&app, &project_dir).unwrap_err();
+    let err = format!("{:?}", err);
+    assert!(
+        err.contains("This bard binary was not built with embedded Tectonic."),
+        "actual error: {}",
+        err
+    );
+}
+
 #[cfg(feature = "tectonic")]
 #[test]
-fn tex_tools_tectonic_embed() {
-    let builder = ExeBuilder::init("tex-tools-tectonic-embed")
+fn tex_tools_tectonic_embedded() {
+    let builder = ExeBuilder::init("tex-tools-tectonic-embedded")
         .unwrap()
         .custom_path(true) // ie. PATH should point to an empty dir
         .run(&["make", "-kv"])
         .unwrap();
 
-    assert!(builder.out_dir().join("songbook.pdf").exists());
+    let pdf = builder.out_dir().join("songbook.pdf");
+    assert_file_is_pdf(&pdf);
+}
+
+#[cfg(feature = "tectonic")]
+#[test]
+fn tex_tools_tectonic_embedded_explicit() {
+    let builder = ExeBuilder::init("tex-tools-tectonic-embedded-explicit")
+        .unwrap()
+        .with_xelatex_bin()
+        .with_env("BARD_TEX", "tectonic-embedded") // should override xelatex lookup
+        .run(&["make", "-kv"])
+        .unwrap();
+
+    let pdf = builder.out_dir().join("songbook.pdf");
+    assert_file_is_pdf(&pdf);
 }

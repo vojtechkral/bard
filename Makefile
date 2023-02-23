@@ -53,12 +53,12 @@ target-tectonic/vcpkg/vcpkg:
 .PHONY: with-tectonic-linux
 with-tectonic-linux: target-tectonic/vcpkg/vcpkg
 	target-tectonic/vcpkg/vcpkg install fontconfig freetype 'harfbuzz[icu,graphite2]'
-	CARGO_TARGET_DIR=target-tectonic VCPKG_ROOT="$(PWD)/target-tectonic/vcpkg" TECTONIC_DEP_BACKEND=vcpkg cargo build --features tectonic
+	CARGO_TARGET_DIR=target-tectonic VCPKG_ROOT="$(PWD)/target-tectonic/vcpkg" TECTONIC_DEP_BACKEND=vcpkg cargo build --release --features tectonic
 
 .PHONY: with-tectonic-linux
 test-tectonic: target-tectonic/vcpkg/vcpkg
 	target-tectonic/vcpkg/vcpkg install fontconfig freetype 'harfbuzz[icu,graphite2]'
-	CARGO_TARGET_DIR=target-tectonic VCPKG_ROOT="$(PWD)/target-tectonic/vcpkg" TECTONIC_DEP_BACKEND=vcpkg cargo nextest run --run-ignored all --features tectonic
+	CARGO_TARGET_DIR=target-tectonic VCPKG_ROOT="$(PWD)/target-tectonic/vcpkg" TECTONIC_DEP_BACKEND=vcpkg cargo nextest run --release --run-ignored all --features tectonic
 
 target/vcpkg/vcpkg.exe:
 	git clone https://github.com/Microsoft/vcpkg.git -- target/vcpkg

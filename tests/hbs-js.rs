@@ -39,7 +39,7 @@ fn hbs_js_parse() {
         .unwrap_or("latest");
     let handlebars = format!("handlebars@{}", handlebars_ver);
 
-    let out_dir = Builder::work_dir("hbs-js", false).unwrap();
+    let out_dir = work_dir("hbs-js", false).unwrap();
     fs::create_dir_all(&out_dir).unwrap();
     let out = out_dir.join("out");
 

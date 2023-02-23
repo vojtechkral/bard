@@ -71,9 +71,68 @@ pub fn assert_first_line_contains(path: impl AsRef<Path>, what: &str) {
     );
 }
 
+#[track_caller]
+pub fn assert_file_is_pdf(path: impl AsRef<Path>) {
+    let bytes = fs::read(path.as_ref()).unwrap();
+    assert_eq!(&bytes[..4], b"%PDF");
+}
+
 pub fn tmp_dir() -> PathBuf {
     // Cargo support for tmpdir merged yay https://github.com/rust-lang/cargo/pull/9375
     PathBuf::from(env!("CARGO_TARGET_TMPDIR"))
+}
+
+pub fn work_dir(name: &str, rm: bool) -> Result<PathBuf> {
+    let path = tmp_dir().join(name);
+
+    if rm && path.exists() {
+        fs::remove_dir_all(&path)
+            .with_context(|| format!("Couldn't remove previous test run data: {:?}", path))?;
+    }
+
+    Ok(path)
+}
+
+fn dir_copy(src: impl AsRef<Path>, dest: impl AsRef<Path>) -> Result<()> {
+    let src = src.as_ref();
+    let dest = dest.as_ref();
+
+    fs::create_dir_all(dest).with_context(|| format!("Couldn't create directory: {:?}", dest))?;
+
+    let mut opts = CopyOptions::new();
+    opts.content_only = true;
+    dir::copy(src, dest, &opts)
+        .with_context(|| format!("Couldn't copy directory {:?} to {:?}", src, dest))?;
+    Ok(())
+}
+
+pub fn init_project(app: &App, name: &str) -> Result<PathBuf> {
+    let work_dir = work_dir(name, true)?;
+    fs::create_dir_all(&work_dir)
+        .with_context(|| format!("Could create directory: {:?}", work_dir))?;
+    bard::bard_init_at(app, &work_dir).context("Failed to initialize")?;
+    Ok(work_dir)
+}
+
+pub fn prepare_project(src_path: impl AsRef<Path>, name: &str) -> Result<PathBuf> {
+    let src_path = src_path.as_ref();
+    let work_dir = work_dir(name, true)?;
+
+    dir_copy(src_path, &work_dir)?;
+    Ok(work_dir)
+}
+
+pub fn modify_settings(
+    project_dir: impl AsRef<Path>,
+    f: impl FnOnce(toml::Table) -> Result<toml::Table>,
+) -> Result<()> {
+    let bard_toml = project_dir.as_ref().join("bard.toml");
+    let toml = fs::read_to_string(&bard_toml)?;
+    let settings: toml::Table = toml::from_str(&toml)?;
+    let settings = f(settings)?;
+    let toml = toml::to_string_pretty(&settings)?;
+    fs::write(&bard_toml, toml.as_bytes())?;
+    Ok(())
 }
 
 #[derive(Debug)]
@@ -84,39 +143,6 @@ pub struct Builder {
 }
 
 impl Builder {
-    pub fn work_dir(name: &str, rm: bool) -> Result<PathBuf> {
-        let path = tmp_dir().join(name);
-
-        if rm && path.exists() {
-            fs::remove_dir_all(&path)
-                .with_context(|| format!("Couldn't remove previous test run data: {:?}", path))?;
-        }
-
-        Ok(path)
-    }
-
-    fn dir_copy(src: impl AsRef<Path>, dest: impl AsRef<Path>) -> Result<()> {
-        let src = src.as_ref();
-        let dest = dest.as_ref();
-
-        fs::create_dir_all(dest)
-            .with_context(|| format!("Couldn't create directory: {:?}", dest))?;
-
-        let mut opts = CopyOptions::new();
-        opts.content_only = true;
-        dir::copy(src, dest, &opts)
-            .with_context(|| format!("Couldn't copy directory {:?} to {:?}", src, dest))?;
-        Ok(())
-    }
-
-    pub fn prepare(src_path: impl AsRef<Path>, name: &str) -> Result<PathBuf> {
-        let src_path = src_path.as_ref();
-        let work_dir = Self::work_dir(name, true)?;
-
-        Self::dir_copy(src_path, &work_dir)?;
-        Ok(work_dir)
-    }
-
     pub fn app(post_process: bool) -> App {
         let bard_exe = option_env!("CARGO_BIN_EXE_bard")
             .expect("$CARGO_BIN_EXE_bard")
@@ -127,7 +153,7 @@ impl Builder {
     fn build_inner(src_path: impl AsRef<Path>, name: &str, post_process: bool) -> Result<Self> {
         let app = Self::app(post_process);
 
-        let work_dir = Self::prepare(src_path, name)?;
+        let work_dir = prepare_project(src_path, name)?;
         let project = bard::bard_make_at(&app, &work_dir)?;
 
         Ok(Self {
@@ -153,17 +179,9 @@ impl Builder {
         Self::build_inner(src_path, name, true)
     }
 
-    pub fn init(app: &App, name: &str) -> Result<PathBuf> {
-        let work_dir = Self::work_dir(name, true)?;
-        fs::create_dir_all(&work_dir)
-            .with_context(|| format!("Could create directory: {:?}", work_dir))?;
-        bard::bard_init_at(app, &work_dir).context("Failed to initialize")?;
-        Ok(work_dir)
-    }
-
     pub fn init_and_build(name: &str) -> Result<Self> {
         let app = Self::app(false);
-        let work_dir = Self::init(&app, name)?;
+        let work_dir = init_project(&app, name)?;
         let project = bard::bard_make_at(&app, &work_dir)?;
 
         Ok(Self {
@@ -193,7 +211,7 @@ impl ExeBuilder {
 
     pub fn init(name: &str) -> Result<Self> {
         let app = Builder::app(false);
-        let work_dir = Builder::init(&app, name)?;
+        let work_dir = init_project(&app, name)?;
 
         let bin_dir = work_dir.join("bin");
         fs::create_dir(&bin_dir).context("Could not create bin subdir")?;
@@ -242,7 +260,6 @@ impl ExeBuilder {
     pub fn run(self, args: &[&str]) -> Result<Self> {
         Command::new(&self.bard_exe)
             .apply(|mut cmd| {
-                dbg!(self.custom_path);
                 if self.custom_path {
                     cmd.env_clear().env("PATH", &self.bin_dir);
                 }
