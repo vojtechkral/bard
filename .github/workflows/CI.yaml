@@ -133,7 +133,7 @@ jobs:
       - name: Test
         run: |
           PATH="$PATH:$HOME/tectonic-bin" tectonic -V
-          PATH="$PATH:$HOME/tectonic-bin" BARD_TEX=tectonic cargo test --locked -- --nocapture
+          PATH="$PATH:$HOME/tectonic-bin" cargo test --locked -- --nocapture
       - name: Install Node.js
         id: apt-packages
         uses: awalsh128/cache-apt-pkgs-action@v1
