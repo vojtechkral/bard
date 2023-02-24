@@ -420,7 +420,7 @@ impl TexTools {
             }
         }
 
-        bail!("No TeX distribution found. FIXME: link doc.")
+        bail!("No TeX distribution found. Please install a TeX distribution. For more information see https://bard.md/book/install.html.");
     }
 
     pub fn get() -> impl Deref<Target = Self> {

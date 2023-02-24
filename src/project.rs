@@ -118,9 +118,11 @@ impl Settings {
             .with_context(parse_err)?;
         let self_ver = Self::version();
         if version < self_ver as _ {
-            bail!("This seems to be a project created with bard 1.x - to build with bard {}.x please follow the migration guide: FIXME: link", self_ver);
+            bail!(
+                "This project was created with bard {}.x - to build with bard {}.x please follow the migration guide: https://bard.md/book/migration-{1}.html",
+                version, self_ver);
         } else if version > self_ver as _ {
-            bail!("This project was create with a newer version {}.x of bard, the project cannot be built by bard {}.x", version, self_ver);
+            bail!("This project was created with a newer version {}.x of bard, the project cannot be built by bard {}.x", version, self_ver);
         }
 
         let mut settings: Settings = toml::from_str(&contents).with_context(parse_err)?;
