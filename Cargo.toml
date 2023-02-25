@@ -1,11 +1,11 @@
 [package]
 name = "bard"
 version = "2.0.0-alpha1"
-authors = ["Vojtech Kral <vojtech@kral.pm>"]
+authors = ["Vojtech Kral and contributors"]
 description = "Creates PDF and HTML songbooks out of easy-to-write Markdown sources."
 readme = "README.md"
 repository = "https://github.com/vojtechkral/bard"
-homepage = "https://github.com/vojtechkral/bard"
+homepage = "https://bard.md"
 license = "Apache-2.0"
 keywords = ["music", "markdown"]
 edition = "2018"
