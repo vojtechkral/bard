@@ -56,6 +56,10 @@ fn default_font_size() -> u32 {
     12
 }
 
+fn default_toc_sort_key() -> String {
+    "numberline\\s+\\{[^}]*}([^}]+)".to_string()
+}
+
 fn default_dpi() -> f64 {
     144.0
 }
@@ -75,7 +79,10 @@ pub struct Output {
     pub sans_font: bool,
     #[serde(default = "default_font_size")]
     pub font_size: u32,
-    pub toc_sort_key: Option<String>,
+    #[serde(default)]
+    pub toc_sort: bool,
+    #[serde(default = "default_toc_sort_key")]
+    pub toc_sort_key: String,
     #[serde(default = "default_dpi")]
     pub dpi: f64,
     #[serde(default = "default_tex_runs")]

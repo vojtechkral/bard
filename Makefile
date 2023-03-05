@@ -27,7 +27,7 @@ test:
 	cargo nextest run --run-ignored all
 
 .PHONY: check
-check: test test-tectonic msrv audit lint
+check: test test-tectonic msrv lint audit
 
 .PHONY: examples
 examples:

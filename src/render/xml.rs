@@ -178,6 +178,7 @@ xml_write!(struct Output {
     file,
     template,
     format,
+    toc_sort,
     toc_sort_key,
     sans_font,
     font_size,
@@ -194,7 +195,8 @@ xml_write!(struct Output {
         .field_opt(format)?
         .field(sans_font)?
         .field(font_size)?
-        .field_opt(toc_sort_key)?
+        .field(toc_sort)?
+        .field(toc_sort_key)?
         .field(dpi)?
         .field(tex_runs)?
         .field_opt(script)?

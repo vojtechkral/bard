@@ -56,7 +56,7 @@ impl RPdf {
 
         Ok(Self {
             hb,
-            toc_sort_key: output.toc_sort_key.clone(),
+            toc_sort_key: output.toc_sort.then(|| output.toc_sort_key.clone()),
             tex_runs: output.tex_runs,
         })
     }
