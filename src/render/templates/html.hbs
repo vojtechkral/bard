@@ -235,8 +235,8 @@
       <h3>{{ book.subtitle }}</h3>
     {{/if }}
     {{~#if book.front_img}}
-        <img src="{{ book.front_img ~}}">
-      {{/if}}
+      <img src="{{ book.front_img ~}}">
+    {{/if}}
     {{#if book.title_note }}
       <p class="note">{{ book.title_note }}</p>
     {{/if }}
@@ -246,9 +246,15 @@
   <div id="index" class="pad">
     <h2>Contents</h2>
     <ol>
-    {{#each songs}}
-      <li><a href="#song-{{ @index }}">{{ title }}</a></li>
-    {{/each}}
+    {{#if output.toc_sort}}
+      {{#each songs_sorted}}
+        <li><a href="#song-{{ idx }}">{{ title }}</a></li>
+      {{/each}}
+    {{else}}
+      {{#each songs}}
+        <li><a href="#song-{{ @index }}">{{ title }}</a></li>
+      {{/each}}
+    {{/if}}
     </ol>
   </div>
 
