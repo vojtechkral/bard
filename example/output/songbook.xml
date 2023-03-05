@@ -20,6 +20,8 @@
       <format>xml</format>
       <sans_font>false</sans_font>
       <font_size>12</font_size>
+      <toc_sort>false</toc_sort>
+      <toc_sort_key>numberline\s+\{[^}]*}([^}]+)</toc_sort_key>
       <dpi>144</dpi>
       <tex_runs>3</tex_runs>
     </output>
@@ -29,8 +31,8 @@
     <name>bard</name>
     <version>2.0.0-alpha1</version>
     <description>Creates PDF and HTML songbooks out of easy-to-write Markdown sources.</description>
-    <homepage>https://github.com/vojtechkral/bard</homepage>
-    <authors>Vojtech Kral &lt;vojtech@kral.pm&gt;</authors>
+    <homepage>https://bard.md</homepage>
+    <authors>Vojtech Kral and contributors</authors>
   </program>
   <!-- Song data -->
   <songs>

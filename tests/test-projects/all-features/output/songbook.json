@@ -1032,7 +1032,8 @@
     "format": "json",
     "sans_font": false,
     "font_size": 12,
-    "toc_sort_key": null,
+    "toc_sort": false,
+    "toc_sort_key": "numberline\\s+\\{[^}]*}([^}]+)",
     "dpi": 144.0,
     "tex_runs": 3,
     "script": null
@@ -1041,7 +1042,7 @@
     "name": "bard",
     "version": "2.0.0-alpha1",
     "description": "Creates PDF and HTML songbooks out of easy-to-write Markdown sources.",
-    "homepage": "https://github.com/vojtechkral/bard",
-    "authors": "Vojtech Kral <vojtech@kral.pm>"
+    "homepage": "https://bard.md",
+    "authors": "Vojtech Kral and contributors"
   }
 }
