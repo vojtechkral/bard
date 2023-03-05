@@ -45,4 +45,8 @@ fn bad_unicode_path() {
     bard::bard_make_at::<&Path>(&app, &workdir)
         .context("Failed to build project")
         .unwrap();
+
+    // Don't leave the dir with an invalid name on disk as it may be problematic for various tools.
+    // For example, CI is unable to cache dependencies on Windows with this dir in /target.
+    fs::remove_dir_all(&workdir).unwrap();
 }
