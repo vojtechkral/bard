@@ -11,6 +11,7 @@ notation = "german"
 [[output]]
 file = "songbook.pdf"
 font_size = 11
+toc_sort = true
 toc_sort_key = "numberline\\s+\\{[^}]*}([^}]+)"
 
 [[output]]

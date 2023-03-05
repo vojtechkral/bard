@@ -22,7 +22,7 @@ fn keep_tex_only() {
 
     assert!(builder.out_dir().join("songbook.pdf").exists());
     assert!(builder.out_dir().join("songbook.tex").exists());
-    assert!(dbg!(builder.find_tmp_dir("songbook.pdf")).is_none());
+    assert!(builder.find_tmp_dir("songbook.pdf").is_none());
 }
 
 #[test]

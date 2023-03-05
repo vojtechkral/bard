@@ -134,11 +134,11 @@ jobs:
         run: |
           PATH="$PATH:$HOME/tectonic-bin" tectonic -V
           PATH="$PATH:$HOME/tectonic-bin" cargo test --locked -- --nocapture
-      - name: Install Node.js
+      - name: Install apt packages
         id: apt-packages
         uses: awalsh128/cache-apt-pkgs-action@v1
         with:
-          packages: nodejs
+          packages: nodejs poppler-utils
           version: 1.0
       - name: Cache npm dependencies
         uses: actions/cache@v3
@@ -146,9 +146,10 @@ jobs:
           path: |
             ~/.npm
           key: test-npm-${{ runner.os }}-${{ hashFiles('Cargo.lock') }}
-      - name: Test reference hbs parsing
+      - name: Additional tests
         run: |
-          cargo test --locked -- --ignored --nocapture --exact hbs_js_parse
+          PATH="$PATH:$HOME/tectonic-bin" tectonic -V
+          PATH="$PATH:$HOME/tectonic-bin" cargo test --locked -- --ignored --nocapture
 
   test-windows:
     name: Test on Windows

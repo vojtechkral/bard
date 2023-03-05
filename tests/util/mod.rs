@@ -5,6 +5,8 @@ use std::fs::File;
 use std::io::BufRead;
 use std::io::BufReader;
 use std::ops;
+use std::ops::Bound;
+use std::ops::RangeBounds;
 use std::process::Command;
 use std::process::Stdio;
 
@@ -309,6 +311,42 @@ impl ExeBuilder {
                     == Some(true)
             })
     }
+}
+
+/// Convert a PDF to text using the Poppler `pdftotext` tool.
+///
+/// `pages` is a 1-indexed range, ie. `1..3` means pages 1 and 2 (and is the same as `..3`).
+pub fn pdf_to_text(pdf: &Path, pages: impl RangeBounds<usize>) -> Result<String> {
+    let mut cmd = Command::new("pdftotext");
+    cmd.arg("-layout");
+
+    match pages.start_bound() {
+        Bound::Included(&f) => Some(f),
+        Bound::Excluded(&f) => Some(f + 1),
+        Bound::Unbounded => None,
+    }
+    .map(|f| {
+        cmd.arg("-f".to_string());
+        cmd.arg(format!("{}", f));
+    });
+
+    match pages.end_bound() {
+        Bound::Included(&i) => Some(i),
+        Bound::Excluded(&i) => Some(i - 1),
+        Bound::Unbounded => None,
+    }
+    .map(|l| {
+        cmd.arg("-l".to_string());
+        cmd.arg(format!("{}", l));
+    });
+
+    cmd.arg(pdf);
+    cmd.arg("-");
+
+    let output = cmd.output()?;
+    output.status.into_result()?;
+    let stdout = String::from_utf8_lossy(&output.stdout).into();
+    Ok(stdout)
 }
 
 pub trait StringExt {
