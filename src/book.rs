@@ -2,9 +2,11 @@
 
 use std::collections::BTreeMap;
 
+use image::image_dimensions;
 use serde::Serialize;
 
 use crate::music::Notation;
+use crate::prelude::*;
 use crate::project::Settings;
 use crate::util::{sort_lexical_by, BStr};
 
@@ -51,6 +53,20 @@ impl Block {
                 .iter_mut()
                 .flat_map(|p| p.iter_mut())
                 .for_each(Inline::remove_chorus_num);
+        }
+    }
+
+    fn verse(&self) -> Option<&Verse> {
+        match self {
+            Self::Verse(verse) => Some(verse),
+            _ => None,
+        }
+    }
+
+    fn verse_mut(&mut self) -> Option<&mut Verse> {
+        match self {
+            Self::Verse(verse) => Some(verse),
+            _ => None,
         }
     }
 }
@@ -145,6 +161,20 @@ impl Inline {
             _ => {}
         }
     }
+
+    fn image(&self) -> Option<&Image> {
+        match self {
+            Self::Image(image) => Some(image),
+            _ => None,
+        }
+    }
+
+    fn image_mut(&mut self) -> Option<&mut Image> {
+        match self {
+            Self::Image(image) => Some(image),
+            _ => None,
+        }
+    }
 }
 
 #[derive(Serialize, Debug)]
@@ -197,11 +227,48 @@ pub struct Image {
     pub path: BStr,
     pub title: BStr,
     pub class: BStr,
+    /// Size in pixels, initially `0`, resolved during book postprocessing.
+    pub width: u32,
+    /// Size in pixels, initially `0`, resolved during book postprocessing.
+    pub height: u32,
+
+    /// Absolute path to the image file, resolved during book postprocessing,
+    /// **not** part of AST.
+    #[serde(skip)]
+    pub full_path: Option<PathBuf>,
 }
 
 impl Image {
     pub fn new(path: BStr, title: BStr, class: BStr) -> Self {
-        Self { path, title, class }
+        Self {
+            path,
+            title,
+            class,
+            width: 0,
+            height: 0,
+            full_path: None,
+        }
+    }
+
+    fn resolve(&mut self, output_dir: &Path) -> Result<()> {
+        let path = Path::new(&*self.path);
+        if self.path.contains("://") || path.is_absolute() {
+            bail!("Image path has to be relative and pointing to a local file.");
+        }
+
+        let full_path = output_dir.join(path);
+        let (w, h) = image_dimensions(&full_path)
+            .with_context(|| format!("Couldn't read image file {:?}", full_path))?;
+
+        self.width = w;
+        self.height = h;
+        self.full_path = Some(full_path);
+
+        Ok(())
+    }
+
+    pub fn full_path(&self) -> &Path {
+        self.full_path.as_deref().unwrap()
     }
 }
 
@@ -273,6 +340,14 @@ impl Verse {
     pub fn is_empty(&self) -> bool {
         self.paragraphs.is_empty()
     }
+
+    fn inlines(&self) -> impl Iterator<Item = &Inline> {
+        self.paragraphs.iter().flat_map(|p| p.iter())
+    }
+
+    fn inlines_mut(&mut self) -> impl Iterator<Item = &mut Inline> {
+        self.paragraphs.iter_mut().flat_map(|p| p.iter_mut())
+    }
 }
 
 #[derive(Serialize, Debug)]
@@ -290,16 +365,17 @@ pub struct Song {
 
 impl Song {
     /// AST postprocessing.
-    /// At the moment this entails removing empty paragraphs and verses
+    ///
+    /// This entails removing empty paragraphs and verses
     /// which linger when transposition extensions are applied & removed.
+    ///
+    /// Distinct from `Book::postprocess()`, this is done by `Parser`.
     pub fn postprocess(&mut self) {
         // Remove paragraphs which contain nothing or linebreaks only
-        for block in self.blocks.iter_mut() {
-            if let Block::Verse(verse) = block {
-                verse
-                    .paragraphs
-                    .retain(|para| para.iter().any(|inline| !inline.is_break()))
-            }
+        for verse in self.blocks.iter_mut().filter_map(Block::verse_mut) {
+            verse
+                .paragraphs
+                .retain(|para| para.iter().any(|inline| !inline.is_break()));
         }
 
         // Remove verses which have no paragraphs and no label
@@ -348,11 +424,38 @@ impl Book {
     }
 
     /// Book-level postprocessing.
-    /// Currently this is generation of the songs_sorted vec.
-    pub fn postprocess(&mut self) {
+    ///
+    /// Steps taken:
+    /// 1. Generation of the songs_sorted vec,
+    /// 2. Resolving of image elements (checking path, reading image dimensions).
+    pub fn postprocess(&mut self, output_dir: &Path) -> Result<()> {
         self.songs.shrink_to_fit();
         self.songs_sorted = self.songs.iter().enumerate().map(SongRef::new).collect();
         sort_lexical_by(&mut self.songs_sorted, |songref| songref.title.as_ref());
+
+        for image in self.iter_images_mut() {
+            image.resolve(output_dir)?;
+        }
+
+        Ok(())
+    }
+
+    pub fn iter_images(&self) -> impl Iterator<Item = &Image> {
+        self.songs
+            .iter()
+            .flat_map(|s| s.blocks.iter())
+            .filter_map(Block::verse)
+            .flat_map(|v| v.inlines())
+            .filter_map(Inline::image)
+    }
+
+    pub fn iter_images_mut(&mut self) -> impl Iterator<Item = &mut Image> {
+        self.songs
+            .iter_mut()
+            .flat_map(|s| s.blocks.iter_mut())
+            .filter_map(Block::verse_mut)
+            .flat_map(|v| v.inlines_mut())
+            .filter_map(Inline::image_mut)
     }
 }
 

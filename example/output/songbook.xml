@@ -86,7 +86,7 @@
       <verse label="2" label-type="chorus">
         <p>And I shall hear, though soft you tread above me<br/>And all my dreams will warm and sweeter be<br/>If you’ll not fail to tell me that you love me<br/>I’ll sleep in peace until you come to me.</p>
         <p>
-          <image class="center" path="hills.jpg" title="hills"/>
+          <image class="center" height="176" path="hills.jpg" title="hills" width="580"/>
         </p>
       </verse>
     </song>
@@ -158,7 +158,7 @@
           <chorus-ref prefix_space=""/>
         </p>
         <p>
-          <image class="center" path="chest.jpg" title="chest"/>
+          <image class="center" height="264" path="chest.jpg" title="chest" width="300"/>
         </p>
       </verse>
     </song>
@@ -196,7 +196,7 @@
         </p>
       </verse>
       <verse label="2" label-type="verse">
-        <p>I will build my love a bower<br/>By yon cool crystal fountain <image class="right" path="thyme.png" title="thyme"/>
+        <p>I will build my love a bower<br/>By yon cool crystal fountain <image class="right" height="304" path="thyme.png" title="thyme" width="150"/>
           <br/>And round it I will pile<br/>All the wild flowers o’ the mountain.<br/>Will ye go lassie go?<chorus-ref prefix_space=" "/>
         </p>
       </verse>

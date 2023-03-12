@@ -572,7 +572,9 @@
                 "type": "i-image",
                 "path": "hills.jpg",
                 "title": "hills",
-                "class": "center"
+                "class": "center",
+                "width": 580,
+                "height": 176
               }
             ]
           ]
@@ -1329,7 +1331,9 @@
                 "type": "i-image",
                 "path": "chest.jpg",
                 "title": "chest",
-                "class": "center"
+                "class": "center",
+                "width": 300,
+                "height": 264
               }
             ]
           ]
@@ -1753,7 +1757,9 @@
                 "type": "i-image",
                 "path": "thyme.png",
                 "title": "thyme",
-                "class": "right"
+                "class": "right",
+                "width": 150,
+                "height": 304
               },
               {
                 "type": "i-break"

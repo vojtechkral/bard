@@ -656,7 +656,9 @@
                 "type": "i-image",
                 "path": "pipe.jpg",
                 "title": "pipe",
-                "class": "right"
+                "class": "right",
+                "width": 235,
+                "height": 107
               },
               {
                 "type": "i-break"
@@ -704,7 +706,9 @@
                 "type": "i-image",
                 "path": "box.png",
                 "title": "box",
-                "class": ""
+                "class": "",
+                "width": 12,
+                "height": 12
               },
               {
                 "type": "i-text",
@@ -768,7 +772,9 @@
                 "type": "i-image",
                 "path": "hills.jpg",
                 "title": "hills",
-                "class": "center"
+                "class": "center",
+                "width": 580,
+                "height": 176
               }
             ]
           ]

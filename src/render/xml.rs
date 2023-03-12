@@ -54,11 +54,17 @@ xml_write!(struct Image {
     path,
     title,
     class,
+    width,
+    height,
+    full_path,
 } -> |w| {
+    let _ = full_path;
     w.tag("image",)
         .attr(path)
         .attr(title)
         .attr(class)
+        .attr(width)
+        .attr(height)
 });
 
 xml_write!(struct ChorusRef {
@@ -232,7 +238,6 @@ xml_write!(struct RenderContext<'a> {
         .value(program)?
         .comment("Song data")?
         .field(songs)?
-
 });
 
 #[derive(Debug, Default)]

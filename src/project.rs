@@ -235,7 +235,7 @@ impl Project {
             self.book.add_songs(songs);
         }
 
-        self.book.postprocess();
+        self.book.postprocess(&self.settings.dir_output)?;
 
         Ok(())
     }

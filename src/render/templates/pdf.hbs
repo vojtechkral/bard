@@ -197,20 +197,20 @@
 
     \begin{figure}[H]
       \centering
-      \includegraphics[width={{ px2mm (img_w path) }}mm]{ {{~ path ~}} }
+      \includegraphics[width={{ px2mm width }}mm]{ {{~ path ~}} }
     \end{figure}
 
   {{/if~}}
   {{~#if (eq class "right") }}
     \hfill\hspace{0pt}\vspace{-1em}
     {
-    \begin{wrapfigure}{r}{ {{~ px2mm (img_w path) }}mm}
+    \begin{wrapfigure}{r}{ {{~ px2mm width }}mm}
       \centering
-      \includegraphics[width={{ px2mm (img_w path) }}mm]{ {{~ path ~}} }
+      \includegraphics[width={{ px2mm width }}mm]{ {{~ path ~}} }
     \end{wrapfigure}
     }
   {{/if~}}
-  {{~#unless class }}\includegraphics[width={{ px2mm (img_w path) }}mm]{ {{~ path ~}} }{{/unless~}}
+  {{~#unless class }}\includegraphics[width={{ px2mm width }}mm]{ {{~ path ~}} }{{/unless~}}
 {{/inline}}
 
 {{#*inline "i-tag"}}{{> (cat "h-" (lookup this "name")) attrs }}{{/inline}}

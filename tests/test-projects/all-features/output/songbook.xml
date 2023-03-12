@@ -115,8 +115,8 @@
       </verse>
       <verse label="Second verse" label-type="custom">
         <p>
-          <br/>And if you come, <image class="right" path="pipe.jpg" title="pipe"/>
-          <br/>when all the flowers are dying<br/>And I am dead,<br/>As dead I well may be<br/>You’ll come and find<br/>The place where I am lying<br/>And kneel and say <image class="" path="box.png" title="box"/> an ”Ave” there for me.</p>
+          <br/>And if you come, <image class="right" height="107" path="pipe.jpg" title="pipe" width="235"/>
+          <br/>when all the flowers are dying<br/>And I am dead,<br/>As dead I well may be<br/>You’ll come and find<br/>The place where I am lying<br/>And kneel and say <image class="" height="12" path="box.png" title="box" width="12"/> an ”Ave” there for me.</p>
       </verse>
       <bullet-list>
         <item>Bullet list item 1</item>
@@ -129,7 +129,7 @@
       <verse label-type="none">
         <p>If you’ll not fail to tell me that you love me<br/>I’ll sleep in peace until you come to me.</p>
         <p>
-          <image class="center" path="hills.jpg" title="hills"/>
+          <image class="center" height="176" path="hills.jpg" title="hills" width="580"/>
         </p>
       </verse>
       <pre>Code block.

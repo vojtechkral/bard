@@ -236,6 +236,8 @@ fn i_image(path: &str, title: &str, class: &str) -> Json {
         "path": path,
         "title": title,
         "class": class,
+        "width": 0,
+        "height": 0,
     })
 }
 
