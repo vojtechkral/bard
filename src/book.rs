@@ -11,6 +11,7 @@ use crate::project::Settings;
 use crate::util::{sort_lexical_by, BStr};
 
 pub mod version;
+mod xml;
 
 #[derive(Serialize, Debug)]
 #[serde(tag = "type")]
@@ -233,9 +234,9 @@ pub struct Image {
     pub height: u32,
 
     /// Absolute path to the image file, resolved during book postprocessing,
-    /// **not** part of AST.
+    /// **not** part of the AST.
     #[serde(skip)]
-    pub full_path: Option<PathBuf>,
+    full_path: Option<PathBuf>,
 }
 
 impl Image {

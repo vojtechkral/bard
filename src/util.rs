@@ -11,6 +11,8 @@ use lexical_sort::{lexical_cmp, PathSort};
 use crate::prelude::*;
 
 mod path;
+pub mod xml_support;
+
 pub use path::{PathBufExt, PathExt, TempPath};
 
 #[cfg(unix)]
