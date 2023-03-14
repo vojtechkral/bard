@@ -1,7 +1,7 @@
 use handlebars::handlebars_helper;
 use semver::Version;
 
-use super::template::HbRender;
+use super::template::{DpiHelper, HbRender};
 use super::tex_tools::TexTools;
 use super::{Render, RenderContext};
 use crate::app::App;
@@ -50,9 +50,11 @@ impl RPdf {
     pub fn new(project: &Project, output: &Output) -> Result<Self> {
         let mut hb = HbRender::new(project, output, &DEFAULT_TEMPLATE)?;
 
-        // Setup Latex escaping
+        // Setup TeX escaping and TeX-specific helpers
         hb.hb.register_escape_fn(hb_latex_escape);
         hb.hb.register_helper("pre", Box::new(hb_pre));
+        hb.hb
+            .register_helper("px2mm", DpiHelper::new(output, "px2mm"));
 
         Ok(Self {
             hb,

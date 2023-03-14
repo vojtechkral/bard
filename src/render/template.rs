@@ -14,6 +14,7 @@ use serde_json::Number;
 
 use super::RenderContext;
 use crate::prelude::*;
+use crate::project::Format;
 use crate::project::{Output, Project};
 
 type RegexCache = HashMap<String, Result<Regex, ReError>>;
@@ -179,15 +180,21 @@ impl HelperDef for ImgHelper {
     }
 }
 
-struct DpiHelper {
-    dpi: f64,
+pub struct DpiHelper {
+    dpi: f32,
+    format: Format,
+    name: &'static str,
 }
 
 impl DpiHelper {
     const INCH_MM: f64 = 25.4;
 
-    fn new(output: &Output) -> Self {
-        Self { dpi: output.dpi }
+    pub fn new(output: &Output, name: &'static str) -> Box<Self> {
+        Box::new(Self {
+            dpi: output.dpi(),
+            format: output.format(),
+            name,
+        })
     }
 }
 
@@ -202,15 +209,23 @@ impl HelperDef for DpiHelper {
         let value: f64 = h
             .param(0)
             .map(|x| x.value())
-            .ok_or_else(|| hb_err!("px2mm: Input value not supplied"))
+            .ok_or_else(|| hb_err!("{}: Input value not supplied", self.name))
             .and_then(|x| {
                 x.as_f64().ok_or_else(|| {
-                    hb_err!("px2mm: Input value not a number, it's {:?} as JSON.", x)
+                    hb_err!(
+                        "{}: Input value not a number, it's {:?} as JSON.",
+                        self.name,
+                        x
+                    )
                 })
             })?;
 
-        let res = (value / self.dpi) * Self::INCH_MM;
-        Ok(hb::ScopedJson::Derived(JsonValue::from(res)))
+        let res = match self.format {
+            Format::Html => JsonValue::from((self.dpi as f64 * value).round() as u32),
+            _ => JsonValue::from((value / self.dpi as f64) * Self::INCH_MM),
+        };
+
+        Ok(hb::ScopedJson::Derived(res))
     }
 }
 
@@ -382,7 +397,6 @@ impl HbRender {
             .with_helper("default", hb_default)
             .with_helper("matches", hb_matches)
             .with_helper("math", MathHelper)
-            .with_helper("px2mm", DpiHelper::new(output))
             .with_helper("img_w", ImgHelper::width(project))
             .with_helper("img_h", ImgHelper::height(project))
             .with_helper("version_check", version_helper);

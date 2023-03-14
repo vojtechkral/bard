@@ -1,6 +1,6 @@
 use semver::Version;
 
-use super::template::HbRender;
+use super::template::{DpiHelper, HbRender};
 use super::{Render, RenderContext};
 use crate::app::App;
 use crate::prelude::*;
@@ -12,7 +12,13 @@ pub struct RHtml(HbRender);
 
 impl RHtml {
     pub fn new(project: &Project, output: &Output) -> Result<Self> {
-        Ok(Self(HbRender::new(project, output, &DEFAULT_TEMPLATE)?))
+        let mut hb = HbRender::new(project, output, &DEFAULT_TEMPLATE)?;
+
+        // Setup HTML-specific helpers
+        hb.hb
+            .register_helper("scale", DpiHelper::new(output, "scale"));
+
+        Ok(Self(hb))
     }
 }
 

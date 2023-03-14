@@ -50,6 +50,13 @@ impl Format {
             ),
         })
     }
+
+    fn default_dpi(self) -> f32 {
+        match self {
+            Self::Html => 1.0,
+            _ => 144.0,
+        }
+    }
 }
 
 fn default_font_size() -> u32 {
@@ -58,10 +65,6 @@ fn default_font_size() -> u32 {
 
 fn default_toc_sort_key() -> String {
     "numberline\\s+\\{[^}]*}([^}]+)".to_string()
-}
-
-fn default_dpi() -> f64 {
-    144.0
 }
 
 fn default_tex_runs() -> u32 {
@@ -83,10 +86,11 @@ pub struct Output {
     pub toc_sort: bool,
     #[serde(default = "default_toc_sort_key")]
     pub toc_sort_key: String,
-    #[serde(default = "default_dpi")]
-    pub dpi: f64,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub dpi: Option<f32>,
     #[serde(default = "default_tex_runs")]
     pub tex_runs: u32,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub script: Option<String>,
 
     #[serde(rename = "book", default, skip_serializing)]
@@ -127,6 +131,11 @@ impl Output {
 
     pub fn is_pdf(&self) -> bool {
         self.format() == Format::Pdf
+    }
+
+    pub fn dpi(&self) -> f32 {
+        self.dpi
+            .unwrap_or_else(|| self.format.unwrap().default_dpi())
     }
 
     pub fn override_book_section<'a>(&self, project_book: &'a Metadata) -> Cow<'a, Metadata> {

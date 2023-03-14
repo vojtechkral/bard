@@ -63,7 +63,7 @@ xml_write!(struct Output {
         .field(font_size)?
         .field(toc_sort)?
         .field(toc_sort_key)?
-        .field(dpi)?
+        .field_opt(dpi)?
         .field(tex_runs)?
         .field_opt(script)?
 });

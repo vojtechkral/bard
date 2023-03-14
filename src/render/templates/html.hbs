@@ -1,4 +1,4 @@
-{{~ version_check "1.1.0" ~}}
+{{~ version_check "1.2.0" ~}}
 
 {{!-- Header with CSS --}}
 
@@ -222,7 +222,7 @@
 {{#*inline "i-strong"}}<strong>{{#each inlines}}{{> (lookup this "type") }}{{/each}}</strong>{{/inline}}
 {{#*inline "i-link"}}<a href="{{ url }}" title="{{ title }}">{{ text }}</a>{{/inline}}
 {{#*inline "i-chorus-ref"}}<em>{{ prefix_space }}{{ @root.book.chorus_label }}{{ num }}.</em>{{/inline}}
-{{#*inline "i-image"}}<img class="{{ class }}" src="{{ path }}" title="{{ title }}" />{{/inline}}
+{{#*inline "i-image"}}<img class="{{ class }}" src="{{ path }}" title="{{ title }}" width="{{ scale width }}" height="{{ scale height }}"/>{{/inline}}
 {{#*inline "i-tag"}}{{> (cat "h-" (lookup this "name")) attrs }}{{/inline}}
 
 {{!-- Body - main structure --}}
@@ -235,7 +235,7 @@
       <h3>{{ book.subtitle }}</h3>
     {{/if }}
     {{~#if book.front_img}}
-      <img src="{{ book.front_img ~}}">
+      <img src="{{ book.front_img ~}}" width="{{ scale (img_w book.front_img) }}" height="{{ scale (img_h book.front_img) }}">
     {{/if}}
     {{#if book.title_note }}
       <p class="note">{{ book.title_note }}</p>

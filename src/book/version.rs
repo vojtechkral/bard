@@ -27,11 +27,8 @@ impl fmt::Display for AstVersion {
 
 pub static AST_VERSION_LOG: &[AstVersion] = &[
     AstVersion::new(1, 0, "Initial version"),
-    AstVersion::new(
-        1,
-        1,
-        "New style, added support for HTML snippets, TTF font files, and baseline chords",
-    ),
+    AstVersion::new(1, 1, "New style, added support for HTML snippets, TTF font files, and baseline chords"),
+    AstVersion::new(1, 2, "Added scaling of images in HTML via the dpi setting, width and height are now provided in i-image elements"),
 ];
 
 pub fn current() -> &'static Version {

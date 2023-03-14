@@ -1040,9 +1040,7 @@
     "font_size": 12,
     "toc_sort": false,
     "toc_sort_key": "numberline\\s+\\{[^}]*}([^}]+)",
-    "dpi": 144.0,
-    "tex_runs": 3,
-    "script": null
+    "tex_runs": 3
   },
   "program": {
     "name": "bard",

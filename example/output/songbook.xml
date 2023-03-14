@@ -22,7 +22,6 @@
       <font_size>12</font_size>
       <toc_sort>false</toc_sort>
       <toc_sort_key>numberline\s+\{[^}]*}([^}]+)</toc_sort_key>
-      <dpi>144</dpi>
       <tex_runs>3</tex_runs>
     </output>
   </output>
