@@ -342,16 +342,24 @@ impl Project {
     }
 
     pub fn watch_paths(&self) -> impl Iterator<Item = &Path> {
-        let in_iter = self.input_paths.iter().map(PathBuf::as_ref);
+        // Input MD files:
+        // TODO: this won't work for wildcards
+        let inputs = self.input_paths.iter().map(PathBuf::as_ref);
 
-        let out_iter = self
+        // Templates:
+        let templates = self
             .settings
             .output
             .iter()
             .filter_map(Output::template_path);
 
+        // Images:
+        let images = self.book.iter_images().map(|i| i.full_path());
+
+        // bard.toml:
         iter::once(self.project_file.as_path())
-            .chain(in_iter)
-            .chain(out_iter)
+            .chain(inputs)
+            .chain(templates)
+            .chain(images)
     }
 }
