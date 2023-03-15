@@ -18,6 +18,7 @@ pub enum Notation {
     Roman,
 }
 
+#[allow(clippy::derivable_impls)] // Due to MSRV
 impl Default for Notation {
     fn default() -> Notation {
         Notation::English

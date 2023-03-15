@@ -20,9 +20,7 @@ impl SongsGlobs {
             Self::Many(many) => many.as_slice(),
         };
 
-        (0..)
-            .into_iter()
-            .map_while(move |i| items.get(i).map(move |s| s.as_str()))
+        (0..).map_while(move |i| items.get(i).map(move |s| s.as_str()))
     }
 }
 
