@@ -8,6 +8,7 @@ use crate::app::App;
 use crate::prelude::*;
 use crate::project::{Output, Project};
 use crate::render::tex_tools::TexRenderJob;
+use crate::util::ImgCache;
 
 default_template!(DEFAULT_TEMPLATE, "pdf.hbs");
 
@@ -47,8 +48,8 @@ pub struct RPdf {
 }
 
 impl RPdf {
-    pub fn new(project: &Project, output: &Output) -> Result<Self> {
-        let mut hb = HbRender::new(project, output, &DEFAULT_TEMPLATE)?;
+    pub fn new(project: &Project, output: &Output, img_cache: &ImgCache) -> Result<Self> {
+        let mut hb = HbRender::new(project, output, &DEFAULT_TEMPLATE, img_cache)?;
 
         // Setup TeX escaping and TeX-specific helpers
         hb.hb.register_escape_fn(hb_latex_escape);

@@ -1,8 +1,8 @@
-use std::fs;
 use std::hash::Hash;
 use std::path::Path as StdPath;
 use std::sync::Arc;
 use std::{collections::HashMap, ffi::OsString};
+use std::{fmt, fs};
 
 use lexical_sort::{lexical_cmp, PathSort};
 use parking_lot::RwLock;
@@ -132,3 +132,51 @@ pub fn read_dir_all<P: AsRef<Path>>(path: P) -> Result<Vec<PathBuf>> {
     read_dir_all_inner(&mut res, path.as_ref())?;
     Ok(res)
 }
+
+/// A very simple cache.
+#[derive(Clone)]
+pub struct Cache<K, V>(Arc<RwLock<HashMap<K, V>>>);
+
+impl<K, V> Cache<K, V> {
+    pub fn new() -> Self {
+        Self(Arc::new(RwLock::new(HashMap::new())))
+    }
+}
+
+impl<K, V> Cache<K, V>
+where
+    K: Eq + Hash + Clone,
+    V: Clone,
+{
+    pub fn try_get<E>(&self, key: &K, f: impl FnOnce() -> Result<V, E>) -> Result<V, E> {
+        let cache = self.0.read();
+        if let Some(value) = cache.get(key) {
+            return Ok(value.clone());
+        }
+
+        drop(cache);
+
+        let value = f()?;
+        self.0.write().insert(key.clone(), value.clone());
+        Ok(value)
+    }
+}
+
+impl<K, V> Default for Cache<K, V> {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl<K, V> fmt::Debug for Cache<K, V> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        if let Some(cache) = self.0.try_read() {
+            write!(f, "Cache(unlocked, {} entries)", cache.len())
+        } else {
+            write!(f, "Cache(locked)")
+        }
+    }
+}
+
+/// Cache of image dimensions.
+pub type ImgCache = Cache<PathBuf, (u32, u32)>;

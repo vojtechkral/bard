@@ -8,6 +8,7 @@ use crate::book::{Song, SongRef};
 use crate::music::Notation;
 use crate::prelude::*;
 use crate::project::{Format, Metadata, Output, Project};
+use crate::util::ImgCache;
 use crate::{ProgramMeta, PROGRAM_META};
 
 #[macro_use]
@@ -72,11 +73,11 @@ pub struct Renderer<'a> {
 }
 
 impl<'a> Renderer<'a> {
-    pub fn new(project: &'a Project, output: &'a Output) -> Result<Self> {
+    pub fn new(project: &'a Project, output: &'a Output, img_cache: &ImgCache) -> Result<Self> {
         let render: Box<dyn Render> = match output.format() {
-            Format::Pdf => Box::new(RPdf::new(project, output)?),
-            Format::Html => Box::new(RHtml::new(project, output)?),
-            Format::Hovorka => Box::new(RHovorka::new(project, output)?),
+            Format::Pdf => Box::new(RPdf::new(project, output, img_cache)?),
+            Format::Html => Box::new(RHtml::new(project, output, img_cache)?),
+            Format::Hovorka => Box::new(RHovorka::new(project, output, img_cache)?),
             Format::Json => Box::new(RJson::new()),
             Format::Xml => Box::new(RXml::new()),
         };

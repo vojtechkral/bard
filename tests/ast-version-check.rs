@@ -3,6 +3,7 @@ use bard::prelude::*;
 use bard::project::Project;
 use bard::render::Renderer;
 
+use bard::util::ImgCache;
 use semver::Version;
 
 mod util;
@@ -13,7 +14,7 @@ fn get_output_versions(project: &Project) -> Vec<(Version, PathBuf)> {
     // Imperative code so that track_caller works
     let mut res = vec![];
     for o in &project.settings.output {
-        let renderer = Renderer::new(project, o).unwrap();
+        let renderer = Renderer::new(project, o, &ImgCache::new()).unwrap();
         if let Some(ver) = renderer.version() {
             res.push((ver, o.file.clone()));
         }

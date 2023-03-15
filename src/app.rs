@@ -7,7 +7,7 @@ use console::Color::{Cyan, Green, Red, Yellow};
 use console::{Color, Style, Term};
 
 use crate::prelude::*;
-use crate::util::ProcessLines;
+use crate::util::{ImgCache, ProcessLines};
 
 #[derive(clap::Parser, Clone, Default)]
 pub struct StdioOpts {
@@ -83,6 +83,9 @@ pub struct App {
     bard_exe: PathBuf,
     /// bard self name for status reporting
     self_name: &'static str,
+
+    /// Image dimensions cache, for `HbRender`.
+    img_cache: ImgCache,
 }
 
 impl App {
@@ -95,6 +98,7 @@ impl App {
             test_mode: false,
             bard_exe: env::current_exe().expect("Could not get path to bard self binary"),
             self_name: "bard",
+            img_cache: ImgCache::new(),
         }
     }
 
@@ -109,6 +113,7 @@ impl App {
             test_mode: true,
             bard_exe,
             self_name: "bard",
+            img_cache: ImgCache::new(),
         }
     }
 
@@ -138,6 +143,10 @@ impl App {
 
     pub fn bard_exe(&self) -> &Path {
         self.bard_exe.as_path()
+    }
+
+    pub fn img_cache(&self) -> &ImgCache {
+        &self.img_cache
     }
 
     // stdio helpers

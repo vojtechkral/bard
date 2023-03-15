@@ -5,14 +5,15 @@ use super::{Render, RenderContext};
 use crate::app::App;
 use crate::prelude::*;
 use crate::project::{Output, Project};
+use crate::util::ImgCache;
 
 default_template!(DEFAULT_TEMPLATE, "html.hbs");
 
 pub struct RHtml(HbRender);
 
 impl RHtml {
-    pub fn new(project: &Project, output: &Output) -> Result<Self> {
-        let mut hb = HbRender::new(project, output, &DEFAULT_TEMPLATE)?;
+    pub fn new(project: &Project, output: &Output, img_cache: &ImgCache) -> Result<Self> {
+        let mut hb = HbRender::new(project, output, &DEFAULT_TEMPLATE, img_cache)?;
 
         // Setup HTML-specific helpers
         hb.hb

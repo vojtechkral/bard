@@ -16,6 +16,7 @@ use super::RenderContext;
 use crate::prelude::*;
 use crate::project::Format;
 use crate::project::{Output, Project};
+use crate::util::ImgCache;
 
 type RegexCache = HashMap<String, Result<Regex, ReError>>;
 
@@ -128,23 +129,27 @@ struct ImgHelper {
     out_dir: PathBuf,
     result_i: usize,
     name: &'static str,
+    cache: ImgCache,
 }
 
 impl ImgHelper {
-    fn width(project: &Project) -> Self {
+    fn width(project: &Project, img_cache: &ImgCache) -> Self {
         let out_dir = project.settings.dir_output().to_owned();
         Self {
             out_dir,
             result_i: 0,
             name: "img_w",
+            cache: img_cache.clone(),
         }
     }
-    fn height(project: &Project) -> Self {
+
+    fn height(project: &Project, img_cache: &ImgCache) -> Self {
         let out_dir = project.settings.dir_output().to_owned();
         Self {
             out_dir,
             result_i: 1,
             name: "img_h",
+            cache: img_cache.clone(),
         }
     }
 }
@@ -172,8 +177,11 @@ impl HelperDef for ImgHelper {
             })?;
 
         let pathbuf = Path::new(&path).to_owned().resolved(&self.out_dir);
-        let (w, h) = image_dimensions(&pathbuf)
-            .map_err(|e| hb_err!(e, "{}: Couldn't read image at {:?}", self.name, pathbuf))?;
+
+        let (w, h) = self.cache.try_get(&pathbuf, || {
+            image_dimensions(&pathbuf)
+                .map_err(|e| hb_err!(e, "{}: Couldn't read image at {:?}", self.name, pathbuf))
+        })?;
 
         let res = [w, h][self.result_i];
         Ok(hb::ScopedJson::Derived(JsonValue::from(res)))
@@ -388,6 +396,7 @@ impl HbRender {
         project: &Project,
         output: &Output,
         default: &DefaultTemaplate,
+        img_cache: &ImgCache,
     ) -> Result<Self> {
         let (version_helper, version) = VersionCheckHelper::new();
         let mut hb = Handlebars::new()
@@ -397,8 +406,8 @@ impl HbRender {
             .with_helper("default", hb_default)
             .with_helper("matches", hb_matches)
             .with_helper("math", MathHelper)
-            .with_helper("img_w", ImgHelper::width(project))
-            .with_helper("img_h", ImgHelper::height(project))
+            .with_helper("img_w", ImgHelper::width(project, img_cache))
+            .with_helper("img_h", ImgHelper::height(project, img_cache))
             .with_helper("version_check", version_helper);
 
         let tpl_name = output

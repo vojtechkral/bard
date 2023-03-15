@@ -235,7 +235,8 @@ impl Project {
             self.book.add_songs(songs);
         }
 
-        self.book.postprocess(&self.settings.dir_output)?;
+        self.book
+            .postprocess(&self.settings.dir_output, app.img_cache())?;
 
         Ok(())
     }
@@ -306,7 +307,7 @@ impl Project {
                 )
             };
 
-            let renderer = Renderer::new(self, output).with_context(context)?;
+            let renderer = Renderer::new(self, output, app.img_cache()).with_context(context)?;
             let tpl_version = renderer.version();
 
             let res = renderer.render(app).with_context(context).and_then(|_| {

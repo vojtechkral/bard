@@ -8,7 +8,7 @@ use serde::Serialize;
 use crate::music::Notation;
 use crate::prelude::*;
 use crate::project::Settings;
-use crate::util::{sort_lexical_by, BStr};
+use crate::util::{sort_lexical_by, BStr, ImgCache};
 
 pub mod version;
 mod xml;
@@ -251,15 +251,17 @@ impl Image {
         }
     }
 
-    fn resolve(&mut self, output_dir: &Path) -> Result<()> {
+    fn resolve(&mut self, output_dir: &Path, img_cache: &ImgCache) -> Result<()> {
         let path = Path::new(&*self.path);
         if self.path.contains("://") || path.is_absolute() {
             bail!("Image path has to be relative and pointing to a local file.");
         }
 
         let full_path = output_dir.join(path);
-        let (w, h) = image_dimensions(&full_path)
-            .with_context(|| format!("Couldn't read image file {:?}", full_path))?;
+        let (w, h) = img_cache.try_get(&full_path, || {
+            image_dimensions(&full_path)
+                .with_context(|| format!("Couldn't read image file {:?}", full_path))
+        })?;
 
         self.width = w;
         self.height = h;
@@ -429,13 +431,13 @@ impl Book {
     /// Steps taken:
     /// 1. Generation of the songs_sorted vec,
     /// 2. Resolving of image elements (checking path, reading image dimensions).
-    pub fn postprocess(&mut self, output_dir: &Path) -> Result<()> {
+    pub fn postprocess(&mut self, output_dir: &Path, img_cache: &ImgCache) -> Result<()> {
         self.songs.shrink_to_fit();
         self.songs_sorted = self.songs.iter().enumerate().map(SongRef::new).collect();
         sort_lexical_by(&mut self.songs_sorted, |songref| songref.title.as_ref());
 
         for image in self.iter_images_mut() {
-            image.resolve(output_dir)?;
+            image.resolve(output_dir, img_cache)?;
         }
 
         Ok(())
