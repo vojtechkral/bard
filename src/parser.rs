@@ -22,7 +22,7 @@ use crate::music::{self, Notation};
 use crate::prelude::*;
 use crate::util::{BStr, StrExt};
 
-mod html;
+pub mod html;
 
 type AstRef<'a> = &'a AstNode<'a>;
 type Arena<'a> = comrak::Arena<AstNode<'a>>;
@@ -37,6 +37,8 @@ pub enum DiagKind {
     ControlChar { char: u32 },
     #[error("Unrecognized chord: {chord}")]
     Transposition { chord: BStr },
+    #[error("The HTML tag <{tag}> is reserved for future use.")]
+    HtmlReservedTag { tag: BStr },
     #[error("Text in HTML block ignored: \"{text}\"\nYou may need a blank line between the HTML block and the following text.")]
     HtmlIgnoredText { text: BStr },
 }
@@ -46,6 +48,7 @@ impl DiagKind {
         match self {
             Self::ControlChar { .. } => true,
             Self::Transposition { .. } => true,
+            Self::HtmlReservedTag { .. } => true,
             Self::HtmlIgnoredText { .. } => false,
         }
     }

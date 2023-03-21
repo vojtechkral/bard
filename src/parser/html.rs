@@ -16,6 +16,8 @@ use super::{DiagKind, ParserCtx};
 use crate::book::{HtmlTag, Inline};
 use crate::util::BStr;
 
+pub static RESERVED_TAGS: &[&str] = &["html", "tex"];
+
 struct Sink<'c> {
     inlines: Vec<HtmlTag>,
     start_line: usize,
@@ -35,7 +37,17 @@ impl<'c> Sink<'c> {
         }
     }
 
-    fn append_tag(&mut self, tag: Tag) {
+    fn append_tag(&mut self, tag: Tag, line_num: u64) {
+        if RESERVED_TAGS.contains(&tag.name.to_ascii_lowercase().as_ref()) {
+            self.ctx.report_diag(
+                line_num as _,
+                DiagKind::HtmlReservedTag {
+                    tag: tag.name.to_string().into(),
+                },
+            );
+            return;
+        }
+
         let name: BStr = match (tag.kind, tag.self_closing) {
             (TagKind::StartTag, false) => tag.name.to_string(),
             (TagKind::StartTag, true) => format!("{}/", tag.name),
@@ -99,7 +111,7 @@ impl<'d> TokenSink for Sink<'d> {
         }
 
         match token {
-            Token::TagToken(tag) => self.append_tag(tag),
+            Token::TagToken(tag) => self.append_tag(tag, line_num),
             Token::CharacterTokens(s) => self.append_text(&s, line_num as _),
 
             Token::NullCharacterToken => {
