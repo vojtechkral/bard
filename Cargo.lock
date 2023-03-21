@@ -128,6 +128,7 @@ dependencies = [
  "handlebars",
  "html5ever",
  "image",
+ "indoc",
  "lexical-sort",
  "nix 0.26.2",
  "notify 5.1.0",
@@ -1198,6 +1199,12 @@ dependencies = [
  "autocfg",
  "hashbrown",
 ]
+
+[[package]]
+name = "indoc"
+version = "2.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9f2cb48b81b1dc9f39676bf99f5499babfec7cd8fe14307f7b3d747208fb5690"
 
 [[package]]
 name = "inotify"
