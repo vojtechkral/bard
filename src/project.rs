@@ -217,11 +217,7 @@ impl Project {
             .finalize()?;
 
         let diag_sink = move |diag: Diagnostic| {
-            if diag.is_error() {
-                app.error_generic(diag);
-            } else {
-                app.warning(diag);
-            }
+            app.parser_diag(diag);
         };
 
         for path in self.input_paths.iter() {

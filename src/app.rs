@@ -5,7 +5,9 @@ use std::io::{self, Write};
 
 use console::Color::{Cyan, Green, Red, Yellow};
 use console::{Color, Style, Term};
+use parking_lot::Mutex;
 
+use crate::parser::Diagnostic;
 use crate::prelude::*;
 use crate::util::{ImgCache, ProcessLines};
 
@@ -66,6 +68,8 @@ pub mod keeplevel {
     pub const ALL: u8 = 2;
 }
 
+pub type ParserDiags = Mutex<Vec<Diagnostic>>;
+
 /// Runtime config and stdio output fns.
 #[derive(Debug)]
 pub struct App {
@@ -86,6 +90,9 @@ pub struct App {
 
     /// Image dimensions cache, for `HbRender`.
     img_cache: ImgCache,
+
+    /// Parser diagnostic messages, these are only collected in `test_mode`.
+    parser_diags: ParserDiags,
 }
 
 impl App {
@@ -99,6 +106,7 @@ impl App {
             bard_exe: env::current_exe().expect("Could not get path to bard self binary"),
             self_name: "bard",
             img_cache: ImgCache::new(),
+            parser_diags: Mutex::new(vec![]),
         }
     }
 
@@ -114,6 +122,7 @@ impl App {
             bard_exe,
             self_name: "bard",
             img_cache: ImgCache::new(),
+            parser_diags: Mutex::new(vec![]),
         }
     }
 
@@ -147,6 +156,10 @@ impl App {
 
     pub fn img_cache(&self) -> &ImgCache {
         &self.img_cache
+    }
+
+    pub fn parser_diags(&self) -> &ParserDiags {
+        &self.parser_diags
     }
 
     // stdio helpers
@@ -223,6 +236,18 @@ impl App {
 
     pub fn error_generic(&self, msg: impl Display) {
         self.status_inner("Error", &self.color(Red), msg);
+    }
+
+    pub fn parser_diag(&self, diag: Diagnostic) {
+        if self.test_mode {
+            self.parser_diags.lock().push(diag.clone());
+        }
+
+        if diag.is_error() {
+            self.error_generic(diag);
+        } else {
+            self.warning(diag);
+        }
     }
 
     pub fn subprocess_output(

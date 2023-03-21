@@ -8,6 +8,10 @@ pub trait PathExt {
     /// Join a `stem` (eg. from some other filename) with this path
     /// and add an `extenion`.
     fn join_stem(&self, stem: &OsStr, extension: &str) -> PathBuf;
+
+    /// Returns true if filename (last path component)
+    /// end in `suffix`.
+    fn file_ends_with(&self, suffix: &str) -> bool;
 }
 
 impl PathExt for Path {
@@ -15,6 +19,13 @@ impl PathExt for Path {
         let mut res: OsString = self.join(stem).into();
         res.push(extension);
         res.into()
+    }
+
+    fn file_ends_with(&self, suffix: &str) -> bool {
+        self.file_name()
+            .and_then(OsStr::to_str)
+            .map(|s| s.ends_with(suffix))
+            .unwrap_or(false)
     }
 }
 
