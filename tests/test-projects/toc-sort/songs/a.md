@@ -1,3 +1,0 @@
-# Song A
-
-Foo bar.

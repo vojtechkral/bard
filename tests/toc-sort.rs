@@ -1,13 +1,42 @@
-mod util;
-use std::{fs, path::PathBuf};
+mod util_ng;
+pub use util_ng::*;
 
-pub use util::*;
+#[rustfmt::skip]
+fn prepare_project(name: &str) -> TestProject {
+    TestProject::new(name)
+        .song("č.md", indoc! {"
+        # Song Č
+
+        Foo bar.
+        "},
+        )
+        .song("c.md", indoc! {"
+        # Song C
+
+        Foo bar.
+        "},
+        )
+        .song("b.md", indoc! {"
+        # Song B
+
+        Foo bar.
+        "},
+        )
+        .song("a.md", indoc! {"
+        # Song A
+
+        Foo bar.
+        "},
+        )
+}
 
 #[test]
 fn project_toc_sort_off() {
-    let build = Builder::build(TEST_PROJECTS / "toc-sort").unwrap();
-    let html = build.project.settings.dir_output().join("songbook.html");
-    let html = fs::read_to_string(&html).unwrap();
+    let build = prepare_project("toc-sort-off")
+        .output("songbook.html")
+        .build()
+        .unwrap();
+    let html = build.read_output(".html");
     let (pos1, pos2, pos3, pos4) = (
         html.find("Song A").unwrap(),
         html.find("Song B").unwrap(),
@@ -21,28 +50,16 @@ fn project_toc_sort_off() {
     assert!(pos3 > pos4);
 }
 
-fn project_toc_sort(name: &str) -> PathBuf {
-    let project_dir = prepare_project(TEST_PROJECTS / "toc-sort", name).unwrap();
-    modify_settings(&project_dir, |mut settings| {
-        let outputs = settings["output"].as_array_mut().unwrap();
-        for output in outputs.iter_mut() {
-            let output = output.as_table_mut().unwrap();
-            output.insert("toc_sort".to_string(), true.into());
-        }
-        Ok(settings)
-    })
-    .unwrap();
-
-    project_dir
-}
-
 #[test]
 fn project_toc_sort_html() {
-    let app = Builder::app(false);
-    let project_dir = project_toc_sort("toc-sort-html");
-    let project = bard::bard_make_at(&app, &project_dir).unwrap();
-    let html = project.settings.dir_output().join("songbook.html");
-    let html = fs::read_to_string(&html).unwrap();
+    let build = prepare_project("toc-sort-html")
+        .output_toml(toml! {
+            file = "songbook.html"
+            toc_sort = true
+        })
+        .build()
+        .unwrap();
+    let html = build.read_output(".html");
     let (pos1, pos2, pos3, pos4) = (
         html.find("Song A").unwrap(),
         html.find("Song B").unwrap(),
@@ -59,11 +76,16 @@ fn project_toc_sort_html() {
 #[test]
 #[ignore = "requires poppler/pdftotext"]
 fn project_toc_sort_pdf() {
-    let app = Builder::app(true);
-    let project_dir = project_toc_sort("toc-sort-pdf");
-    let project = bard::bard_make_at(&app, &project_dir).unwrap();
-    let pdf = project.settings.dir_output().join("songbook.pdf");
-    let pdf_text = pdf_to_text(&pdf, ..3).unwrap();
+    let build = prepare_project("toc-sort-pdf")
+        .postprocess(true)
+        .output_toml(toml! {
+            file = "songbook.pdf"
+            toc_sort = true
+        })
+        .build()
+        .unwrap();
+    let pdf_text = build.pdf_to_text(".pdf", ..3).unwrap();
+
     let (pos1, pos2, pos3, pos4) = (
         pdf_text.find("Song A").unwrap(),
         pdf_text.find("Song B").unwrap(),
