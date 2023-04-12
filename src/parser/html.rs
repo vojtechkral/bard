@@ -12,20 +12,20 @@ use html5ever::tokenizer::{
     Tag, TagKind, Token, TokenSink, TokenSinkResult, Tokenizer, TokenizerOpts, TokenizerResult,
 };
 
-use super::{utf8, DiagKind, ParserCtx};
+use super::{DiagKind, ParserCtx};
 use crate::book::{HtmlTag, Inline};
 use crate::util::BStr;
 
 struct Sink<'c> {
     inlines: Vec<HtmlTag>,
-    start_line: u32,
+    start_line: usize,
     text_buffer: String,
-    text_start_line: u32,
+    text_start_line: usize,
     ctx: &'c ParserCtx<'c>,
 }
 
 impl<'c> Sink<'c> {
-    fn new(start_line: u32, ctx: &'c ParserCtx<'c>) -> Self {
+    fn new(start_line: usize, ctx: &'c ParserCtx<'c>) -> Self {
         Self {
             inlines: vec![],
             start_line,
@@ -57,7 +57,7 @@ impl<'c> Sink<'c> {
         self.inlines.push(tag);
     }
 
-    fn append_text(&mut self, text: &str, line_num: u32) {
+    fn append_text(&mut self, text: &str, line_num: usize) {
         // Text within HTML blocks is ignored, but it is accumulated here
         // so that a warning can be emitted.
 
@@ -117,12 +117,12 @@ impl<'d> TokenSink for Sink<'d> {
     }
 }
 
-pub(super) fn parse_html(html: &[u8], target: &mut Vec<Inline>, start_line: u32, ctx: &ParserCtx) {
+pub(super) fn parse_html(html: &str, target: &mut Vec<Inline>, start_line: usize, ctx: &ParserCtx) {
     let sink = Sink::new(start_line, ctx);
     let mut tokenizer = Tokenizer::new(sink, TokenizerOpts::default());
     let mut queue = BufferQueue::new();
 
-    queue.push_back(utf8(html).into());
+    queue.push_back(html.into());
     loop {
         if let TokenizerResult::Done = tokenizer.feed(&mut queue) {
             break;

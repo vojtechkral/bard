@@ -622,12 +622,12 @@ Yippie yea `Y`yay!
 
     assert!(diag[0].is_error());
     assert_eq!(diag[0].file.as_os_str(), "<test>");
-    // assert_eq!(diag[0].line, 7);  // TODO: <-
+    assert_eq!(diag[0].line, 7);
     assert_eq!(diag[0].kind, DiagKind::Transposition { chord: "X".into() });
 
     assert!(diag[1].is_error());
     assert_eq!(diag[1].file.as_os_str(), "<test>");
-    // assert_eq!(diag[1].line, 7);  // TODO: <-
+    assert_eq!(diag[1].line, 8);
     assert_eq!(diag[1].kind, DiagKind::Transposition { chord: "Y".into() });
 }
 
@@ -896,7 +896,7 @@ fn control_chars_error() {
     res.unwrap_err();
     assert!(diag[0].is_error());
     assert_eq!(diag[0].file.as_os_str(), "<test>");
-    // assert_eq!(diag[0].line, 4);  // TODO: <-
+    assert_eq!(diag[0].line, 4);
     assert_eq!(diag[0].kind, DiagKind::ControlChar { char: 0 });
 
     let input = "\u{009f}";
@@ -904,7 +904,7 @@ fn control_chars_error() {
     res.unwrap_err();
     assert!(diag[0].is_error());
     assert_eq!(diag[0].file.as_os_str(), "<test>");
-    // assert_eq!(diag[0].line, 1);  // TODO: <-
+    assert_eq!(diag[0].line, 1);
     assert_eq!(diag[0].kind, DiagKind::ControlChar { char: 159 });
 }
 

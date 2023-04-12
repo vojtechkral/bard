@@ -11,7 +11,7 @@ use std::mem;
 use std::str;
 use std::sync::mpsc;
 
-use comrak::nodes::{AstNode, ListType, NodeCode, NodeValue};
+use comrak::nodes::{Ast, AstNode, ListType, NodeCode, NodeValue};
 use comrak::{ComrakExtensionOptions, ComrakOptions, ComrakParseOptions, ComrakRenderOptions};
 use once_cell::sync::Lazy;
 use regex::{Captures, Regex};
@@ -20,7 +20,7 @@ use thiserror::Error;
 use crate::book::*;
 use crate::music::{self, Notation};
 use crate::prelude::*;
-use crate::util::{BStr, ByteSliceExt};
+use crate::util::{BStr, StrExt};
 
 mod html;
 
@@ -72,7 +72,7 @@ impl DiagKind {
 #[error("{file}:{line}: {kind}")]
 pub struct Diagnostic {
     pub file: PathBuf,
-    pub line: u32,
+    pub line: usize,
     pub kind: DiagKind,
 }
 
@@ -103,12 +103,6 @@ impl DiagSink for mpsc::Sender<Diagnostic> {
 }
 
 type Result<T, E = ()> = std::result::Result<T, E>;
-
-// Since parser takes an UTF-8 string as input, we don't have to error-check
-// when converting bytes to strings.
-fn utf8(bytes: &[u8]) -> &str {
-    str::from_utf8(bytes).unwrap()
-}
 
 /// Parser for a candidate bard MD extension
 #[derive(Debug)]
@@ -279,8 +273,8 @@ trait NodeExt<'a> {
     /// Get the line number where in the source md this node is defined.
     /// If the node spans multiple lines, the number of the first one is returned.
     ///
-    /// The line unmber is 1-indexed.
-    fn source_line(&self) -> u32;
+    /// The line number is 1-indexed.
+    fn source_line(&self) -> usize;
 }
 
 impl<'a> NodeExt<'a> for AstNode<'a> {
@@ -297,7 +291,7 @@ impl<'a> NodeExt<'a> for AstNode<'a> {
     #[inline]
     fn is_h(&self, level: u32) -> bool {
         matches!(self.data.borrow().value,
-            NodeValue::Heading(h) if h.level == level
+            NodeValue::Heading(h) if h.level as u32 == level
         )
     }
 
@@ -352,15 +346,15 @@ impl<'a> NodeExt<'a> for AstNode<'a> {
     fn as_plaintext(&'a self) -> String {
         fn recurse<'a>(this: &'a AstNode<'a>, res: &mut String) {
             let value = this.data.borrow();
-            let text_b = match &value.value {
+            let text = match &value.value {
                 NodeValue::Text(literal) | NodeValue::Code(NodeCode { literal, .. }) => {
                     Some(literal)
                 }
                 _ => None,
             };
 
-            if let Some(bytes) = text_b {
-                res.push_str(utf8(&bytes[..]));
+            if let Some(text) = text {
+                res.push_str(&text[..]);
             } else {
                 for c in this.children() {
                     recurse(c, res);
@@ -406,11 +400,13 @@ impl<'a> NodeExt<'a> for AstNode<'a> {
                 // This is a plaintext link, nothing needs to be done
             } else {
                 // Convert link to plaintext
-                let plain = self.as_plaintext().into_bytes();
+                let plain = self.as_plaintext();
                 for c in self.children() {
                     c.detach();
                 }
-                let textnode = arena.alloc(AstNode::from(NodeValue::Text(plain)));
+                let start = self.data.borrow().sourcepos.start;
+                let textnode = Ast::new(NodeValue::Text(plain), start);
+                let textnode = arena.alloc(AstNode::new(RefCell::new(textnode)));
                 self.append(textnode);
             }
 
@@ -438,8 +434,8 @@ impl<'a> NodeExt<'a> for AstNode<'a> {
     fn parse_html(&self, target: &mut Vec<Inline>, ctx: &ParserCtx) {
         let this = self.data.borrow();
         let html = match &this.value {
-            NodeValue::HtmlBlock(b) => b.literal.as_slice(),
-            NodeValue::HtmlInline(b) => b.as_slice(),
+            NodeValue::HtmlBlock(b) => &b.literal,
+            NodeValue::HtmlInline(b) => b,
 
             _ => panic!("HTML can only be parsed from HTML nodes."),
         };
@@ -447,21 +443,10 @@ impl<'a> NodeExt<'a> for AstNode<'a> {
         html::parse_html(html, target, self.source_line(), ctx);
     }
 
-    fn source_line(&self) -> u32 {
-        // Comrak actually doesn't set the start_line for some elements (code),
-        // so we try to find the line number by looking at parent nodes.
-        // FIXME: This is a hack, report or fix at comrak.
-        let mut line = self.data.borrow().start_line;
-        let mut node = self;
-        while line == 0 {
-            node = match node.parent() {
-                Some(n) => n,
-                None => break,
-            };
-            line = node.data.borrow().start_line;
-        }
+    fn source_line(&self) -> usize {
+        self.data.borrow().sourcepos.start.line
 
-        line
+        // NB. I'm not using the column info as it seems unreliable (eg. weird numbers for inline code)
     }
 }
 
@@ -487,11 +472,10 @@ impl ChordBuilder {
         }
     }
 
-    /// Converts a chord set from bytes from the MD parser to a string,
-    /// filtering/replacing underscores as needed. The bool result indicates
+    /// Preprocess chord set text from the MD parser filtering/replacing
+    /// underscores as needed. The bool result indicates
     /// whether there was an underscore (ie. whether this is a baseline chord).
-    fn preprocess_chord_set(src: &[u8]) -> (BStr, bool) {
-        let src = String::from_utf8_lossy(src);
+    fn preprocess_chord_set(src: &str) -> (BStr, bool) {
         let baseline = src.contains('_');
         let mut res = String::with_capacity(src.len());
 
@@ -595,10 +579,10 @@ impl<'a> VerseBuilder<'a> {
     /// since extension parsing is handled here.
     fn parse_text(&mut self, node: AstRef, target: &mut Vec<Inline>) {
         let data = node.data.borrow();
-        let text = match &data.value {
-            NodeValue::Text(text) => utf8(text),
-            other => unreachable!("Unexpected element: {:?}", other),
-        };
+        let text = data
+            .value
+            .text()
+            .unwrap_or_else(|| unreachable!("Unexpected element: {:?}", &data.value));
 
         let mut pos = 0;
         for caps in EXTENSION.captures_iter(text) {
@@ -672,14 +656,14 @@ impl<'a> VerseBuilder<'a> {
                 assert!(text.is_text());
                 let text = text.as_plaintext().into();
 
-                let link = Link::new(link.url.as_bstr(), link.title.as_bstr(), text);
+                let link = Link::new(link.url.clone_bstr(), link.title.clone_bstr(), text);
                 Inline::Link(link)
             }
             NodeValue::Image(link) => {
                 let img = Image::new(
-                    link.url.as_bstr(),
+                    link.url.clone_bstr(),
                     node.as_plaintext().into(),
-                    link.title.as_bstr(),
+                    link.title.clone_bstr(),
                 );
                 Inline::Image(img)
             }
@@ -908,7 +892,7 @@ impl<'a> SongBuilder<'a> {
                 }
 
                 NodeValue::CodeBlock(cb) => self.blocks.push(Block::Pre {
-                    text: cb.literal.as_bstr(),
+                    text: cb.literal.clone_bstr(),
                 }),
 
                 NodeValue::HtmlBlock(..) => {
@@ -1059,7 +1043,7 @@ impl<'d> ParserCtx<'d> {
         self.xp.borrow_mut()
     }
 
-    fn report_diag(&self, line: u32, kind: DiagKind) {
+    fn report_diag(&self, line: usize, kind: DiagKind) {
         if kind.is_error() {
             self.error_seen.set(true);
         }
@@ -1110,30 +1094,12 @@ impl<'i, 'd> Parser<'i, 'd> {
 
     fn comrak_config(smart_punctuation: bool) -> ComrakOptions {
         ComrakOptions {
-            extension: ComrakExtensionOptions {
-                strikethrough: false,
-                tagfilter: false,
-                table: false,
-                autolink: false,
-                tasklist: false,
-                superscript: false,
-                header_ids: None,
-                footnotes: false,
-                description_lists: false,
-                front_matter_delimiter: None,
-            },
+            extension: ComrakExtensionOptions::default(),
             parse: ComrakParseOptions {
                 smart: smart_punctuation,
-                default_info_string: None,
+                ..Default::default()
             },
-            render: ComrakRenderOptions {
-                hardbreaks: false,
-                github_pre_lang: false,
-                width: 0,
-                unsafe_: false,
-                escape: false,
-                list_style: Default::default(),
-            },
+            render: ComrakRenderOptions::default(),
         }
     }
 
@@ -1146,7 +1112,7 @@ impl<'i, 'd> Parser<'i, 'd> {
                 // only need to check for \t here:
                 if c.is_control() && c != '\t' {
                     self.ctx
-                        .report_diag(num as u32 + 1, DiagKind::ControlChar { char: c as u32 });
+                        .report_diag(num + 1, DiagKind::ControlChar { char: c as u32 });
                 }
             }
         }

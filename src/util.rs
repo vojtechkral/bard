@@ -39,34 +39,23 @@ where
     }
 }
 
+/// Boxed str alias and extensions for `[u8]` and `Vec<u8>`
+pub type BStr = Box<str>;
+
 /// `str` utils
 
 pub trait StrExt {
     fn to_os_string(&self) -> OsString;
+    fn clone_bstr(&self) -> Box<str>;
 }
 
 impl StrExt for str {
     fn to_os_string(&self) -> OsString {
         self.to_string().into()
     }
-}
 
-/// Boxed str alias and extensions for `[u8]` and `Vec<u8>`
-pub type BStr = Box<str>;
-
-pub trait ByteSliceExt {
-    fn as_bstr(&self) -> BStr;
-}
-
-impl ByteSliceExt for [u8] {
-    fn as_bstr(&self) -> BStr {
-        String::from_utf8_lossy(self).as_ref().into()
-    }
-}
-
-impl ByteSliceExt for Vec<u8> {
-    fn as_bstr(&self) -> BStr {
-        self.as_slice().as_bstr()
+    fn clone_bstr(&self) -> BStr {
+        Box::from(self)
     }
 }
 
