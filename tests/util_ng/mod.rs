@@ -20,7 +20,7 @@ pub struct TestProject {
     path: PathBuf,
     postprocess: bool,
     outputs: Vec<Toml>,
-    modify_settings: Option<Box<dyn FnOnce(toml::Table) -> Result<toml::Table>>>,
+    modify_settings: Option<Box<dyn FnOnce(&mut toml::Table)>>,
     songs: Vec<(PathBuf, String)>,
     templates: Vec<Template>,
     scripts: Vec<Script>,
@@ -58,10 +58,7 @@ impl TestProject {
         self
     }
 
-    pub fn settings(
-        mut self,
-        f: impl FnOnce(toml::Table) -> Result<toml::Table> + 'static,
-    ) -> Self {
+    pub fn settings(mut self, f: impl FnOnce(&mut toml::Table) + 'static) -> Self {
         self.modify_settings = Some(Box::new(f));
         self
     }
@@ -215,7 +212,7 @@ impl TestProject {
         // Modify project settings
         // This step goes last so that tests are able to modify settings applied by previous steps.
         if let Some(modify_settings) = self.modify_settings.take() {
-            bard_toml = modify_settings(bard_toml)?;
+            modify_settings(&mut bard_toml);
         }
 
         // Write back bard.toml
