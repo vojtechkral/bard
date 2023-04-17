@@ -224,7 +224,6 @@ impl Link {
 
 #[derive(Serialize, Debug)]
 pub struct Image {
-    // TODO: if local file, add to watches for bard watch?
     pub path: BStr,
     pub title: BStr,
     pub class: BStr,

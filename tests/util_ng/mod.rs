@@ -242,8 +242,8 @@ impl TestBuild {
     }
 
     #[track_caller]
-    pub fn unwrap_err(&self) {
-        self.result.as_ref().unwrap_err();
+    pub fn unwrap_err(&self) -> &Error {
+        self.result.as_ref().unwrap_err()
     }
 
     pub fn app(&self) -> &App {
