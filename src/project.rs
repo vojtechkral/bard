@@ -131,6 +131,10 @@ impl Settings {
         Ok(settings)
     }
 
+    pub fn dir_songs(&self) -> &Path {
+        self.dir_songs.as_ref()
+    }
+
     pub fn dir_output(&self) -> &Path {
         self.dir_output.as_ref()
     }

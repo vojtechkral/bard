@@ -4,14 +4,22 @@ use std::{
     fs, io, mem,
     ops::{Bound, RangeBounds},
     process::Command,
+    thread::{self, JoinHandle},
 };
 
-use bard::{
-    app::App, parser::DiagKind, prelude::*, project::Project, render::template::DefaultTemaplate,
-    util::ExitStatusExt as _,
-};
+use base64::{engine::general_purpose::STANDARD as BASE_64, Engine as _};
 use regex::{Match, Regex};
 use toml::Value as Toml;
+
+use bard::{
+    app::App,
+    parser::DiagKind,
+    prelude::*,
+    project::Project,
+    render::template::DefaultTemaplate,
+    util::ExitStatusExt as _,
+    watch::{Watch, WatchControl},
+};
 
 pub use indoc::indoc;
 pub use toml::toml;
@@ -24,6 +32,7 @@ pub struct TestProject {
     songs: Vec<(PathBuf, String)>,
     templates: Vec<Template>,
     scripts: Vec<Script>,
+    assets: Vec<(PathBuf, Box<[u8]>)>,
 }
 
 impl TestProject {
@@ -40,6 +49,7 @@ impl TestProject {
             songs: vec![],
             templates: vec![],
             scripts: vec![],
+            assets: vec![],
         }
     }
 
@@ -119,14 +129,25 @@ impl TestProject {
         self
     }
 
+    /// Add an asset file in the `output` directory, the `content` should be base64-formatted.
+    pub fn binary_asset(mut self, path: impl Into<PathBuf>, content: impl AsRef<str>) -> Self {
+        let path = path.into();
+        if !path.is_relative() {
+            panic!("Asset path must be relative: {:?}", path);
+        }
+
+        let bytes = content.as_ref().decode_base64();
+        self.assets.push((path, bytes));
+
+        self
+    }
+
     pub fn build(mut self) -> Result<TestBuild> {
         // Create project directory
         if self.path.exists() {
-            fs::remove_dir_all(&self.path)
-                .map_err(|err| dbg!(err))
-                .with_context(|| {
-                    format!("Couldn't remove previous test run data: {:?}", self.path)
-                })?;
+            fs::remove_dir_all(&self.path).with_context(|| {
+                format!("Couldn't remove previous test run data: {:?}", self.path)
+            })?;
         }
         fs::create_dir_all(&self.path)
             .with_context(|| format!("Couldn't create directory: {:?}", self.path))?;
@@ -209,6 +230,17 @@ impl TestProject {
             }
         }
 
+        // Write assets
+        if !self.assets.is_empty() {
+            fs::create_dir_all(&out_dir)
+                .with_context(|| format!("Couldn't create output directory: {:?}", tpl_dir))?;
+            for (path, content) in self.assets.iter() {
+                let path = out_dir.join(path);
+                fs::write(&path, content)
+                    .with_context(|| format!("Couldn't write asset file: {:?}", path))?;
+            }
+        }
+
         // Modify project settings
         // This step goes last so that tests are able to modify settings applied by previous steps.
         if let Some(modify_settings) = self.modify_settings.take() {
@@ -258,6 +290,10 @@ impl TestBuild {
             .iter()
             .find(|diag| diag.kind == kind)
             .unwrap();
+    }
+
+    pub fn dir_songs(&self) -> &Path {
+        self.unwrap().settings.dir_songs()
     }
 
     pub fn dir_output(&self) -> &Path {
@@ -321,6 +357,19 @@ impl TestBuild {
         output.status.into_result()?;
         let stdout = String::from_utf8_lossy(&output.stdout).into();
         Ok(stdout)
+    }
+
+    /// Start bard watch in another thread.
+    pub fn watch(&self) -> (JoinHandle<()>, WatchControl) {
+        let dir_output = self.dir_output().to_owned();
+        let app = self.app.clone();
+        let (watch, control) = Watch::new(true).unwrap();
+
+        let watch_thread = thread::spawn(move || {
+            bard::bard_watch_at(&app, &dir_output, watch).unwrap();
+        });
+
+        (watch_thread, control)
     }
 }
 
@@ -389,12 +438,17 @@ impl TomlTableExt for toml::Table {
 
 pub trait StrExt {
     fn find_re<'s>(&'s self, re: &str) -> Option<Match<'s>>;
+    fn decode_base64(&self) -> Box<[u8]>;
 }
 
 impl StrExt for str {
     fn find_re<'s>(&'s self, re: &str) -> Option<Match<'s>> {
         let re = Regex::new(re).unwrap();
         re.find(self)
+    }
+
+    fn decode_base64(&self) -> Box<[u8]> {
+        BASE_64.decode(self).unwrap().into()
     }
 }
 

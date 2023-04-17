@@ -58,6 +58,7 @@ tectonic = ["dep:tectonic", "dep:tectonic_bridge_core"]
 
 [dev-dependencies]
 assert-json-diff = "2.0.1"
+base64 = "0.21.0"
 fs_extra = "1.2.0"
 indoc = "2.0.1"
 

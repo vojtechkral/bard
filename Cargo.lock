@@ -117,6 +117,7 @@ dependencies = [
  "anyhow",
  "assert-json-diff",
  "atty",
+ "base64",
  "clap 4.0.32",
  "clap_lex",
  "comrak",

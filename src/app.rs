@@ -2,6 +2,7 @@ use std::env;
 use std::ffi::OsStr;
 use std::fmt::Display;
 use std::io::{self, Write};
+use std::sync::Arc;
 
 use console::Color::{Cyan, Green, Red, Yellow};
 use console::{Color, Style, Term};
@@ -68,10 +69,10 @@ pub mod keeplevel {
     pub const ALL: u8 = 2;
 }
 
-pub type ParserDiags = Mutex<Vec<Diagnostic>>;
+pub type ParserDiags = Arc<Mutex<Vec<Diagnostic>>>;
 
 /// Runtime config and stdio output fns.
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct App {
     post_process: bool,
     /// See `keeplevel` for levels.
@@ -92,7 +93,7 @@ pub struct App {
     img_cache: ImgCache,
 
     /// Parser diagnostic messages, these are only collected in `test_mode`.
-    parser_diags: ParserDiags,
+    parser_diags: Option<ParserDiags>,
 }
 
 impl App {
@@ -106,7 +107,7 @@ impl App {
             bard_exe: env::current_exe().expect("Could not get path to bard self binary"),
             self_name: "bard",
             img_cache: ImgCache::new(),
-            parser_diags: Mutex::new(vec![]),
+            parser_diags: None,
         }
     }
 
@@ -122,7 +123,7 @@ impl App {
             bard_exe,
             self_name: "bard",
             img_cache: ImgCache::new(),
-            parser_diags: Mutex::new(vec![]),
+            parser_diags: Some(Arc::new(Mutex::new(vec![]))),
         }
     }
 
@@ -159,7 +160,7 @@ impl App {
     }
 
     pub fn parser_diags(&self) -> &ParserDiags {
-        &self.parser_diags
+        self.parser_diags.as_ref().unwrap()
     }
 
     // stdio helpers
@@ -240,7 +241,11 @@ impl App {
 
     pub fn parser_diag(&self, diag: Diagnostic) {
         if self.test_mode {
-            self.parser_diags.lock().push(diag.clone());
+            self.parser_diags
+                .as_ref()
+                .unwrap()
+                .lock()
+                .push(diag.clone());
         }
 
         if diag.is_error() {
