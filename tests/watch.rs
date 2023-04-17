@@ -16,7 +16,7 @@ fn watch() {
 
     // Start bard watch in another thread
     let dir2 = build.dir.clone();
-    let (watch, cancellation) = Watch::new().unwrap();
+    let (watch, cancellation) = Watch::new(false).unwrap();
     let watch_thread = thread::spawn(move || {
         let app = Builder::app(false);
         bard::bard_watch_at(&app, &dir2, watch)

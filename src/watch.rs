@@ -1,5 +1,6 @@
 use std::path::PathBuf;
 use std::sync::mpsc::{channel, Receiver, Sender};
+use std::sync::{Arc, Barrier};
 use std::thread;
 use std::time::Duration;
 
@@ -23,26 +24,39 @@ impl WatchEvent {
 
 pub struct Watch {
     watcher: RecommendedWatcher,
-    rx: Receiver<WatchEvent>,
+    evt_rx: Receiver<WatchEvent>,
+    test_barrier: Arc<Barrier>,
 }
 
 #[derive(Debug)]
-pub struct WatchCancellation(Sender<WatchEvent>);
+pub struct WatchControl {
+    evt_tx: Sender<WatchEvent>,
+    test_barrier: Arc<Barrier>,
+}
 
 impl Watch {
-    pub fn new() -> Result<(Watch, WatchCancellation)> {
-        let (tx, rx) = channel();
-        let tx2 = tx.clone();
+    pub fn new(test_sync: bool) -> Result<(Self, WatchControl)> {
+        let (evt_tx, evt_rx) = channel();
+        let evt_tx2 = evt_tx.clone();
 
         let watcher = notify::recommended_watcher(move |res| {
             if let Some(evt) = Self::event_map(res) {
-                let _ = tx.send(evt);
+                let _ = evt_tx.send(evt);
             }
         })?;
 
-        let watch = Watch { watcher, rx };
-        let cancellation = WatchCancellation(tx2);
-        Ok((watch, cancellation))
+        let test_barrier = Arc::new(Barrier::new(if test_sync { 2 } else { 1 }));
+        let watch = Watch {
+            watcher,
+            evt_rx,
+            test_barrier: test_barrier.clone(),
+        };
+        let control = WatchControl {
+            evt_tx: evt_tx2,
+            test_barrier,
+        };
+
+        Ok((watch, control))
     }
 
     const DELAY_MS: u64 = 500;
@@ -63,8 +77,11 @@ impl Watch {
     pub fn watch(&mut self, project: &Project) -> Result<WatchEvent> {
         self.watch_files(project)?;
 
+        // Synchronize with test code, if any
+        self.test_barrier.wait();
+
         let evt = self
-            .rx
+            .evt_rx
             .recv()
             .expect("Internal error: Channel receive failed");
 
@@ -74,9 +91,9 @@ impl Watch {
             loop {
                 thread::sleep(Duration::from_millis(Self::DELAY_MS));
 
-                if self.rx.try_recv().is_ok() {
+                if self.evt_rx.try_recv().is_ok() {
                     // Drain all immediately available evts
-                    while self.rx.try_recv().is_ok() {}
+                    while self.evt_rx.try_recv().is_ok() {}
                 } else {
                     break;
                 }
@@ -102,8 +119,16 @@ impl Watch {
     }
 }
 
-impl WatchCancellation {
+impl WatchControl {
+    /// Tell the watch loop to break.
     pub fn cancel(&self) {
-        let _ = self.0.send(WatchEvent::Cancel);
+        let _ = self.evt_tx.send(WatchEvent::Cancel);
+    }
+
+    /// Wait until the `Watch` starts watching files in the current iteration
+    /// as part of `.watch()`.
+    /// This only works when `Watch` is created with `test_sync = true`.
+    pub fn wait_watching(&self) {
+        self.test_barrier.wait();
     }
 }

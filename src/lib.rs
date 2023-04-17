@@ -187,10 +187,10 @@ pub fn bard_watch_at<P: AsRef<Path>>(app: &App, path: P, mut watch: Watch) -> Re
 
 pub fn bard_watch(app: &App) -> Result<()> {
     let cwd = get_cwd()?;
-    let (watch, cancellation) = Watch::new()?;
+    let (watch, watch_control) = Watch::new(false)?;
 
     let _ = ctrlc::set_handler(move || {
-        cancellation.cancel();
+        watch_control.cancel();
     });
 
     bard_watch_at(app, cwd, watch)
