@@ -21,7 +21,7 @@ use bard::{
     watch::{Watch, WatchControl},
 };
 
-pub use indoc::indoc;
+pub use indoc::{formatdoc, indoc};
 pub use toml::toml;
 
 pub struct TestProject {
