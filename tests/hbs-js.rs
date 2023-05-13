@@ -6,9 +6,18 @@ use bard::render::DEFAULT_TEMPLATES;
 mod util;
 pub use util::*;
 
+#[cfg(not(windows))]
+const DEFAULT_NPX_CMD: &str = "npx";
+
+#[cfg(windows)]
+const DEFAULT_NPX_CMD: &str = "npx.cmd";
+
 fn npx(args: &[&str]) {
     let cmd_env = env::var("NPX_CMD");
-    let cmd = cmd_env.as_ref().map(|s| s.as_str()).unwrap_or("npx");
+    let cmd = cmd_env
+        .as_ref()
+        .map(|s| s.as_str())
+        .unwrap_or(DEFAULT_NPX_CMD);
 
     let cmdline = args.iter().fold(cmd.to_string(), |mut cmdline, arg| {
         cmdline.push(' ');
