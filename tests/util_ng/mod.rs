@@ -328,30 +328,26 @@ impl TestBuild {
     ) -> Result<String> {
         let mut cmd = Command::new("pdftotext");
         cmd.arg("-layout");
+        cmd.arg("-enc").arg("UTF-8");
 
-        match pages.start_bound() {
+        if let Some(f) = match pages.start_bound() {
             Bound::Included(&f) => Some(f),
             Bound::Excluded(&f) => Some(f + 1),
             Bound::Unbounded => None,
-        }
-        .map(|f| {
-            cmd.arg("-f".to_string());
-            cmd.arg(format!("{}", f));
-        });
+        } {
+            cmd.arg("-f".to_string()).arg(format!("{}", f));
+        };
 
-        match pages.end_bound() {
+        if let Some(l) = match pages.end_bound() {
             Bound::Included(&i) => Some(i),
             Bound::Excluded(&i) => Some(i - 1),
             Bound::Unbounded => None,
-        }
-        .map(|l| {
-            cmd.arg("-l".to_string());
-            cmd.arg(format!("{}", l));
-        });
+        } {
+            cmd.arg("-l".to_string()).arg(format!("{}", l));
+        };
 
         let output = self.output_path(output_suffix)?;
-        cmd.arg(output);
-        cmd.arg("-");
+        cmd.arg(output).arg("-");
 
         let output = cmd.output()?;
         output.status.into_result()?;
@@ -479,7 +475,7 @@ impl PathExt for Path {
 
 #[cfg(not(unix))]
 impl PathExt for Path {
-    fn chmod(&self, mode: u32) -> io::Result<()> {
+    fn chmod(&self, _mode: u32) -> io::Result<()> {
         Ok(())
     }
 }
