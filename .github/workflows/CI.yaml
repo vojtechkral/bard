@@ -3,7 +3,7 @@ on: [push, pull_request]
 name: CI
 
 env:
-  MSRV: 1.60.0
+  MSRV: 1.64.0
   CARGO_DEB: 1.37.0
   CARGO_RPM: 0.8.0
   CARGO_OUTDATED: 0.11.1
