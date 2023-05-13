@@ -343,7 +343,7 @@ jobs:
       - name: Build
         run: |
           cargo build --locked --release
-          Rename-Item -Path target\release\bard.exe -NewName bard-no-tectonic.exe
+          Move-Item -Force -Path target\release\bard.exe -Destination bard-no-tectonic.exe
       - name: Upload Windows exe
         uses: actions/upload-artifact@v3
         with:
