@@ -36,7 +36,6 @@ impl ProcessLines {
                 return Ok(None);
             }
 
-            // let events = PollFlags::POLLIN & PollFlags::POLLHUP;
             let events = PollFlags::all();
             let p_stdout = PollFd::new(self.stdout.as_raw_fd(), events);
             let p_stderr = PollFd::new(self.stderr.as_raw_fd(), events);
