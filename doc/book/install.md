@@ -26,7 +26,7 @@ See the [TeX Configuration](./tex.md) chapter for how to configure TeX use.
 The following are provided:
 
 - [Portable binary](https://github.com/vojtechkral/bard/releases/latest/download/bard.exe)
-- [Binary without Tectonic](https://github.com/vojtechkral/bard/releases/latest/download/bard-no-tectonic.exe)
+- [Portable binary without Tectonic](https://github.com/vojtechkral/bard/releases/latest/download/bard-no-tectonic.exe)
 
 The portable binary linked above contains the [Tectonic](https://tectonic-typesetting.github.io/en-US/) TeX system, so no additional software is needed. If you'd like to use a different TeX system, such as [MiKTeX](https://miktex.org/), the Tectonic-less binary is recommended.
 

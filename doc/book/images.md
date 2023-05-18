@@ -7,7 +7,7 @@ For example, if we put a file named `horses.jpg` in the `output` directory, we c
 1. `Am`Yippie yea `C`oh! ![horses](./horses.jpg) Yippie yea `Am`yay!
 ```
 
-which renders as:
+to get an output like this:
 
 ![images-example-1](assets/images-1.png)
 
@@ -18,7 +18,7 @@ There are limitations imposed by Markdown as well as output formats.
 
 ### Centered and floating images
 
-Markdown allows an additional parameter, a 'title', to be specified after the image path in double quotes.
+Markdown allows an additional parameter, a 'title', to be specified after the image path, in double quotes.
 In bard this parameter is used to specify image position class, the syntax is as follows:
 
 ```md
@@ -64,12 +64,12 @@ renders as:
 ### DPI settings
 
 In PDF, the DPI setting governs the relationship between image size in pixels and it's physical size when printed.
-DPI is configured with the `dpi` property in the `output` section whose value is a numeral in units of pixels per inch.\
-If not configured, the default of 144 pixels per inch is used.
+DPI is configured with the `dpi` property in the `output` section. Its value is a numeral in units of pixels per inch.\
+**The default is 144 pixels per inch is used.**
 
 In HTML, there is no concept of DPI as such, instead, the `dpi` field is used as a scaling factor by which the image dimensions
 are multiplied when HTML image elements are rendered &ndash; for example, the value of 0.5 would halve the dimensions.\
-The default is 1, ie. no scaling applied.
+**The default is 1.0, ie. no scaling applied.**
 
 Example of custom DPI settings:
 

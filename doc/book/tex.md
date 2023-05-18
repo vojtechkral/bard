@@ -3,7 +3,7 @@
 The T<sub>E</sub>X typesetting system is used to render PDFs. Currently, bard supports the [XeLaTeX](https://www.overleaf.com/learn/latex/XeLaTeX) and [Tectonic](https://tectonic-typesetting.github.io/) implementations. By default, bard attempts to use one of these by searching for the `xelatex` and `tectonic` binary, in that order.
 
 Additionally, the Windows binary embeds the Tectonic software inside, so it doesn't need a TeX distribution to be installed on the system.
-However, it still performs the lookup so that if a XeLaTeX distro or Tectonic is installed, it will be preferred over the embedded one.
+However, it still performs the lookup so that if a XeLaTeX or Tectonic distro is installed, it will be preferred over the embedded one.
 
 The automatic lookup can be overridden in two ways:
 - using the `BARD_TEX` environment variable, and

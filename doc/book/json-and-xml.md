@@ -17,4 +17,4 @@ The JSON data is the AST of the whole parsed songbook, it is exactly the same as
 
 The XML data contains the same data semantically but exported in a shape more suitable for this format. **Warning:** The XML format is somewhat experimental and is not covered by the backwards compatibility guarantee, unlike JSON.
 
-Both formats are defined within the source code. Formal schema definitions are not available.
+Both formats are defined within the source code, formal schema definitions are not available.

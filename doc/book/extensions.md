@@ -1,6 +1,6 @@
 # Custom Extensions
 
-bard Markdown syntax can be extended using 'HTML' code. Since inline HTML code is otherwise unused
+bard Markdown syntax can be extended using "HTML" code. Since inline HTML code is otherwise unused
 (it would not be very useful in TeX/PDF output), it is repurposed as a way to call into user-defined extensions.
 
 For example, in the following Markdown:
@@ -11,10 +11,11 @@ For example, in the following Markdown:
 1. <foo>example</foo>.
 ```
 
-The HTML tag pair is turned into inlines of type `i-tag`. The tag name is prefixed with `h-` and dispatched to an _inline partial_ of that name.
+In [the AST](./templates.md#the-ast), the tag pair is represented by inlines of type `i-tag`.
+The tag name is prefixed with `h-` and dispatched to an _inline partial_ of that name.
 For the closing tag, the slash `/` is included in the name. So, in this example, first a partial named `h-foo` is called, then the text `example` is rendered, and then a partial named `h-/foo` is called. Since by default the two partials `h-foo` and `h-/foo` don't exist, the tags don't do anything, only `example` will be rendered. However, you can define those two partials in your template.
 
-The 'HTML' tags may also enclose whole blocks of text like this:
+"HTML" tags may also enclose whole blocks of text like so:
 
 ```md
 <foo>

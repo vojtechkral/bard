@@ -3,8 +3,8 @@
 > Note: This section is in Czech language as it is only relevant to users of a certain Czech-only [Android app](http://karel-hovorka.eu/zpevnik/).
 
 bard umí generovat zpěvníky pro aplikaci [_Zpěvník_](http://karel-hovorka.eu/zpevnik/) p. Karla Hovorky.
-Tyto zpěvníky jsou ve formátu XML a vytvoříme je přidáním dalšího výstupu (`[[output]]`) v `bard.toml`.
 
+Tyto zpěvníky jsou ve formátu XML a vytvoříme je přidáním dalšího výstupu (`[[output]]`) v souboru `bard.toml`.
 Aby se odlišily od obecného [XML výstupu](./json-and-xml.md), je potřeba explicitně nastavit formát výstupu na `hovorka`. Například:
 
 ```toml

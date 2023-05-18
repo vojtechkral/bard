@@ -15,13 +15,15 @@ The script name is specified **without** the file extension. The extension is as
 | OS | Script name | Actual filename |
 | --- | --- | --- |
 | Linux & Unix | `foo` | `foo.sh` |
-| Paragraph | `foo` | `foo.bat` |
+| Windows | `foo` | `foo.bat` |
 
 The script file should be placed in the output directory and it is also executed in the output directory (ie. with the _current directory_ being set to the output directory).
 
 Note: On Linux/Unix, the script `.sh` file should have the executable permission bit set such that the user running bard can run the script file as well.
 
 ### Environment variables
+
+The following environment variables are passed by bard to the script:
 
 | Variable | Purpose |
 | --- | --- |
@@ -35,7 +37,7 @@ Note: On Linux/Unix, the script `.sh` file should have the executable permission
 
 In this example, we'll define a script that will export all the chords in the songbook as a JSON array. We'll be using the `jq` program to do this.
 
-First, let's add a JSON output with a script file set:
+First, let's add a [JSON output](./json-and-xml.md) with a script file set:
 
 ```toml
 [[output]]

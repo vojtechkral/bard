@@ -20,16 +20,15 @@ bard uses the [Handlebars](https://handlebarsjs.com/) template language, hence t
 
 ### The AST
 
-When rendering, bard passes the entire songbook AST (abstract syntax tree) to the template as JSON object. Several objects are passed, most notable are the `book` and `songs` objects"
+When rendering, bard passes the entire songbook AST (abstract syntax tree) to the template as JSON objects. Most notable are the `book` and `songs` objects:
 
 - `book` is a copy of the `[book]` section in `bard.toml` and contains the book's main title, subtitle and other metadata.
-- `songs` is an array of all the songs in the same order as loaded from the files. Each song object contains a title, subtitles (optional), and an array of _blocks_ which make up the content of the song. There are several types of blocks, some of which may contain _inlines_. There are in turn several types of inlines, such as chords, lyrics, etc.
+- `songs` is an array of all the songs in the same order as loaded from the files. Each song object contains a title, subtitles (if any), and an array of _blocks_ which make up the content of the song. There are several types of blocks, some of which may contain _inlines_. There are in turn several types of inlines, such as chords, lyrics, etc.
 
 As an example, you can refer to the [AST for the example songbook](https://github.com/vojtechkral/bard/blob/main/example/output/songbook.json). You can also export the AST of your songbook in JSON format &ndash; see the [JSON and XML](./json-and-xml.md) chapter. Finally, there is the [all-features](https://github.com/vojtechkral/bard/tree/main/tests/test-projects/all-features) test project whose [exported AST](https://github.com/vojtechkral/bard/blob/main/tests/test-projects/all-features/output/songbook.json) should contain all the possible elements.
 
-The format of AST is versioned to guard against incompatibilities. The AST will not change in an incompatible
-way as part of one major bard release, that is, it will not change incompatibly between any bard 2.x release.
-However, if there is for example a bard 3.0 release in the future, the AST may change incompatibly.
+The format of the AST is versioned to guard against incompatibilities. The AST will not change in an incompatible
+way between bard releases of the same major number.
 
 Because of this, bard templates start with a [version check](#version_check-version) call.
 
@@ -59,7 +58,7 @@ Rendering with this template will render a HTML file only containing song titles
 Handlebars' [inline partials](https://handlebarsjs.com/guide/partials.html#inline-partials) to define how various elements are displayed.
 The `{{#each blocks}} ... {{/each}}` syntax loops through the blocks of the current song. The `{{> (lookup this "type") }}` incantation reads the `type` field of the block and dispatches to a handlebars partial of that name.
 
-The most important block type is the verse type, named `b-verse` (the `b-` prefix is for block). Let's define a partial to render a verse:
+The most important block type is the verse type, named `b-verse` (the `b-` prefix is for _block_). Let's define a partial to render a verse:
 
 ```html
 {{#*inline "b-verse"}}
@@ -77,7 +76,7 @@ The most important block type is the verse type, named `b-verse` (the `b-` prefi
 {{/inline}}
 ```
 
-First, the verse labebl is rendered &ndash; there are three label types, each is accounted for. Then, the code loops through `paragraphs`, is which an array of arrays of inlines. Each array of inlines is looped through with the `{{#each this}}{{> (lookup this "type") }}{{/each}}` line. Each inline is dispatched to a partial in the same way that blocks are dispatched by reading the `type` field and calling a partial of that name.
+First, the verse label is rendered &ndash; there are three label types, each is accounted for. Then, the code loops through `paragraphs`, which is an array of arrays of inlines. Each array of inlines is looped through with the `{{#each this}}{{> (lookup this "type") }}{{/each}}` line. Each inline is dispatched to a partial in the same way that blocks are dispatched by reading the `type` field and calling a partial of that name.
 
 We're going to implement inlines `i-text`, `i-break`, and `i-chord`. The partials for `i-text` and `i-break` will be very simple:
 
@@ -99,7 +98,7 @@ The partial for `i-chord`:
 The chord again contains inlines in a recursive way (although it is guaranteed never to contain another chord). This way, the text contained within an `i-chord` type will be dispatched to the `i-text` inline just like from `b-verse` directly.
 
 With these in place, a very basic template should be complete. You can download the [whole source code](assets/html-basic.hbs).
-The template won't render some finer features such as bold text, italics, alt chords, images etc. But will render basic song content:
+The template won't render some finer features such as bold text, italics, alt chords, images etc., but will render basic song content:
 
 ![template-basic-screenshot](assets/template-basic.png)
 
@@ -115,7 +114,7 @@ A particularly troublesome case is when you need to wrap a variable in a TeX com
 \foo{{{variable}}}
 ```
 
-This will fail to render, as Handlebars with interpret that as a raw block. To get around that, use:
+This will fail to render, as Handlebars with interpret that as a raw block. To get around this, use:
 
 ```tex
 \foo{ {{~variable~}} }
@@ -127,7 +126,7 @@ bard provides a few utility [helpers](https://handlebarsjs.com/guide/#custom-hel
 
 ### Upgrading
 
-The built-in templates occasionally change in order to improve, add features or fix bugs.
+The built-in templates occasionally change in order to improve, add features, or fix bugs.
 Custom templates are, however, not upgraded and there isn't a feasible way to automatically apply
 improvements to them. The templates are fairly monolithic units.
 

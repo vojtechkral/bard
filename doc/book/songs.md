@@ -63,8 +63,8 @@ This can be useful when writing chords for instrumental parts such as intros, so
 The lyrics can be divided into multiple paragraphs as part of one verse
 using a blank line.
 
-Unlike in regular Markdown, line breaks are preserved, ie. they are the same in the output as in the input,
-the text isn't automatically wrapped.
+Unlike in regular Markdown, line breaks are preserved, ie. they are the same in the output as in the input.
+The text isn't automatically wrapped.
 
 ##### Punctuation
 
@@ -142,8 +142,13 @@ The `\` on a line is used to add a newline after the verse title. By default the
 
 ### Other Markdown Elements
 
-These rich text Markdown elements such as, italics, bold text, and hyperlinks are recognized, however, 
-they are only supported in paragraph text, not in other elements such as headings.
+These rich text Markdown elements are supported:
+
+- Italics,
+- bold text, and
+- hyperlinks.
+
+However, these are only supported in paragraph text, not in other elements such as headings.
 
 These additional block Markdown elements are supported:
 
@@ -153,7 +158,7 @@ These additional block Markdown elements are supported:
 
 However, only flat structure is supported &ndash; nested lists are ignored.
 
-bard does *not* support inline HTML in Markdown. (At least not as such, inline HTML is instead used for [syntax extensions](extensions.md).)
+bard does not support inline HTML in Markdown. (At least not as such, inline HTML is instead used for [syntax extensions](extensions.md).)
 
 ### Markdown Standard
 

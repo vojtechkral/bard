@@ -1,6 +1,6 @@
 # bard.toml Reference
 
-This is a list of the possible fields recognized in the `bard.toml` settings file.
+This is a list of fields recognized in the `bard.toml` settings file.\
 Most of the fields are optional, only a few are required; these are marked as such.
 
 <div class="thin-code">
@@ -8,7 +8,7 @@ Most of the fields are optional, only a few are required; these are marked as su
 ```toml
 version = 2
 ```
-*Required.* Major version of bard this project built with. Used for compatibility check.
+*Required.* Major version of bard this project was created with. Used for compatibility checks.
 
 ```toml
 songs = "*.md"
@@ -49,8 +49,8 @@ Path to the template file for this output, relative to the `templates` directory
 ```toml
 format = "pdf"
 ```
-Output format. Possible choices: `"pdf`, `"html`, `"hovorka`, `"json`, or `"xml`.
-Usually this isn't required since the format is detected from `file` extension.
+Output format. Possible choices: `"pdf"`, `"html"`, [`"hovorka"`](./hovorka.md), [`"json"`](./json-and-xml.md), or [`"xml"`](./json-and-xml.md).
+Usually this isn't required since the format is detected from `file`'s extension.
 
 ```toml
 sans_font = false

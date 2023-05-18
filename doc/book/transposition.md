@@ -27,16 +27,16 @@ The chords will be transposed from that point onwards. For example:
 1. `G7`Oh Danny `C`Boy, the pipes, the ``C7``pipes are `F`calling
 ```
 
-will render as:
+will shift the chords up by 5 halftones, aka _perfect fourth_:
 
 ![transposition example 1](./assets/transpose-1.png)
 
-Use `!+0` to go back to the original.
+If needed, use `!+0` to go back to the original scale.
 
 ### Second Set of Chords
 
-To make it possible to print songs with two different scales, you can also generate a second line of chords
-as a transposition of the first one. Use the `!!±X` syntax to generate a second row. The second row is by default
+bard can also generate a second line of chords as a transposition of the first one.
+Use the `!!±X` syntax to generate a second row. The second row is by default
 rendered in blue font. For example:
 
 
@@ -54,11 +54,12 @@ renders as:
 
 ### Notation Conversion
 
-Besides transposition, notation of chords can also be converted using the `!notation` syntax,
-where `notation` is one of the names of notations listed above, in lower case.
+Besides transposition, the notation system of chords can also be converted using the `!notation` syntax,
+where `notation` is one of the names of listed above, in lower case.
+
 This can be used just like transposition (and together with it) as well as for the second line of chords.
 
-A comprehensive example of transposition and notation conversion to generate a "scale agnostic" second line:
+A comprehensive example of transposition and notation conversion to generate a 'scale agnostic' second line:
 
 ```Markdown
 # Wild Mountain Thyme
