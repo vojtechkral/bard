@@ -1,6 +1,6 @@
 # Template helpers
 
-This is a reference of custom [Handlebars helpers](https://handlebarsjs.com/guide/#custom-helpers) which bard provides to [templates](templates.md).
+This is a reference of [Handlebars helpers](https://handlebarsjs.com/guide/#custom-helpers) which bard provides to [templates](templates.md).
 
 <div class="hbs-reference">
 

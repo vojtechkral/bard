@@ -35,7 +35,7 @@ code { white-space: pre; }
 .table-compact td, .table-compact th {
     border: none;
     padding: 0 1rem 0 0;
-    line-height: 1.5rem;
+    line-height: 1.75;
 }
 
 .hbs-reference h3 {

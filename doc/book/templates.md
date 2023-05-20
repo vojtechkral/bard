@@ -1,6 +1,6 @@
 # Templates
 
-bard uses templates to render HTML files and PDF files through TeX. This is by default invisible to the user, but in fact, the templates are entirely customizable.
+bard uses [Handlebars](https://handlebarsjs.com/) templates to render HTML files and PDF files through TeX. This is by default invisible to the user, but in fact, the templates are entirely customizable.
 
 To obtain the default template for an output, specify a template path in `bard.toml`:
 
@@ -14,13 +14,11 @@ file = "songbook.html"
 template = "html.hbs"
 ```
 
-... and then run `bard make`. bard will create the template files containing default templates for PDF (TeX) and HTML formats.
-
-bard uses the [Handlebars](https://handlebarsjs.com/) template language, hence the extension `.hbs`.
+... and then run `bard make`. bard will create missing template files for PDF (TeX) and HTML formats with default content.
 
 ### The AST
 
-When rendering, bard passes the entire songbook AST (abstract syntax tree) to the template as JSON objects. Most notable are the `book` and `songs` objects:
+When rendering, bard passes the entire songbook AST (abstract syntax tree) to a template in a few JSON objects. Most notable are the `book` and `songs` objects:
 
 - `book` is a copy of the `[book]` section in `bard.toml` and contains the book's main title, subtitle and other metadata.
 - `songs` is an array of all the songs in the same order as loaded from the files. Each song object contains a title, subtitles (if any), and an array of _blocks_ which make up the content of the song. There are several types of blocks, some of which may contain _inlines_. There are in turn several types of inlines, such as chords, lyrics, etc.
@@ -55,7 +53,7 @@ At the most basic level, the purpose of the template is to loop through the `son
 ```
 
 Rendering with this template will render a HTML file only containing song titles. To render the content, bard templates make a heavy use of
-Handlebars' [inline partials](https://handlebarsjs.com/guide/partials.html#inline-partials) to define how various elements are displayed.
+Handlebars' [inline partials](https://handlebarsjs.com/guide/partials.html) to define how various elements are displayed.
 The `{{#each blocks}} ... {{/each}}` syntax loops through the blocks of the current song. The `{{> (lookup this "type") }}` incantation reads the `type` field of the block and dispatches to a handlebars partial of that name.
 
 The most important block type is the verse type, named `b-verse` (the `b-` prefix is for _block_). Let's define a partial to render a verse:
