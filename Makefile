@@ -58,7 +58,7 @@ book-clean:
 # from https://github.com/microsoft/vcpkg/issues/10683
 # Also tbh cargo-vcpkg doesn't report errors very well.
 
-VCPKG_REV = 6f7ffeb18f99796233b958aaaf14ec7bd4fb64b2
+VCPKG_REV = 1c5a340f6e10985e2d92af174a68dbd15c1fa4e1 # https://github.com/microsoft/vcpkg/pull/29067
 
 target-tectonic/vcpkg/vcpkg:
 	git clone https://github.com/Microsoft/vcpkg.git -- target-tectonic/vcpkg
