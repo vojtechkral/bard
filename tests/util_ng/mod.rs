@@ -4,6 +4,7 @@ use std::{
     fs, io, mem,
     ops::{Bound, RangeBounds},
     process::Command,
+    sync::atomic::{AtomicBool, Ordering},
     thread::{self, JoinHandle},
 };
 
@@ -12,7 +13,7 @@ use regex::{Match, Regex};
 use toml::Value as Toml;
 
 use bard::{
-    app::App,
+    app::{App, InterruptFlag},
     parser::DiagKind,
     prelude::*,
     project::Project,
@@ -23,6 +24,12 @@ use bard::{
 
 pub use indoc::{formatdoc, indoc};
 pub use toml::toml;
+
+static INTERRUPT: AtomicBool = AtomicBool::new(false);
+
+pub fn interrupt() {
+    INTERRUPT.store(true, Ordering::Relaxed);
+}
 
 pub struct TestProject {
     path: PathBuf,
@@ -156,7 +163,7 @@ impl TestProject {
         let bard_exe = option_env!("CARGO_BIN_EXE_bard")
             .expect("$CARGO_BIN_EXE_bard")
             .into();
-        let app = App::with_test_mode(self.postprocess, bard_exe);
+        let app = App::with_test_mode(self.postprocess, bard_exe, InterruptFlag(&INTERRUPT));
 
         // Init default project
         bard::bard_init_at(&app, &self.path)
@@ -282,6 +289,10 @@ impl TestBuild {
         &self.app
     }
 
+    pub fn interrupt(&self) {
+        self.app.interrupt_flag().interrupt();
+    }
+
     #[track_caller]
     pub fn assert_parser_diag(&self, kind: DiagKind) {
         self.app
@@ -359,7 +370,7 @@ impl TestBuild {
     pub fn watch(&self) -> (JoinHandle<()>, WatchControl) {
         let dir_output = self.dir_output().to_owned();
         let app = self.app.clone();
-        let (watch, control) = Watch::new(true).unwrap();
+        let (watch, control) = Watch::with_test_sync().unwrap();
 
         let watch_thread = thread::spawn(move || {
             bard::bard_watch_at(&app, &dir_output, watch).unwrap();

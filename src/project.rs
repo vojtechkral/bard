@@ -225,6 +225,7 @@ impl Project {
         };
 
         for path in self.input_paths.iter() {
+            app.check_interrupted()?;
             let source = fs::read_to_string(path)?;
             let config = ParserConfig::new(self.settings.notation, self.settings.smart_punctuation);
             let rel_path = path.strip_prefix(&self.project_dir).unwrap_or(path);
@@ -272,7 +273,7 @@ impl Project {
         }
 
         app.status("Running", format!("script '{}'", script_fn));
-        Command::new(script_path)
+        let mut child = Command::new(script_path)
             .current_dir(self.settings.dir_output())
             .stdin(Stdio::null())
             .stdout(Stdio::inherit())
@@ -282,8 +283,8 @@ impl Project {
             .env("OUTPUT_STEM", output.file.file_stem().unwrap()) // NB. unwrap is fine here, there's always a stem
             .env("PROJECT_DIR", self.project_dir.as_os_str())
             .env("OUTPUT_DIR", self.settings.dir_output().as_os_str())
-            .status()?
-            .into_result()?;
+            .spawn()?;
+        app.child_wait(&mut child)?.into_result()?;
 
         Ok(())
     }
@@ -299,6 +300,7 @@ impl Project {
         }
 
         self.settings.output.iter().try_for_each(|output| {
+            app.check_interrupted()?;
             app.status("Rendering", output.output_filename());
             let context = || {
                 format!(

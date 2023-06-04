@@ -6,7 +6,7 @@ use std::{
 #[cfg(unix)]
 use std::os::unix::process::ExitStatusExt as _;
 
-use crate::prelude::*;
+use crate::{app::InterruptFlag, prelude::*};
 
 /// ExitStatus extension
 pub trait ExitStatusExt {
@@ -58,8 +58,8 @@ impl ProcessLines {
         }
     }
 
-    pub fn read_line(&mut self) -> io::Result<Option<Vec<u8>>> {
-        let res = self.inner.read_line();
+    pub fn read_line(&mut self, interrupt: InterruptFlag) -> Result<Option<Vec<u8>>> {
+        let res = self.inner.read_line(interrupt);
         if let Ok(Some(line)) = res.as_ref() {
             self.lines.push(line.clone());
         }

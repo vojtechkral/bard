@@ -1,107 +1,92 @@
 use std::path::PathBuf;
-use std::sync::mpsc::{channel, Receiver, Sender};
+use std::sync::mpsc::{channel, Receiver};
 use std::sync::{Arc, Barrier};
 use std::thread;
 use std::time::Duration;
 
 use notify::{RecommendedWatcher, RecursiveMode, Watcher};
 
+use crate::app::{InterruptError, InterruptFlag};
 use crate::prelude::*;
 use crate::project::Project;
 
-#[derive(Debug)]
-pub enum WatchEvent {
-    Change(Vec<PathBuf>),
-    Cancel,
-    Error(Error),
-}
-
-impl WatchEvent {
-    fn is_change(&self) -> bool {
-        matches!(self, Self::Change(..))
-    }
-}
+type NotifyResult = notify::Result<notify::Event>;
 
 pub struct Watch {
     watcher: RecommendedWatcher,
-    evt_rx: Receiver<WatchEvent>,
-    test_barrier: Arc<Barrier>,
+    evt_rx: Receiver<NotifyResult>,
+    test_barrier: Option<Arc<Barrier>>,
 }
 
 #[derive(Debug)]
 pub struct WatchControl {
-    evt_tx: Sender<WatchEvent>,
     test_barrier: Arc<Barrier>,
 }
 
 impl Watch {
-    pub fn new(test_sync: bool) -> Result<(Self, WatchControl)> {
+    pub fn new() -> Result<Self> {
         let (evt_tx, evt_rx) = channel();
-        let evt_tx2 = evt_tx.clone();
 
-        let watcher = notify::recommended_watcher(move |res| {
-            if let Some(evt) = Self::event_map(res) {
-                let _ = evt_tx.send(evt);
+        let watcher = notify::recommended_watcher(move |res: NotifyResult| {
+            match res {
+                Ok(evt) if evt.kind.is_access() => {} // Ignore access events
+                other => {
+                    let _ = evt_tx.send(other);
+                }
             }
         })?;
 
-        let test_barrier = Arc::new(Barrier::new(if test_sync { 2 } else { 1 }));
-        let watch = Watch {
+        Ok(Watch {
             watcher,
             evt_rx,
+            test_barrier: None,
+        })
+    }
+
+    /// Create with the test sync flag on, for testing.
+    pub fn with_test_sync() -> Result<(Self, WatchControl)> {
+        let mut this = Self::new()?;
+
+        let test_barrier = Arc::new(Barrier::new(2));
+        let control = WatchControl {
             test_barrier: test_barrier.clone(),
         };
-        let control = WatchControl {
-            evt_tx: evt_tx2,
-            test_barrier,
-        };
 
-        Ok((watch, control))
+        this.test_barrier = Some(test_barrier);
+        Ok((this, control))
     }
 
-    const DELAY_MS: u64 = 500;
-
-    fn event_map(res: notify::Result<notify::Event>) -> Option<WatchEvent> {
-        let evt = match res.context("Error watching files") {
-            Ok(evt) => evt,
-            Err(err) => return Some(WatchEvent::Error(err)),
-        };
-
-        if evt.kind.is_access() {
-            None
-        } else {
-            Some(WatchEvent::Change(evt.paths))
-        }
-    }
-
-    pub fn watch(&mut self, project: &Project) -> Result<WatchEvent> {
+    pub fn watch(
+        &mut self,
+        project: &Project,
+        interrupt: InterruptFlag,
+    ) -> Result<Option<Vec<PathBuf>>> {
         self.watch_files(project)?;
 
         // Synchronize with test code, if any
-        self.test_barrier.wait();
+        self.test_barrier.as_deref().map(Barrier::wait);
 
-        let evt = self
-            .evt_rx
-            .recv()
-            .expect("Internal error: Channel receive failed");
+        let paths = match interrupt.channel_recv(&self.evt_rx) {
+            Ok(Some(res)) => res.context("Error watching files")?.paths,
+            Ok(None) => bail!("Internal error: Channel receive failed"),
+            Err(InterruptError) => return Ok(None),
+        };
 
         // Delaying mechanism - don't return back until we've
         // seen no event for a timeout's duration.
-        if evt.is_change() {
-            loop {
-                thread::sleep(Duration::from_millis(Self::DELAY_MS));
+        loop {
+            thread::sleep(Duration::from_millis(250));
 
-                if self.evt_rx.try_recv().is_ok() {
-                    // Drain all immediately available evts
-                    while self.evt_rx.try_recv().is_ok() {}
-                } else {
-                    break;
-                }
+            if self.evt_rx.try_recv().is_ok() {
+                // Drain all immediately available evts
+                while self.evt_rx.try_recv().is_ok() {}
+            } else {
+                break;
             }
         }
 
         self.unwatch_files(project);
-        Ok(evt)
+        Ok(Some(paths))
     }
 
     fn watch_files(&mut self, project: &Project) -> Result<()> {
@@ -120,14 +105,10 @@ impl Watch {
 }
 
 impl WatchControl {
-    /// Tell the watch loop to break.
-    pub fn cancel(&self) {
-        let _ = self.evt_tx.send(WatchEvent::Cancel);
-    }
-
     /// Wait until the `Watch` starts watching files in the current iteration
     /// as part of `.watch()`.
-    /// This only works when `Watch` is created with `test_sync = true`.
+    ///
+    /// **To be used in tests.** This only works when `Watch` is created with `test_sync = true`.
     pub fn wait_watching(&self) {
         self.test_barrier.wait();
     }

@@ -12,7 +12,7 @@ use serde::de::Error as _;
 use serde::{Deserialize, Serialize};
 use strum::{Display, EnumString, EnumVariantNames, VariantNames as _};
 
-use crate::app::{keeplevel, verbosity, App};
+use crate::app::{keeplevel, verbosity, App, InterruptFlag};
 use crate::prelude::*;
 use crate::util::{ExitStatusExt, ProcessLines, StrExt, TempPath};
 use crate::util_cmd;
@@ -79,9 +79,14 @@ impl TexConfig {
             self.program = self.distro.default_program(app);
         }
 
+        let interrupt = app.interrupt_flag();
         let version = match self.distro {
-            TexDistro::Xelatex => test_program(self.program.as_ref().unwrap(), "-version")?,
-            TexDistro::Tectonic => test_program(self.program.as_ref().unwrap(), "--version")?,
+            TexDistro::Xelatex => {
+                test_program(interrupt, self.program.as_ref().unwrap(), "-version")?
+            }
+            TexDistro::Tectonic => {
+                test_program(interrupt, self.program.as_ref().unwrap(), "--version")?
+            }
             #[cfg(not(feature = "tectonic"))]
             TexDistro::TectonicEmbedded => {
                 bail!("This bard binary was not built with embedded Tectonic.")
@@ -239,7 +244,11 @@ impl Serialize for TexConfig {
 }
 
 /// Run a command and get first line from stdout, if any
-fn test_program(program: impl AsRef<OsStr>, arg1: &str) -> Result<String> {
+fn test_program(
+    interrupt: InterruptFlag,
+    program: impl AsRef<OsStr>,
+    arg1: &str,
+) -> Result<String> {
     let program = program.as_ref();
     let mut child = Command::new(program)
         .arg(arg1)
@@ -250,6 +259,8 @@ fn test_program(program: impl AsRef<OsStr>, arg1: &str) -> Result<String> {
 
     // Crude way to wait for the subprocess with a timeout.
     for _ in 0..30 {
+        interrupt.check_interrupted()?;
+
         if let Some(status) = child.try_wait()? {
             status.into_result()?;
             break;
@@ -300,8 +311,8 @@ fn run_program(
 
     app.subprocess_output(&mut ps_lines, program, status)?;
 
-    let status = child
-        .wait()
+    let status = app
+        .child_wait(&mut child)
         .with_context(|| format!("Error running program {:?}", program))?;
 
     if !status.success() && app.verbosity() == verbosity::NORMAL {
@@ -467,7 +478,7 @@ impl TexTools {
     }
 }
 
-#[cfg(all(test, unix))]
+#[cfg(test)]
 mod tests {
     use super::*;
 
@@ -496,11 +507,17 @@ mod tests {
         TexConfig::from_str("xxx").unwrap_err();
     }
 
+    #[cfg(unix)]
     #[test]
     fn test_test_program() {
-        assert_eq!(test_program("echo", "hello").unwrap(), "hello");
-        test_program("xxx-surely-this-doesnt-exist", "").unwrap_err();
-        test_program("false", "").unwrap_err();
-        test_program("sleep", "9800").unwrap_err();
+        use std::sync::atomic::AtomicBool;
+
+        static INTERRUPT: AtomicBool = AtomicBool::new(false);
+        let interrupt = InterruptFlag(&INTERRUPT);
+
+        assert_eq!(test_program(interrupt, "echo", "hello").unwrap(), "hello");
+        test_program(interrupt, "xxx-surely-this-doesnt-exist", "").unwrap_err();
+        test_program(interrupt, "false", "").unwrap_err();
+        test_program(interrupt, "sleep", "9800").unwrap_err();
     }
 }

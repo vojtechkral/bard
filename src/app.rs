@@ -1,8 +1,13 @@
-use std::env;
+use std::error::Error as StdError;
 use std::ffi::OsStr;
 use std::fmt::Display;
 use std::io::{self, Write};
+use std::process::{Child, ExitStatus};
+use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::mpsc::{Receiver, RecvTimeoutError};
 use std::sync::Arc;
+use std::time::Duration;
+use std::{env, fmt, thread};
 
 use console::Color::{Cyan, Green, Red, Yellow};
 use console::{Color, Style, Term};
@@ -10,7 +15,7 @@ use parking_lot::Mutex;
 
 use crate::parser::Diagnostic;
 use crate::prelude::*;
-use crate::util::{ImgCache, ProcessLines};
+use crate::util::{ErrorExt as _, ImgCache, ProcessLines};
 
 #[derive(clap::Parser, Clone, Default)]
 pub struct StdioOpts {
@@ -71,9 +76,60 @@ pub mod keeplevel {
 
 pub type ParserDiags = Arc<Mutex<Vec<Diagnostic>>>;
 
+#[derive(Clone, Copy, Debug)]
+#[repr(transparent)]
+pub struct InterruptFlag(pub &'static AtomicBool);
+
+#[derive(Clone, Copy, Debug)]
+pub struct InterruptError;
+
+impl fmt::Display for InterruptError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "Interrupted.")
+    }
+}
+
+impl StdError for InterruptError {}
+
+impl InterruptFlag {
+    #[inline]
+    pub fn interrupted(&self) -> bool {
+        self.0.load(Ordering::Relaxed)
+    }
+
+    #[inline]
+    pub fn interrupt(&self) {
+        self.0.store(true, Ordering::Relaxed);
+    }
+
+    #[inline]
+    pub fn check_interrupted(&self) -> Result<(), InterruptError> {
+        if self.interrupted() {
+            Err(InterruptError)
+        } else {
+            Ok(())
+        }
+    }
+
+    /// Interruptable channel receive op.
+    pub fn channel_recv<T>(&self, rx: &Receiver<T>) -> Result<Option<T>, InterruptError> {
+        loop {
+            match rx.recv_timeout(Duration::from_millis(50)) {
+                Ok(val) => return Ok(Some(val)),
+                Err(RecvTimeoutError::Disconnected) => return Ok(None),
+                Err(RecvTimeoutError::Timeout) => {
+                    self.check_interrupted()?;
+                }
+            }
+        }
+    }
+}
+
 /// Runtime config and stdio output fns.
 #[derive(Clone, Debug)]
 pub struct App {
+    interrupt: InterruptFlag,
+
     post_process: bool,
     /// See `keeplevel` for levels.
     keep_interm: u8,
@@ -97,8 +153,9 @@ pub struct App {
 }
 
 impl App {
-    pub fn new(opts: &MakeOpts) -> Self {
+    pub fn new(opts: &MakeOpts, interrupt: InterruptFlag) -> Self {
         Self {
+            interrupt,
             post_process: !opts.no_postprocess,
             keep_interm: opts.keep,
             term: Term::stderr(),
@@ -111,10 +168,11 @@ impl App {
         }
     }
 
-    pub fn with_test_mode(post_process: bool, bard_exe: PathBuf) -> Self {
+    pub fn with_test_mode(post_process: bool, bard_exe: PathBuf, interrupt: InterruptFlag) -> Self {
         console::set_colors_enabled_stderr(false);
 
         Self {
+            interrupt,
             post_process,
             keep_interm: keeplevel::ALL,
             term: Term::stderr(),
@@ -128,8 +186,8 @@ impl App {
     }
 
     #[cfg(feature = "tectonic")]
-    pub fn new_as_tectonic() -> Self {
-        let mut this = Self::new(&MakeOpts::default());
+    pub fn new_as_tectonic(interrupt: InterruptFlag) -> Self {
+        let mut this = Self::new(&MakeOpts::default(), interrupt);
         this.verbosity = 1;
         this.self_name = "tectonic";
         this
@@ -161,6 +219,28 @@ impl App {
 
     pub fn parser_diags(&self) -> &ParserDiags {
         self.parser_diags.as_ref().unwrap()
+    }
+
+    // SIGINT support
+
+    pub fn check_interrupted(&self) -> Result<(), InterruptError> {
+        self.interrupt.check_interrupted()
+    }
+
+    pub fn interrupt_flag(&self) -> InterruptFlag {
+        self.interrupt
+    }
+
+    pub fn child_wait(&self, child: &mut Child) -> Result<ExitStatus> {
+        loop {
+            self.check_interrupted()?;
+
+            if let Some(status) = child.try_wait()? {
+                return Ok(status);
+            }
+
+            thread::sleep(Duration::from_millis(50));
+        }
     }
 
     // stdio helpers
@@ -224,6 +304,13 @@ impl App {
         let color = self.color(Red);
         self.status_inner(format!("{} error", self.self_name), &color, &error);
 
+        if let Some(source) = error.ultimate_source() {
+            if source.is::<InterruptError>() {
+                eprintln!("  {} {}", color.apply_to("|"), InterruptError);
+                return;
+            }
+        }
+
         let mut source = error.source();
         while let Some(err) = source {
             let err_str = format!("{}", err);
@@ -273,7 +360,7 @@ impl App {
             eprintln!()
         }
         while let Some(line) = ps_lines
-            .read_line()
+            .read_line(self.interrupt)
             .with_context(|| format!("Error reading output of program {:?}", program))?
         {
             if self.verbosity == 1 {

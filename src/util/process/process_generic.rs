@@ -5,6 +5,9 @@ use std::process::{ChildStderr, ChildStdout};
 use std::sync::mpsc::{self, Receiver, Sender};
 use std::thread::{self, JoinHandle};
 
+use crate::app::InterruptFlag;
+use crate::prelude::*;
+
 use super::BinaryLines;
 
 type LineSender = Sender<io::Result<Vec<u8>>>;
@@ -36,7 +39,7 @@ impl ProcessLines {
         Self { rx }
     }
 
-    pub fn read_line(&mut self) -> io::Result<Option<Vec<u8>>> {
-        self.rx.recv().ok().transpose()
+    pub fn read_line(&mut self, interrupt: InterruptFlag) -> Result<Option<Vec<u8>>> {
+        Ok(interrupt.channel_recv(&self.rx)?.transpose()?)
     }
 }

@@ -1,3 +1,4 @@
+use std::error::Error as StdError;
 use std::hash::Hash;
 use std::path::Path as StdPath;
 use std::sync::Arc;
@@ -72,6 +73,21 @@ impl<T> Apply for T {
         F: FnOnce(Self) -> R,
     {
         f(self)
+    }
+}
+
+/// Anyhow error extension
+pub trait ErrorExt {
+    fn ultimate_source(&self) -> Option<&(dyn StdError + 'static)>;
+}
+
+impl ErrorExt for Error {
+    fn ultimate_source(&self) -> Option<&(dyn StdError + 'static)> {
+        let mut source = self.source()?;
+        while let Some(next) = source.source() {
+            source = next;
+        }
+        Some(source)
     }
 }
 

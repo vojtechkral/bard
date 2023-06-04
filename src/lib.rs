@@ -11,7 +11,7 @@
 use std::env;
 use std::ffi::OsString;
 
-use app::{App, MakeOpts, StdioOpts};
+use app::{App, InterruptFlag, MakeOpts, StdioOpts};
 use clap::{CommandFactory as _, Parser as _};
 use serde::Serialize;
 
@@ -32,7 +32,7 @@ pub mod watch;
 use crate::prelude::*;
 use crate::project::{Project, Settings};
 use crate::util_cmd::UtilCmd;
-use crate::watch::{Watch, WatchEvent};
+use crate::watch::Watch;
 
 #[derive(Serialize, Clone, Debug)]
 pub struct ProgramMeta {
@@ -101,12 +101,12 @@ enum Command {
         #[clap(flatten)]
         opts: MakeOpts,
     },
-    /// Like make, but keep runing and rebuild each time there's a change in project files
+    /// Like make, but keep running and rebuild each time there's a change in project files
     Watch {
         #[clap(flatten)]
         opts: MakeOpts,
     },
-    /// Commandline utilities for postprocessing
+    /// CLI utilities for postprocessing
     #[command(subcommand)]
     Util(UtilCmd),
 
@@ -172,13 +172,12 @@ pub fn bard_watch_at<P: AsRef<Path>>(app: &App, path: P, mut watch: Watch) -> Re
 
         eprintln!();
         app.status("Watching", "for changes in the project ...");
-        match watch.watch(&project)? {
-            WatchEvent::Change(paths) if paths.len() == 1 => {
+        match watch.watch(&project, app.interrupt_flag())? {
+            Some(paths) if paths.len() == 1 => {
                 app.indent(format!("Change detected at {:?} ...", paths[0]))
             }
-            WatchEvent::Change(..) => app.indent("Change detected ..."),
-            WatchEvent::Cancel => break,
-            WatchEvent::Error(err) => return Err(err),
+            Some(..) => app.indent("Change detected ..."),
+            None => break,
         }
     }
 
@@ -187,16 +186,11 @@ pub fn bard_watch_at<P: AsRef<Path>>(app: &App, path: P, mut watch: Watch) -> Re
 
 pub fn bard_watch(app: &App) -> Result<()> {
     let cwd = get_cwd()?;
-    let (watch, watch_control) = Watch::new(false)?;
-
-    let _ = ctrlc::set_handler(move || {
-        watch_control.cancel();
-    });
-
+    let watch = Watch::new()?;
     bard_watch_at(app, cwd, watch)
 }
 
-pub fn bard(args: &[OsString]) -> i32 {
+pub fn bard(args: &[OsString], interrupt: InterruptFlag) -> i32 {
     let cli = Cli::parse_from(args);
     if cli.print_version() {
         return 0;
@@ -210,13 +204,13 @@ pub fn bard(args: &[OsString]) -> i32 {
     };
 
     let app = match &cmd {
-        Command::Init { opts } => App::new(&opts.clone().into()),
-        Command::Make { opts } => App::new(opts),
-        Command::Watch { opts } => App::new(opts),
-        Command::Util(_) => App::new(&Default::default()),
+        Command::Init { opts } => App::new(&opts.clone().into(), interrupt),
+        Command::Make { opts } => App::new(opts, interrupt),
+        Command::Watch { opts } => App::new(opts, interrupt),
+        Command::Util(_) => App::new(&Default::default(), interrupt),
 
         #[cfg(feature = "tectonic")]
-        Command::Tectonic(_) => App::new_as_tectonic(),
+        Command::Tectonic(_) => App::new_as_tectonic(interrupt),
     };
 
     if let Err(err) = cmd.run(&app) {

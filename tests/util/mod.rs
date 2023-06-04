@@ -9,8 +9,10 @@ use std::ops::Bound;
 use std::ops::RangeBounds;
 use std::process::Command;
 use std::process::Stdio;
+use std::sync::atomic::AtomicBool;
 
 use bard::app::App;
+use bard::app::InterruptFlag;
 use bard::util::Apply;
 use bard::util::ExitStatusExt;
 use fs_extra::dir::{self, CopyOptions};
@@ -137,6 +139,8 @@ pub fn modify_settings(
     Ok(())
 }
 
+static INTERRUPT: AtomicBool = AtomicBool::new(false);
+
 #[derive(Debug)]
 pub struct Builder {
     pub project: Project,
@@ -149,7 +153,7 @@ impl Builder {
         let bard_exe = option_env!("CARGO_BIN_EXE_bard")
             .expect("$CARGO_BIN_EXE_bard")
             .into();
-        App::with_test_mode(post_process, bard_exe)
+        App::with_test_mode(post_process, bard_exe, InterruptFlag(&INTERRUPT))
     }
 
     fn build_inner(src_path: impl AsRef<Path>, name: &str, post_process: bool) -> Result<Self> {

@@ -4,7 +4,11 @@ use std::io;
 use std::os::unix::io::{AsRawFd, RawFd};
 use std::process::{ChildStderr, ChildStdout};
 
+use nix::errno::Errno;
 use nix::poll::{self, PollFd, PollFlags};
+
+use crate::app::InterruptFlag;
+use crate::prelude::*;
 
 use super::BinaryLines;
 
@@ -14,6 +18,17 @@ where
 {
     fn as_raw_fd(&self) -> RawFd {
         self.read.as_raw_fd()
+    }
+}
+
+/// Poll these `fds` for a short time and return if any of them
+/// have had events. Handles `EINTR`.
+fn poll(fds: &mut [PollFd]) -> io::Result<bool> {
+    match poll::poll(fds, 50) {
+        Ok(0) => Ok(false),
+        Ok(_) => Ok(true),
+        Err(Errno::EINTR) => Ok(false),
+        Err(err) => Err(err.into()),
     }
 }
 
@@ -30,7 +45,7 @@ impl ProcessLines {
         }
     }
 
-    pub fn read_line(&mut self) -> io::Result<Option<Vec<u8>>> {
+    pub fn read_line(&mut self, interrupt: InterruptFlag) -> Result<Option<Vec<u8>>> {
         loop {
             if self.stdout.eof() && self.stderr.eof() {
                 return Ok(None);
@@ -41,7 +56,9 @@ impl ProcessLines {
             let p_stderr = PollFd::new(self.stderr.as_raw_fd(), events);
             let mut fds = [p_stdout, p_stderr];
 
-            poll::poll(&mut fds, -1)?;
+            while !poll(&mut fds)? {
+                interrupt.check_interrupted()?
+            }
 
             let [p_stdout, p_stderr] = fds;
 

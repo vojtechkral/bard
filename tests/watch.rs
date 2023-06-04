@@ -56,7 +56,7 @@ fn watch() {
     control.wait_watching();
 
     // Cancel watching:
-    control.cancel();
+    build.interrupt();
 
     // Check that output contains test string:
     let html = build.read_output(".html");
