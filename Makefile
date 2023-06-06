@@ -53,28 +53,18 @@ book-clean:
 
 
 # tectonic embedding targets
-#
-# NB. I am not using cargo-vcpkg for this because it can't do the release-only build trick
-# from https://github.com/microsoft/vcpkg/issues/10683
-# Also tbh cargo-vcpkg doesn't report errors very well.
-
-VCPKG_REV = 1c5a340f6e10985e2d92af174a68dbd15c1fa4e1 # https://github.com/microsoft/vcpkg/pull/29067
-
-target-tectonic/vcpkg/vcpkg:
-	git clone https://github.com/Microsoft/vcpkg.git -- target-tectonic/vcpkg
-	cd target-tectonic/vcpkg && git checkout $(VCPKG_REV)
-	VCPKG_DISABLE_METRICS=1 target-tectonic/vcpkg/bootstrap-vcpkg.sh
-	echo 'set(VCPKG_BUILD_TYPE release)' >> target-tectonic/vcpkg/triplets/x64-linux.cmake
 
 .PHONY: with-tectonic
-with-tectonic: target-tectonic/vcpkg/vcpkg
-	target-tectonic/vcpkg/vcpkg install fontconfig freetype 'harfbuzz[icu,graphite2]'
-	CARGO_TARGET_DIR=target-tectonic VCPKG_ROOT="$(PWD)/target-tectonic/vcpkg" TECTONIC_DEP_BACKEND=vcpkg cargo build --release --features tectonic
+with-tectonic:
+	CARGO_TARGET_DIR=target-tectonic cargo build --release --features tectonic
 
 .PHONY: test-tectonic
-test-tectonic: target-tectonic/vcpkg/vcpkg
-	target-tectonic/vcpkg/vcpkg install fontconfig freetype 'harfbuzz[icu,graphite2]'
-	CARGO_TARGET_DIR=target-tectonic VCPKG_ROOT="$(PWD)/target-tectonic/vcpkg" TECTONIC_DEP_BACKEND=vcpkg cargo nextest run --release --run-ignored all --features tectonic
+test-tectonic:
+	CARGO_TARGET_DIR=target-tectonic cargo nextest run --release --run-ignored all --features tectonic
+
+# using vcpkg on windows
+
+VCPKG_REV = 1c5a340f6e10985e2d92af174a68dbd15c1fa4e1 # https://github.com/microsoft/vcpkg/pull/29067
 
 target/vcpkg/vcpkg.exe:
 	git clone https://github.com/Microsoft/vcpkg.git -- target/vcpkg
