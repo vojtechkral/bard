@@ -14,10 +14,10 @@ The following are provided:
 - Docker: [`vojtechkral/bard`](https://hub.docker.com/repository/docker/vojtechkral/bard)
 
 To build PDFs, a TeX distribution is needed. Please consult your distribution package repository for the appropriate package.
-The default bard template typically requires an extended TeXLive package such as `texlive-xetex` on Ubuntu,
+The default Bard template typically requires an extended TeXLive package such as `texlive-xetex` on Ubuntu,
 `texlive-latexextra` on Arch or `texlive-scheme-medium` on Fedora.
 
-Alternatively you can install the [Tectonic](https://tectonic-typesetting.github.io/) engine.
+Alternatively, you can install the [Tectonic](https://tectonic-typesetting.github.io/) engine.
 
 See the [TeX Configuration](./tex.md) chapter for how to configure TeX use.
 
@@ -34,8 +34,8 @@ See the [TeX Configuration](./tex.md) chapter for how to configure TeX use.
 
 ## From Sources
 
-To build from sources, you will first need the Rust toolchain &ndash; it can be installed either via [Rustup](https://rustup.rs/) or from your OS package repository, if available.
+You will first need the Rust toolchain to build from sources &ndash; it can be installed via [Rustup](https://rustup.rs/) or from your OS package repository, if available.
 
-Once the Rust toolchain is installed, ie. the `rustc` and `cargo` commands are available, use the following command to build and install from sources using `cargo`:
+Once the Rust toolchain is installed, i.e., the `rustc` and `cargo` commands are available, use the following command to build and install from sources using `cargo`:
 
     cargo install -f bard

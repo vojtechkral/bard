@@ -1,10 +1,10 @@
 # Migration to version 2
 
-There were a few incompatible changes in bard v 2.x. To convert your project to bard 2.x, perform the following updates:
+There were a few incompatible changes in Bard v 2.x. To convert your project to Bard 2.x, perform the following updates:
 
 ### `bard.toml` version
 
-The `bard.toml` file now contains an explicit version field corresponding to the program major version.
+The `bard.toml` file now contains an explicit version field corresponding to the program's major version.
 Add the following line at the top of the file:
 
 ```toml
@@ -14,7 +14,7 @@ version = 2
 ### PDF format and post-processing
 
 In bard 1.x, `.tex` files were generated and rendered as PDFs using the `process` field.
-This is now done by bard automatically. The `tex` format is replaced by the `pdf` format and the `process` field is no longer recognized.
+This is now done by Bard automatically. The `tex` format is replaced by the `pdf` format, and the `process` field is no longer recognized.
 
 To migrate a PDF `[[output]]`:
 
@@ -25,7 +25,8 @@ To migrate a PDF `[[output]]`:
 
 ### Hovorka
 
-The Hovorka format now needs to explicitly defined so as to be distinguished from the general XML AST output. Add the following in the relevant `[[output]]`:
+The Hovorka format must now be explicitly defined to be distinguished from the general XML AST output.
+Add the following in the relevant `[[output]]`:
 
 ```toml
 format = "hovorka"
@@ -33,6 +34,6 @@ format = "hovorka"
 
 ### Templates
 
-If you are using the default template without changes, it is recommended to delete it as bard now by default uses built-in templates without saving them to disk.
+If you are using the default template without changes, it is recommended to delete it as Bard now, by default, uses built-in templates without saving them to disk.
 
-Templates have been changed significantly between the two major versions. If you used customizations, please refer to [Templates - upgrading](./templates.md#upgrading). The default templates can also be obtained by specifying a non-existing file in the output's `tamplate` field - the file will be generated with default template content.
+Templates have been changed significantly between the two major versions. If you used customizations, please refer to [Templates - upgrading](./templates.md#upgrading). The default templates can also be obtained by specifying a non-existing file in the output's `template` field - the file will be generated with default template content.

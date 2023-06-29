@@ -1,6 +1,6 @@
 # Images
 
-The Markdown image element is supported in bard. The image path is relative to the `output` directory.
+The Markdown image element is supported in Bard. The image path is relative to the `output` directory.
 For example, if we put a file named `horses.jpg` in the `output` directory, we can use it like this:
 
 ```md
@@ -11,23 +11,23 @@ to get an output like this:
 
 ![images-example-1](assets/images-1.png)
 
-By default, the image renders inline within text at the position of the image element.
+By default, the image renders inline within the text at the position of the image element.
 
-Please note that while bard supports displaying images, the flexibility of features will never be as good as with hand-crafted documents.
+Please note that while Bard supports displaying images, the flexibility of features will never be as good as with hand-crafted documents.
 There are limitations imposed by Markdown as well as output formats.
 
-### Centered and floating images
+### Centred and floating images
 
-Markdown allows an additional parameter, a 'title', to be specified after the image path, in double quotes.
-In bard this parameter is used to specify image position class, the syntax is as follows:
+Markdown allows an additional parameter, a 'title', to be specified after the image path in double quotes.
+In Bard, this parameter is used to specify image position class. The syntax is as follows:
 
 ```md
 ![image](./image.jpg "class")
 ```
 
-Two classes are supported by bard's default templates:
+Two classes are supported by Bard's default templates:
 
-- `"center"`: the image is centered on the page with text above and below, and
+- `"center"`: the image is centred on the page with text above and below, and
 - `"right"`: the image floats on the right side of the page with text flowing left to it.
 
 From the example project:
@@ -63,13 +63,13 @@ renders as:
 
 ### DPI settings
 
-In PDF, the DPI setting governs the relationship between image size in pixels and it's physical size when printed.
+In PDF, the DPI setting governs the relationship between image size in pixels and its physical size when printed.
 DPI is configured with the `dpi` property in the `output` section. Its value is a numeral in units of pixels per inch.\
-**The default is 144 pixels per inch is used.**
+**The default is 144 pixels per inch.**
 
-In HTML, there is no concept of DPI as such, instead, the `dpi` field is used as a scaling factor by which the image dimensions
+In HTML, there is no concept of DPI as such; instead, the `dpi` field is used as a scaling factor by which the image dimensions
 are multiplied when HTML image elements are rendered &ndash; for example, the value of 0.5 would halve the dimensions.\
-**The default is 1.0, ie. no scaling applied.**
+**The default is 1.0, i.e., no scaling applied.**
 
 Example of custom DPI settings:
 

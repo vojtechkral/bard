@@ -1,6 +1,6 @@
 # Custom Extensions
 
-bard Markdown syntax can be extended using "HTML" code. Since inline HTML code is otherwise unused
+Bard Markdown syntax can be extended using "HTML" code. Since inline HTML code is otherwise unused
 (it would not be very useful in TeX/PDF output), it is repurposed as a way to call into user-defined extensions.
 
 For example, in the following Markdown:
@@ -13,7 +13,7 @@ For example, in the following Markdown:
 
 In [the AST](./templates.md#the-ast), the tag pair is represented by inlines of type `i-tag`.
 The tag name is prefixed with `h-` and dispatched to an _inline partial_ of that name.
-For the closing tag, the slash `/` is included in the name. So, in this example, first a partial named `h-foo` is called, then the text `example` is rendered, and then a partial named `h-/foo` is called. Since by default the two partials `h-foo` and `h-/foo` don't exist, the tags don't do anything, only `example` will be rendered. However, you can define those two partials in your template.
+For the closing tag, the slash `/` is included in the name. So, in this example, first, a partial named `h-foo` is called, then the text `example` is rendered, and then a partial named `h-/foo` is called. Since, by default, the two partials `h-foo` and `h-/foo` don't exist, the tags don't do anything; only `example` will be rendered. However, you can define those two partials in your template.
 
 "HTML" tags may also enclose whole blocks of text like so:
 
@@ -26,11 +26,11 @@ And the `C`trees are sweetly `G`bloomin'...
 </foo>
 ```
 
-In this example it is important that there is a newline between the opening tag (`<foo>`) and the following block. Due to Markdown parsing rules, if the block follows without a newline, it is considered part of the HTML code and not parsed as Markdown (bard warns you if this happens).
+In this example, it is important that there is a newline between the opening tag (`<foo>`) and the following block. Due to Markdown parsing rules, if the block follows without a newline, it is considered part of the HTML code and not parsed as Markdown (Bard warns you if this happens).
 
 ### Example: Font size
 
-Suppose we want an extension to render a part of lyrics in a smaller font. We'll name it `small` and use it like this:
+Suppose we want an extension to render a part of the lyrics in a smaller font. We'll name it `small` and use it like this:
 
 ```md
 # Song
@@ -39,7 +39,7 @@ Suppose we want an extension to render a part of lyrics in a smaller font. We'll
 <small>This should be in a smaller font...</small>
 ```
 
-To make this work, two _partial inlines_ needs to be added to the TeX template:
+To make this work, two _partial inlines_ need to be added to the TeX template:
 
 ```html
 {{#*inline "h-small"}}\small{}{{/inline}}
@@ -79,7 +79,7 @@ To make this work, we'll add the following inline in the HTML template:
 {{/inline}}
 ```
 
-The `{{id}}` part is the usage of the attribute `id` that we've passed in from Markdown.
+The `{{id}}` part renders the attribute `id` that we've passed in from Markdown.
 
-In paper documents, video links are not very practical, so we won't be defining a `h-youtube` inline in the TeX template.
+In paper documents, video links are not very practical, so we won't be defining an `h-youtube` inline in the TeX template.
 The element will simply be ignored in TeX.

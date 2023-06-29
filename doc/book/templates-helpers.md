@@ -1,12 +1,12 @@
 # Template helpers
 
-This is a reference of [Handlebars helpers](https://handlebarsjs.com/guide/#custom-helpers) which bard provides to [templates](templates.md).
+This is a reference of [Handlebars helpers](https://handlebarsjs.com/guide/#custom-helpers), which Bard provides to [templates](templates.md).
 
 <div class="hbs-reference">
 
 ### `eq a b`
 
-A basic equality check, returns `true` when a JSON value `a` equals `b`.
+A basic equality check; returns `true` when a JSON value `a` equals `b`.
 
 ### `contains object key`
 
@@ -15,11 +15,11 @@ Returns `true` when a JSON `object` contains a value under `key`.
 ### `cat args…`
 
 Concatenates any number of arguments as one string.\
-For example: `{{ cat "Hello, " "World!" }}` will render `"Hello, World!"`.
+For example `{{ cat "Hello, " "World!" }}` will render `"Hello, World!"`.
 
 ### `default value default`
 
-Returns `value` if it is not `null`, otherwise returns `default`.
+Returns `value` if it is not `null`; otherwise, returns `default`.
 
 ### `matches string regex`
 
@@ -62,7 +62,7 @@ Returns the pixel height of an image at `path`.
 
 ### `px2mm size`
 
-Converts a `size` in pixels to millimeters using output's `dpi` settings.\
+Converts a `size` in pixels to millimetres using the output's `dpi` settings.\
 See also [`scale`](#scale-size) and [Images - DPI](images.md#dpi) for more details.
 
 _Only in TeX templates._
@@ -70,7 +70,7 @@ _Only in TeX templates._
 ### `pre text`
 
 Performs TeX escaping of the string with spaces replaced by `~`.\
-It is recommended to use this helper in triple braces `{{{ pre ... }}}` which suppresses the default escaping function.
+It is recommended to use this helper in triple braces `{{{ pre ... }}}`, which suppresses the default escaping function.
 
 _Only in TeX templates._
 
@@ -78,15 +78,15 @@ Example: `{{{ pre "Hello,      World!" }}}`
 
 ### `scale size`
 
-Multiplies a `size` by the `dpi` factor in output's settings.\
-The result is rounded to the nearest interger.\
+Multiplies a `size` by the `dpi` factor in the output's settings.\
+The result is rounded to the nearest integer.\
 See also [`px2mm`](#px2mm-size) and [Images - DPI](images.md#dpi) for more details.
 
 _Only in HTML templates._
 
 ### `version_check version`
 
-Performs a version check. The running bard program compares the `version` specified with its internal AST version
+Performs a version check. The running Bard program compares the `version` specified with its internal AST version
 and outputs a warning in case the version is incompatible.
 
 Example: `{{~ version_check "1.1.0" ~}}`

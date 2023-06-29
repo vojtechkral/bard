@@ -1,14 +1,14 @@
 # bard.toml Reference
 
 This is a list of fields recognized in the `bard.toml` settings file.\
-Most of the fields are optional, only a few are required; these are marked as such.
+Most of the fields are optional; only a few are required; these are marked as such.
 
 <div class="thin-code">
 
 ```toml
 version = 2
 ```
-*Required.* Major version of bard this project was created with. Used for compatibility checks.
+*Required.* Major version of Bard this project was created with. Used for compatibility checks.
 
 ```toml
 songs = "*.md"
@@ -25,7 +25,7 @@ Chord notation used in the input files. Only needed for transposition. See [Nota
 ```toml
 smart_punctuation = true
 ```
-Whether Markdown parser should produce smart quotations and ellipsis. See [Punctuation](./songs.md#punctuation).
+Whether the Markdown parser should produce smart quotations and ellipsis. See [Punctuation](./songs.md#punctuation).
 
  ```toml
 tex = "xelatex"
@@ -44,13 +44,13 @@ file = "songbook.pdf"
 ```toml
 template = "pdf.hbs"
 ```
-Path to the template file for this output, relative to the `templates` directory. (See also [Templates](./templates.md).)
+Path to the template file for this output relative to the `templates` directory. (See also [Templates](./templates.md).)
 
 ```toml
 format = "pdf"
 ```
 Output format. Possible choices: `"pdf"`, `"html"`, [`"hovorka"`](./hovorka.md), [`"json"`](./json-and-xml.md), or [`"xml"`](./json-and-xml.md).
-Usually this isn't required since the format is detected from `file`'s extension.
+Usually, this isn't required since the format is detected from the `file`'s extension.
 
 ```toml
 sans_font = false
@@ -75,7 +75,8 @@ A customized ToC sort key extraction regex for PDF outputs. See [ToC sorting con
 ```toml
 dpi = 144.0
 ```
-For PDF outputs, this is resolution of images in points per inch. For HTML outputs, this is image scaling factor. See [DPI settings](./images.md#dpi-settings).
+For PDF outputs, this is the resolution of images in points per inch. For HTML outputs, this is the image scaling factor.
+See [DPI settings](./images.md#dpi-settings).
 
 ```toml
 tex_runs = 3
@@ -85,7 +86,7 @@ Number of TeX rendering passes when generating PDFs. See [Number of TeX passes](
 ```toml
 script = "postprocess"
 ```
-Base name of a post-processing script files used for this output _without_ the extension. See [Scripts](./scripts.md).
+Base name of a post-processing script file used for this output _without_ the extension. See [Scripts](./scripts.md).
 
 ```toml
 book = { front_img = "guitar_pdf.jpg" }
@@ -94,7 +95,7 @@ Override any field of the `[book]` section (see below) specifically for this out
 
 ### `[book]`
 
-The `book` table describes basic metadata about your songbook, it is used by the rendering templates.
+The `book` table describes basic metadata about your songbook; it is used by the rendering templates.
 
 ```toml
 title = "Bard Songbook"
@@ -104,12 +105,12 @@ The main title of the songbook.
 ```toml
 subtitle = "An example project"
 ```
-Sub-title, shown on the title page as well but in smaller font.
+Sub-title, shown on the title page as well, but in smaller font.
 
 ```toml
 chorus_label = "Ch"
 ```
-Label to be used for chorus verses, without the dot.
+Label to be used for chorus verses without the dot.
 
 ```toml
 front_img = "guitar.jpg"

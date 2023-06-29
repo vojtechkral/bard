@@ -15,9 +15,9 @@ Will ye `G`go `C`lassie `G`go?
 
 The header `# Wild Mountain Thyme` is the title of the song.
 All content following the header is considered part of that song
-until either the end of file or a new H1 title (there may be multiple songs in one file).
+until either the end of the file or a new H1 title (there may be multiple songs in one file).
 
-The `## Irish & Scottish traditional` is a subtitle, in the output it appears underneath
+The `## Irish & Scottish traditional` is a subtitle. In the output, it appears underneath
 the main title in a smaller font. This is optional. There may also be several subtitles.
 
 ### Lyrics and Chords
@@ -30,25 +30,25 @@ And the `C`trees are sweetly `G`bloomin'
 ...
 ```
 
-The chords are delimited with backticks (`` ` ``) and they are inlined within the lyrics.
+The chords are delimited with backticks (`` ` ``) and inline within the lyrics.
 In the output, each chord will appear exactly above the text that follows it.
 Chords may be placed anywhere within the lyrics, including in the middle of a word or above a space or punctuation.
 
 A chord span may contain multiple chords separated by spaces or other punctuation.
 
-Chords may also be delimited with double backticks, like this:
+Chords may also be delimited with double backticks like this:
 
 ```md
 `G7`Oh Danny `C`Boy, the pipes, the ``C7``pipes are `F`calling
 ```
 
-This is meant to indicate that the chord is ok to be skipped if the player
+This indicates that the chord can be skipped if the player
 has trouble playing it. It is rendered in a thinner font in the output:
 
 ![double-backticks-example](assets/double-backticks.jpg)
 
-Finally, chords can be placed on the base line of the text next to lyrics rather than above them.
-This is done by appending and underscore (`_`) after a chord or between several chords:
+Finally, chords can be placed on the baseline of the text next to lyrics rather than above them.
+This is done by appending an underscore (`_`) after a chord or between several chords:
 
 ```md
 Baseline `C_D` chords.
@@ -56,19 +56,20 @@ Baseline `C_D` chords.
 
 ![baseline-chords-example](assets/baseline-chords.png)
 
-This can be useful when writing chords for instrumental parts such as intros, solos or similar. See also custom verse type below.
+This can be useful when writing chords for instrumental parts such as intros, solos or similar.
+See also the custom verse type below.
 
 ##### Paragraphs and whitespace
 
 The lyrics can be divided into multiple paragraphs as part of one verse
 using a blank line.
 
-Unlike in regular Markdown, line breaks are preserved, ie. they are the same in the output as in the input.
+Unlike in regular Markdown, line breaks are preserved &ndash; they are the same in the output as in the input.
 The text isn't automatically wrapped.
 
 ##### Punctuation
 
-By default, some punctuation such as `'`, `"`, or `...` is converted to unicode characters in a 'smart' way (eg. pairing up quotes).
+By default, some punctuation such as `'`, `"`, or `...` is converted to Unicode characters in a 'smart' way (e.g., pairing up quotes).
 For example, `'Hello' "world" ...` is rendered as  `‘Hello’ “world” …`.
 
 This can be turned off in `bard.toml` top section using:
@@ -80,14 +81,14 @@ smart_punctuation = false
 ### Verses
 
 The `1.` in the above lyrics starts the first verse. Technically this is a Markdown ordered list.
-Just like in Markdown, the numbers don't need to ascend in the correct order, in fact, you can number
+Just like in Markdown, the numbers don't need to ascend in the correct order. In fact, you can number
 every verse as `1.` and they will be correctly numbered in the output.
 
 Numbered verses are considered "regular" verses. There are two more verse types.
 
 ##### Choruses
 
-A chorus is started using the `>` syntax, this is the Markdown block quote element.
+A chorus is started using the `>` syntax. This is the Markdown block quote element.
 For example:
 
 ```md
@@ -95,7 +96,7 @@ For example:
 All `C`around the `Am`bloomin' `C`heather, will ye `G`go `C`lassie `G`go?
 ```
 
-The label that is used for choruses in the output is configured with the `chorus_label` property in the `[book]` section of `bard.toml`.
+The label used for choruses in the output is configured with the `chorus_label` property in the `[book]` section of `bard.toml`.
 The default chorus label is "Ch". The above renders as:
 
 ![chorus-example](assets/chorus.jpg)
@@ -138,7 +139,8 @@ And re`G`peat the `Em`chorus once `Am`more...
 
 ![verse-custom-title-2-example](assets/verse-custom-title-2.png)
 
-The `\` on a line is used to add a newline after the verse title. By default the lyrics follow on the same line as the title.
+The `\` on a line is used to add a new line after the verse title.
+By default, the lyrics follow on the same line as the title.
 
 ### Other Markdown Elements
 
@@ -158,8 +160,8 @@ These additional block Markdown elements are supported:
 
 However, only flat structure is supported &ndash; nested lists are ignored.
 
-bard does not support inline HTML in Markdown. (At least not as such, inline HTML is instead used for [syntax extensions](extensions.md).)
+Bard does not support inline HTML in Markdown. At least not as such; inline HTML is instead used for [syntax extensions](extensions.md).
 
 ### Markdown Standard
 
-Except for the limitations and extensions listed above, bard interprets Markdown according to the [CommonMark](https://commonmark.org/) standard.
+Except for the limitations and extensions listed above, Bard interprets Markdown according to the [CommonMark](https://commonmark.org/) standard.

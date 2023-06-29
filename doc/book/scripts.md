@@ -1,6 +1,6 @@
 # Scripts
 
-The script feature makes it possible to post-process bard outputs in arbitrary ways with script files.
+The script feature makes it possible to post-process Bard outputs arbitrarily with script files.
 
 Scripts are defined per output. To configure, set the `script` option on the relevant output, for example:
 
@@ -10,28 +10,28 @@ file = "songbook.html"
 script = "foo"
 ```
 
-The script name is specified **without** the file extension. The extension is assumed automatically based on operating system:
+The script name is specified **without** the file extension. The extension is assumed automatically based on the operating system:
 
 | OS | Script name | Actual filename |
 | --- | --- | --- |
 | Linux & Unix | `foo` | `foo.sh` |
 | Windows | `foo` | `foo.bat` |
 
-The script file should be placed in the output directory and it is also executed in the output directory (ie. with the _current directory_ being set to the output directory).
+The script file should be placed in the output directory, and it is also executed in the output directory (i.e., with the _current directory_ being set to the output directory).
 
-Note: On Linux/Unix, the script `.sh` file should have the executable permission bit set such that the user running bard can run the script file as well.
+Note: On Linux/Unix, the script `.sh` file should have the executable permission bit set so the user running Bard can also run the script file.
 
 ### Environment variables
 
-The following environment variables are passed by bard to the script:
+The following environment variables are set by Bard when running the script:
 
 | Variable | Purpose |
 | --- | --- |
 | `OUTPUT` | Full path to the output file for which the script is executed. |
-| `OUTPUT_STEM` | Only the 'stem' part of the output filename, ie. the filename without the extension. |
+| `OUTPUT_STEM` | Only the 'stem' part of the output filename, i.e., the filename without the extension. |
 | `OUTPUT_DIR` | Full path to the output directory. |
-| `PROJECT_DIR` | Full path to the project directory, ie. where the `bard.toml` file is located. |
-| `BARD` | Full path to the bard executable that was called to build the project. |
+| `PROJECT_DIR` | Full path to the project directory, i.e., where the `bard.toml` file is located. |
+| `BARD` | Full path to the Bard executable that was called to build the project. |
 
 ### Example: All chords in the book
 
