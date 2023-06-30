@@ -3,7 +3,6 @@ on: [push, pull_request]
 name: CI
 
 env:
-  MSRV: 1.64.0
   CARGO_DEB: 1.37.0
   CARGO_RPM: 0.8.0
   CARGO_OUTDATED: 0.11.1
@@ -206,11 +205,14 @@ jobs:
     steps:
       - name: Checkout sources
         uses: actions/checkout@v3
+      - name: Extract MSRV
+        id: get-msrv
+        run: echo msrv=$(yq .package.rust-version Cargo.toml -oy) | tee -a "$GITHUB_OUTPUT"
       - name: Setup Rust toolchain
         uses: actions-rs/toolchain@v1
         with:
           profile: minimal
-          toolchain: ${{ env.MSRV }}
+          toolchain: ${{ steps.get-msrv.outputs.msrv }}
           override: true
       - name: Cache dependencies
         uses: actions/cache@v3
