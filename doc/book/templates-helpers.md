@@ -89,6 +89,6 @@ _Only in HTML templates._
 Performs a version check. The running Bard program compares the `version` specified with its internal AST version
 and outputs a warning in case the version is incompatible.
 
-Example: `{{~ version_check "1.1.0" ~}}`
+Example: `{{~ version_check "1.2.0" ~}}`
 
 </div>

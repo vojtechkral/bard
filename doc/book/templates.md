@@ -36,7 +36,7 @@ Because of this, Bard templates start with a [version check](#version_check-vers
 At the most basic level, the purpose of the template is to loop through the `songs` array and render each song. A very simple HTML template might look like this:
 
 ```html
-{{~ version_check "1.1.0" ~}}
+{{~ version_check "1.2.0" ~}}
 <html>
 <body>
   <h1>{{ book.title }}</h1>
