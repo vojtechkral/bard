@@ -23,6 +23,11 @@ To migrate a PDF `[[output]]`:
 - Remove the `process` field. If you used the `process` field for a purpose other than TeX invocation, see [Scripts](./scripts.md).
 - Optionally specify [ToC sorting](./tex.md#toc-sorting-configuration).
 
+### Fonts
+
+The new default template now relies on the `output/fonts` directory containing font files. To obtain it, navigate to an empty directory and call `bard init`.
+Then you can copy the `output/fonts` directory to your existing project's `output` directory.
+
 ### Hovorka
 
 The Hovorka format must now be explicitly defined to be distinguished from the general XML AST output.
