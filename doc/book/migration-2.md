@@ -1,6 +1,6 @@
 # Migration to version 2
 
-There were a few incompatible changes in Bard v 2.x. To convert your project to Bard 2.x, perform the following updates:
+There were a few incompatible changes in Bard 2.x. To convert your project to Bard 2.x, perform the following updates:
 
 ### `bard.toml` version
 
@@ -37,3 +37,11 @@ format = "hovorka"
 If you are using the default template without changes, it is recommended to delete it as Bard now, by default, uses built-in templates without saving them to disk.
 
 Templates have been changed significantly between the two major versions. If you used customizations, please refer to [Templates - upgrading](./templates.md#upgrading). The default templates can also be obtained by specifying a non-existing file in the output's `template` field - the file will be generated with default template content.
+
+### Backmatter
+
+The `book.backmatter` option in `bard.toml` is no longer recognized by the default templates. To customize backmatter, modify the relevant template itself.
+
+### HTML file extensions
+
+Alternative HTML extension &ndash; `.htm`, `.xhtml`, and `.xht` &ndash; are no longer auto-detected, it is recommended to use `.html`.
