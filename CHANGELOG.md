@@ -1,3 +1,7 @@
+## 2.0.1 `2023-07-01`
+
+Fix font size variable in the default PDF template.
+
 ## 2.0.0 `2023-07-01`
 
 This is a new major version release of bard. This release also comes with new documentation &ndash; [a book](https://bard.md/book).

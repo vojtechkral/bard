@@ -1044,7 +1044,7 @@
   },
   "program": {
     "name": "bard",
-    "version": "2.0.0-alpha3",
+    "version": "2.0.1",
     "description": "Creates PDF and HTML songbooks out of easy-to-write Markdown sources.",
     "homepage": "https://bard.md",
     "authors": "Vojtech Kral and contributors"

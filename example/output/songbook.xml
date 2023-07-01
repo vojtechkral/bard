@@ -28,7 +28,7 @@
   <!-- Software metadata -->
   <program>
     <name>bard</name>
-    <version>2.0.0-alpha3</version>
+    <version>2.0.1</version>
     <description>Creates PDF and HTML songbooks out of easy-to-write Markdown sources.</description>
     <homepage>https://bard.md</homepage>
     <authors>Vojtech Kral and contributors</authors>
