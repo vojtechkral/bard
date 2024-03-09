@@ -8,7 +8,7 @@ once the PDF file is generated, it no longer needs to refer to the `fonts` direc
 The HTML output, on the other hand, links to these files, so it is needed to distribute the `fonts` directory along with the HTML file,
 such as when uploading it onto the web.
 
-By default, the _Droid Sans_ font is used to display all text except chords and _Noto Sans_ is used to display chords so that they are more distinguished from lyrics.
+By default, the _Droid Serif_ font is used to display all text except chords and _Noto Sans_ is used to display chords so that they are more distinguished from lyrics.
 
 ### Using sans font everywhere
 
