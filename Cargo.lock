@@ -172,7 +172,7 @@ dependencies = [
  "image",
  "indoc",
  "lexical-sort",
- "nix 0.26.4",
+ "nix 0.28.0",
  "notify 6.1.1",
  "once_cell",
  "parking_lot",
